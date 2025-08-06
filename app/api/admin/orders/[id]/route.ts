@@ -1,5 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createSupabaseAdmin } from "@/lib/supabase"
+import { emailService } from "@/lib/email-service"
+import { zapierWebhook } from "@/lib/zapier-webhook-core"
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {

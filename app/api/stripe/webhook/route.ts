@@ -226,9 +226,9 @@ export async function POST(request: NextRequest) {
 
           const updateResult = await updateOrderWithRetry(supabaseAdmin, order.id, updateData)
 
-          if (!updateResult.success) {
-            const errorMessage = `Failed to update order ${order.order_number} after ${updateResult.attempt} attempts`
-            console.error(`❌ ${errorMessage}:`, updateResult.error)
+          if (!updateResult?.success) {
+            const errorMessage = `Failed to update order ${order.order_number} after ${updateResult?.attempt || 'multiple'} attempts`
+            console.error(`❌ ${errorMessage}:`, updateResult?.error || 'Unknown error')
 
             await logWebhookEvent(
               supabaseAdmin,
@@ -240,8 +240,8 @@ export async function POST(request: NextRequest) {
               {
                 session_id: session.id,
                 order_id: order.id,
-                update_error: updateResult.error,
-                attempts: updateResult.attempt,
+                update_error: updateResult?.error || 'Unknown error',
+                attempts: updateResult?.attempt || 0,
               },
             )
 
@@ -256,7 +256,7 @@ export async function POST(request: NextRequest) {
             )
           }
 
-          console.log(`✅ Order ${order.order_number} marked as paid (attempt ${updateResult.attempt})`)
+          console.log(`✅ Order ${order.order_number} marked as paid (attempt ${updateResult?.attempt || 'successful'})`)
 
           // Add timeline event
           try {
@@ -271,7 +271,7 @@ export async function POST(request: NextRequest) {
                 currency: session.currency,
                 payment_method_types: session.payment_method_types,
                 lookup_method: lookupMethod,
-                update_attempts: updateResult.attempt,
+                update_attempts: updateResult.attempt ?? 1, // Fix TypeScript error
               },
               created_by: "stripe_webhook",
               created_at: new Date().toISOString(),
@@ -331,12 +331,6 @@ export async function POST(request: NextRequest) {
           console.log(`📧 Sending order receipt email for order ${order.order_number}`)
           try {
             const customerName = order.customer_name || 'Customer';
-            const paymentDetails = {
-              method: "stripe_checkout",
-              amount_paid: session.amount_total || 0,
-              paid_at: new Date().toISOString(),
-              stripe_payment_intent_id: session.payment_intent as string
-            };
             
             // Get order items for email
             let orderItems = [];
@@ -347,32 +341,45 @@ export async function POST(request: NextRequest) {
                   : Array.isArray(order.order_items)
                     ? order.order_items
                     : [];
-              } catch (error) {
-                console.error("Error parsing order items for email:", error);
+              } catch (parseError) {
+                console.warn("Warning: Error parsing order items for email:", parseError instanceof Error ? parseError.message : String(parseError));
+                // Continue with empty order items rather than failing
               }
             }
             
-            const emailResult = await emailService.sendOrderReceiptEmail(
-              order.customer_email,
-              order.order_number,
-              customerName,
-              {
-                total_amount: session.amount_total ? session.amount_total / 100 : 0, // Convert from cents
-                order_items: orderItems,
-                order_id: order.id,
-                order_number: order.order_number
-              },
-              paymentDetails
-            );
+            try {
+              const emailResult = await emailService.sendOrderReceiptEmail(
+                order.customer_email,
+                order.order_number,
+                customerName,
+                {
+                  total_amount: session.amount_total ? session.amount_total / 100 : 0, // Convert from cents
+                  order_items: orderItems,
+                  order_id: order.id,
+                  order_number: order.order_number
+                },
+                {
+                  method: "stripe_checkout",
+                  amount_paid: session.amount_total || 0,
+                  paid_at: new Date().toISOString(),
+                  stripe_payment_intent_id: (session as any).payment_intent as string
+                }
+              );
 
-            if (!emailResult.success) {
-              console.error("WARNING: Order receipt email failed:", emailResult.error);
+              if (!emailResult.success) {
+                console.warn("Warning: Order receipt email skipped or failed:", emailResult.error);
+                // Don't fail webhook processing if email fails
+              } else {
+                console.log("✅ Order receipt email sent successfully");
+              }
+            } catch (emailServiceError) {
+              // Handle any unexpected errors from email service
+              console.warn("Warning: Email service error:", emailServiceError instanceof Error ? emailServiceError.message : String(emailServiceError));
               // Don't fail webhook processing if email fails
-            } else {
-              console.log("✅ Order receipt email sent successfully");
             }
           } catch (emailError) {
-            console.error("WARNING: Failed to send order receipt email:", emailError);
+            // Outer catch block to handle any other preparation errors
+            console.warn("Warning: Order receipt email preparation failed:", emailError instanceof Error ? emailError.message : String(emailError));
             // Don't fail webhook processing if email fails
           }
 
@@ -486,9 +493,9 @@ export async function POST(request: NextRequest) {
 
         const updateResult = await updateOrderWithRetry(supabaseAdmin, order.id, updateData)
 
-        if (!updateResult.success) {
+        if (!updateResult?.success) {
           const errorMessage = `Failed to update order ${order.order_number} for invoice payment`
-          console.error(`❌ ${errorMessage}:`, updateResult.error)
+          console.error(`❌ ${errorMessage}:`, updateResult?.error || 'Unknown error')
 
           await logWebhookEvent(
             supabaseAdmin,
@@ -500,7 +507,7 @@ export async function POST(request: NextRequest) {
             {
               invoice_id: invoice.id,
               order_id: order.id,
-              update_error: updateResult.error,
+              update_error: updateResult?.error || 'Unknown error',
             },
           )
 
@@ -527,7 +534,7 @@ export async function POST(request: NextRequest) {
                 stripe_invoice_id: invoice.id,
                 amount_paid: invoice.amount_paid,
                 currency: invoice.currency,
-                payment_intent: invoice.payment_intent,
+                payment_intent: (invoice as any).payment_intent,
                 customer_email: invoice.customer_email,
               },
               created_by: "stripe_webhook",
