@@ -3,6 +3,7 @@ import { headers } from "next/headers"
 import { getStripe } from "@/lib/stripe"
 import { createSupabaseAdmin } from "@/lib/supabase"
 import { zapierWebhook } from "@/lib/zapier-webhook-core"
+import { emailService } from "@/lib/email-service"
 import type Stripe from "stripe"
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
@@ -324,6 +325,55 @@ export async function POST(request: NextRequest) {
             }
           } catch (webhookError) {
             console.error("WARNING: Failed to trigger order completed webhook:", webhookError)
+          }
+          
+          // Send order receipt email
+          console.log(`📧 Sending order receipt email for order ${order.order_number}`)
+          try {
+            const customerName = order.customer_name || 'Customer';
+            const paymentDetails = {
+              method: "stripe_checkout",
+              amount_paid: session.amount_total || 0,
+              paid_at: new Date().toISOString(),
+              stripe_payment_intent_id: session.payment_intent as string
+            };
+            
+            // Get order items for email
+            let orderItems = [];
+            if (order.order_items) {
+              try {
+                orderItems = typeof order.order_items === "string"
+                  ? JSON.parse(order.order_items)
+                  : Array.isArray(order.order_items)
+                    ? order.order_items
+                    : [];
+              } catch (error) {
+                console.error("Error parsing order items for email:", error);
+              }
+            }
+            
+            const emailResult = await emailService.sendOrderReceiptEmail(
+              order.customer_email,
+              order.order_number,
+              customerName,
+              {
+                total_amount: session.amount_total ? session.amount_total / 100 : 0, // Convert from cents
+                order_items: orderItems,
+                order_id: order.id,
+                order_number: order.order_number
+              },
+              paymentDetails
+            );
+
+            if (!emailResult.success) {
+              console.error("WARNING: Order receipt email failed:", emailResult.error);
+              // Don't fail webhook processing if email fails
+            } else {
+              console.log("✅ Order receipt email sent successfully");
+            }
+          } catch (emailError) {
+            console.error("WARNING: Failed to send order receipt email:", emailError);
+            // Don't fail webhook processing if email fails
           }
 
           await logWebhookEvent(

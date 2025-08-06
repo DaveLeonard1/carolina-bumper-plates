@@ -1,5 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createSupabaseAdmin } from "@/lib/supabase"
+import { emailService } from "@/lib/email-service"
+import { zapierWebhook } from "@/lib/zapier-webhook-core"
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -113,9 +115,10 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       return NextResponse.json({ success: false, error: "Order not found" }, { status: 404 })
     }
 
-    // Prevent changes to paid orders (except for adding notes)
-    if (currentOrder.payment_status === "paid" && action !== "add_note") {
-      return NextResponse.json({ success: false, error: "Paid orders cannot be modified" }, { status: 400 })
+    // Prevent changes to paid orders (except for allowed actions)
+    const allowedActionsForPaidOrders = ["add_note", "mark_fulfilled", "update_tracking"]
+    if (currentOrder.payment_status === "paid" && !allowedActionsForPaidOrders.includes(action)) {
+      return NextResponse.json({ success: false, error: "Paid orders can only be fulfilled, have tracking updated, or have notes added" }, { status: 400 })
     }
 
     let updateData: any = {}
@@ -126,6 +129,86 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     }
 
     switch (action) {
+      case "mark_fulfilled":
+        // Only allow paid orders to be fulfilled
+        if (currentOrder.payment_status !== "paid") {
+          return NextResponse.json(
+            { success: false, error: "Only paid orders can be marked as fulfilled" },
+            { status: 400 }
+          )
+        }
+        
+        updateData = {
+          status: "fulfilled",
+          fulfilled_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }
+        timelineEvent = {
+          ...timelineEvent,
+          event_type: "order_fulfilled",
+          event_description: "Order marked as fulfilled",
+          event_data: {
+            previous_status: currentOrder.status,
+            fulfillment_notes: data?.notes || ""
+          },
+        }
+        
+        // After update, send fulfillment email and trigger webhook
+        setTimeout(async () => {
+          try {
+            // Get updated order with all details for email
+            const { data: updatedOrder, error: orderError } = await supabaseAdmin
+              .from("orders")
+              .select(`*, customers(*)`) 
+              .eq("id", orderId)
+              .single()
+            
+            if (orderError || !updatedOrder) {
+              console.error("Error fetching updated order for fulfillment email:", orderError)
+              return
+            }
+            
+            // Parse order items for the email
+            let orderItems = []
+            if (updatedOrder.order_items) {
+              try {
+                orderItems = typeof updatedOrder.order_items === "string" 
+                  ? JSON.parse(updatedOrder.order_items)
+                  : updatedOrder.order_items
+              } catch (e) {
+                console.error("Error parsing order items for fulfillment email:", e)
+              }
+            }
+            
+            // Send email notification
+            await emailService.sendFulfillmentEmail(
+              updatedOrder.customer_email,
+              updatedOrder.order_number,
+              updatedOrder.customer_name || "Valued Customer",
+              orderItems,
+              updatedOrder.total_amount || 0
+            )
+            
+            // Trigger webhook for integrations
+            await zapierWebhook.triggerOrderCompletedWebhook(
+              orderId,
+              {
+                method: "fulfilled",
+                amount_paid: updatedOrder.total_amount || 0,
+                paid_at: updatedOrder.paid_at || new Date().toISOString(),
+              },
+              { source: "admin", trigger: "order_fulfilled" }
+            )
+            
+            console.log(`✅ Fulfillment email sent for order #${updatedOrder.order_number}`)
+          } catch (error) {
+            console.error("Error sending fulfillment email:", error)
+            // Non-blocking - we don't fail the request if email fails
+          }
+        }, 100) // Slight delay to ensure DB update completes first
+        
+        break
+        
       case "send_invoice":
         return NextResponse.json(
           { success: false, error: "Please use the Stripe invoice API endpoint" },

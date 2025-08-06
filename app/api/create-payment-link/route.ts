@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { createSupabaseAdmin } from "@/lib/supabase"
 import { getStripe } from "@/lib/stripe"
 import { zapierWebhook } from "@/lib/zapier-webhook-core"
+import { emailService } from "@/lib/email-service"
 
 export async function POST(request: NextRequest) {
   console.log("=== PAYMENT LINK CREATION START ===")
@@ -384,6 +385,37 @@ export async function POST(request: NextRequest) {
       } catch (webhookError) {
         console.error("WARNING: Failed to trigger payment link webhook:", webhookError)
         // Don't fail the payment link creation if webhook fails
+      }
+
+      // 13. Send payment link email
+      console.log("16. Sending payment link email...")
+      try {
+        const customerName = 
+          customerData.first_name && customerData.last_name 
+            ? `${customerData.first_name} ${customerData.last_name}` 
+            : order.customer_name || 'Customer';
+
+        const emailResult = await emailService.sendPaymentLinkEmail(
+          customerData.email,
+          order.order_number,
+          customerName,
+          session.url!,
+          {
+            total_amount: order.total_amount,
+            order_items: orderItems,
+            order_number: order.order_number
+          }
+        );
+
+        if (!emailResult.success) {
+          console.error("WARNING: Payment link email failed:", emailResult.error);
+          // Log email failure but don't fail payment link creation
+        } else {
+          console.log("✅ Payment link email sent successfully");
+        }
+      } catch (emailError) {
+        console.error("WARNING: Failed to send payment link email:", emailError);
+        // Don't fail the payment link creation if email fails
       }
 
       console.log("=== PAYMENT LINK CREATION SUCCESS ===")
