@@ -6,20 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import {
-  ArrowLeft,
-  Package,
-  User,
-  MapPin,
-  Phone,
-  Mail,
-  Calendar,
-  DollarSign,
-  Scale,
-  AlertCircle,
-  RefreshCw,
-  CheckCircle,
-} from "lucide-react"
+import { ArrowLeft, Package, User, MapPin, Phone, Mail, Calendar, DollarSign, Scale, AlertCircle, RefreshCw, CheckCircle } from 'lucide-react'
 import { colorUsage } from "@/lib/colors"
 import { OrderTimeline } from "@/components/admin/order-timeline"
 import { EnhancedOrderActions } from "@/components/admin/enhanced-order-actions"
@@ -29,7 +16,7 @@ interface OrderItem {
   quantity: number
   weight: number
   price: number
-  image_url?: string // Add this line
+  image_url?: string
 }
 
 interface Customer {
@@ -102,6 +89,24 @@ export default function AdminOrderDetailPage() {
     setError("")
     try {
       const response = await fetch(`/api/admin/orders/${params.id}`)
+      
+      // Check if response is ok before trying to parse JSON
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error("API response error:", response.status, errorText)
+        setError(`Failed to load order details (${response.status})`)
+        return
+      }
+
+      // Check content type to ensure it's JSON
+      const contentType = response.headers.get("content-type")
+      if (!contentType || !contentType.includes("application/json")) {
+        const responseText = await response.text()
+        console.error("Non-JSON response:", responseText)
+        setError("Server returned invalid response format")
+        return
+      }
+
       const result = await response.json()
 
       if (result.success) {
@@ -111,7 +116,11 @@ export default function AdminOrderDetailPage() {
       }
     } catch (error) {
       console.error("Order detail fetch error:", error)
-      setError("Failed to load order details")
+      if (error instanceof SyntaxError) {
+        setError("Server returned invalid data format")
+      } else {
+        setError("Failed to connect to server")
+      }
     } finally {
       setLoading(false)
     }
@@ -148,7 +157,11 @@ export default function AdminOrderDetailPage() {
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return "Not set"
-    return new Date(dateString).toLocaleString()
+    try {
+      return new Date(dateString).toLocaleString()
+    } catch (e) {
+      return "Invalid date"
+    }
   }
 
   if (loading) {
@@ -235,7 +248,7 @@ export default function AdminOrderDetailPage() {
         </Button>
       </div>
 
-      {/* Payment Confirmation Alert - Add this after the header div */}
+      {/* Payment Confirmation Alert */}
       {order.payment_status === "paid" && (
         <Card className="border-green-200 bg-green-50">
           <CardContent className="p-4">
@@ -352,7 +365,7 @@ export default function AdminOrderDetailPage() {
                           <img
                             src={
                               item.image_url ||
-                              `/placeholder.svg?height=48&width=48&query=${item.weight || "/placeholder.svg"}lb+bumper+plate`
+                              `/placeholder.svg?height=48&width=48&query=${item.weight || "unknown"}lb+bumper+plate`
                             }
                             alt={`${item.weight}lb Bumper Plate`}
                             className="w-full h-full object-cover"
@@ -400,7 +413,7 @@ export default function AdminOrderDetailPage() {
           </Card>
 
           {/* Order Timeline */}
-          <OrderTimeline timeline={order.timeline} />
+          <OrderTimeline timeline={order.timeline || []} />
         </div>
 
         {/* Sidebar - Right Column */}
@@ -499,7 +512,7 @@ export default function AdminOrderDetailPage() {
                 </>
               )}
 
-              {/* Add this section in the Order Summary card after the existing content */}
+              {/* Payment Information */}
               {order.payment_status === "paid" && (
                 <>
                   <Separator />
