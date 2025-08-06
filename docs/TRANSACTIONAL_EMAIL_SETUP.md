@@ -34,11 +34,11 @@ Emails are sent at the following integration points in the codebase:
 
 Add the following environment variables to your `.env` file and deployment environment:
 
-```
+\`\`\`
 MAILGUN_API_KEY=your_mailgun_api_key
 MAILGUN_DOMAIN=your_mailgun_domain.com
 MAILGUN_FROM_EMAIL=orders@carolinabumperplates.com
-```
+\`\`\`
 
 ### Email Template Setup in Mailgun
 
@@ -53,7 +53,7 @@ MAILGUN_FROM_EMAIL=orders@carolinabumperplates.com
 **Subject**: Thank you for your Carolina Bumper Plates preorder!
 
 **Example Content**:
-```html
+\`\`\`html
 <h1>Thank you for your preorder!</h1>
 <p>Dear {{customer.name}},</p>
 <p>We've received your preorder for Carolina Bumper Plates. Your order number is <strong>{{order.number}}</strong>.</p>
@@ -65,7 +65,7 @@ MAILGUN_FROM_EMAIL=orders@carolinabumperplates.com
 </ul>
 <p>We'll send you a payment link shortly to complete your purchase.</p>
 <p>Thank you for choosing Carolina Bumper Plates!</p>
-```
+\`\`\`
 
 #### 2. Payment Link Template
 
@@ -74,7 +74,7 @@ MAILGUN_FROM_EMAIL=orders@carolinabumperplates.com
 **Subject**: Complete your Carolina Bumper Plates order
 
 **Example Content**:
-```html
+\`\`\`html
 <h1>Complete Your Order</h1>
 <p>Dear {{customer.name}},</p>
 <p>Your Carolina Bumper Plates order ({{order.number}}) is ready for payment.</p>
@@ -86,7 +86,7 @@ MAILGUN_FROM_EMAIL=orders@carolinabumperplates.com
   <li>Estimated Shipping: {{order.estimated_ship_date}}</li>
 </ul>
 <p>If you have any questions, please reply to this email.</p>
-```
+\`\`\`
 
 #### 3. Order Receipt Template
 
@@ -95,7 +95,7 @@ MAILGUN_FROM_EMAIL=orders@carolinabumperplates.com
 **Subject**: Your Carolina Bumper Plates order receipt
 
 **Example Content**:
-```html
+\`\`\`html
 <h1>Thank You For Your Order!</h1>
 <p>Dear {{customer.name}},</p>
 <p>Your payment for Carolina Bumper Plates order <strong>{{order.number}}</strong> has been successfully processed.</p>
@@ -122,7 +122,7 @@ MAILGUN_FROM_EMAIL=orders@carolinabumperplates.com
 </table>
 <p>We're preparing your order for shipping. You'll receive a shipping confirmation when your order is on its way.</p>
 <p>Thank you for choosing Carolina Bumper Plates!</p>
-```
+\`\`\`
 
 ### Testing Email Templates
 
@@ -143,7 +143,7 @@ To monitor email delivery:
 **Template Name**: `order-fulfilled`  
 **Subject**: Your Order #{{order_number}} Has Been Fulfilled - Carolina Bumper Plates
 
-```html
+\`\`\`html
 <h1>Your Order Has Been Fulfilled!</h1>
 <p>Hello {{customer_name}},</p>
 <p>Great news! Your order #{{order_number}} has been fulfilled and is being prepared for shipping.</p>
@@ -169,7 +169,7 @@ To monitor email delivery:
 <p>If you have any questions about your order, please don't hesitate to contact us.</p>
 
 <p>Thank you for choosing Carolina Bumper Plates!</p>
-```
+\`\`\`
 
 ## Fallback Mechanism
 
