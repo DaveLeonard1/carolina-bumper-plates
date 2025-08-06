@@ -16,6 +16,9 @@ export async function getStripeConfig(): Promise<StripeConfig> {
 
   // Get mode from database settings
   const mode = await getStripeModeFromDatabase()
+  
+  // Debug: Log which mode we're using
+  console.log(`🔧 Stripe mode: ${mode}`)
 
   const config: StripeConfig = {
     mode,
@@ -32,6 +35,15 @@ export async function getStripeConfig(): Promise<StripeConfig> {
         ? process.env.STRIPE_LIVE_WEBHOOK_SECRET || process.env.STRIPE_WEBHOOK_SECRET || ""
         : process.env.STRIPE_TEST_WEBHOOK_SECRET || "",
   }
+  
+  // Debug: Log whether keys are found (without exposing the actual keys)
+  console.log(`🔧 Stripe config check:`, {
+    mode,
+    hasPublishableKey: !!config.publishableKey,
+    hasSecretKey: !!config.secretKey,
+    hasWebhookSecret: !!config.webhookSecret,
+    secretKeyLength: config.secretKey?.length || 0
+  })
 
   // Cache the config
   cachedConfig = config

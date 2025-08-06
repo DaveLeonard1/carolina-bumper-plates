@@ -1,6 +1,3 @@
-import formData from 'form-data';
-import Mailgun from 'mailgun.js';
-
 /**
  * Email service powered by Mailgun
  * Used for sending transactional emails for order events
@@ -11,6 +8,7 @@ export class EmailService {
   private fromEmail: string;
   private isConfigured: boolean = false;
   private initialized: boolean = false;
+  private initError: string | null = null;
 
   constructor() {
     // Initialize but don't connect until needed
@@ -29,15 +27,26 @@ export class EmailService {
     
     const apiKey = process.env.MAILGUN_API_KEY;
     if (!apiKey || !this.domain) {
-      console.error("📧 Mailgun not configured properly. Check MAILGUN_API_KEY and MAILGUN_DOMAIN environment variables.");
+      console.warn("📧 Mailgun not configured. Check MAILGUN_API_KEY and MAILGUN_DOMAIN environment variables.");
       this.isConfigured = false;
       return false;
     }
 
-    const mailgun = new Mailgun(formData);
-    this.mailgun = mailgun.client({ username: 'api', key: apiKey });
-    this.isConfigured = true;
-    return true;
+    try {
+      // Lazy load dependencies to avoid import errors
+      const formData = require('form-data');
+      const Mailgun = require('mailgun.js');
+      
+      const mailgun = new Mailgun(formData);
+      this.mailgun = mailgun.client({ username: 'api', key: apiKey });
+      this.isConfigured = true;
+      return true;
+    } catch (error) {
+      console.warn("📧 Failed to initialize Mailgun client:", error instanceof Error ? error.message : String(error));
+      this.initError = error instanceof Error ? error.message : String(error);
+      this.isConfigured = false;
+      return false;
+    }
   }
 
   /**

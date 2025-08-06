@@ -8,7 +8,26 @@ export async function POST(request: NextRequest) {
   console.log("=== PAYMENT LINK CREATION START ===")
 
   try {
-    const { orderId } = await request.json()
+    // Parse request body with error handling
+    let orderId: any
+    try {
+      const body = await request.json()
+      orderId = body.orderId
+    } catch (parseError) {
+      console.error("ERROR: Failed to parse request body:", parseError)
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Invalid request body",
+          debug: {
+            message: "Failed to parse JSON from request body",
+            error: parseError instanceof Error ? parseError.message : String(parseError)
+          }
+        },
+        { status: 400 }
+      )
+    }
+    
     console.log("1. Received orderId:", orderId)
 
     if (!orderId) {
@@ -17,7 +36,25 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = createSupabaseAdmin()
-    const stripe = await getStripe()
+    
+    // Initialize Stripe with error handling for missing env vars
+    let stripe: any
+    try {
+      stripe = await getStripe()
+    } catch (stripeInitError) {
+      console.error("ERROR: Failed to initialize Stripe:", stripeInitError)
+      return NextResponse.json(
+        {
+          success: false,
+          error: stripeInitError instanceof Error ? stripeInitError.message : "Failed to initialize Stripe. Please check environment variables.",
+          debug: {
+            message: "Stripe initialization failed. Ensure STRIPE_TEST_SECRET_KEY or STRIPE_LIVE_SECRET_KEY is set.",
+            error: stripeInitError instanceof Error ? stripeInitError.message : String(stripeInitError)
+          }
+        },
+        { status: 500 }
+      )
+    }
 
     // 1. Check if order exists and get current status
     console.log("2. Checking order status and payment link existence...")
