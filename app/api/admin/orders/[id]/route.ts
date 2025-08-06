@@ -5,8 +5,17 @@ import { zapierWebhook } from "@/lib/zapier-webhook-core"
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
+    // Create Supabase admin client - guard against initialization errors
     const supabaseAdmin = createSupabaseAdmin()
+    if (!supabaseAdmin) {
+      console.error("Failed to initialize Supabase admin client")
+      return NextResponse.json({ success: false, error: "Database connection error" }, { status: 500 })
+    }
+    
     const orderId = params.id
+    if (!orderId) {
+      return NextResponse.json({ success: false, error: "Missing order ID" }, { status: 400 })
+    }
 
     // Get order details
     const { data: order, error: orderError } = await supabaseAdmin.from("orders").select("*").eq("id", orderId).single()
@@ -21,7 +30,12 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     if (Array.isArray(enrichedOrderItems) && enrichedOrderItems.length > 0) {
       try {
         // Get unique weights from order items
-        const weights = [...new Set(enrichedOrderItems.map((item) => item.weight))]
+        const weights = [...new Set(enrichedOrderItems.map((item) => item?.weight).filter(Boolean))]
+
+        if (weights.length === 0) {
+          console.log("No valid weights found in order items")
+          return
+        }
 
         // Fetch products with matching weights
         const { data: products, error: productsError } = await supabaseAdmin
@@ -82,18 +96,34 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       }
     }
 
+    // Parse order items if needed
+    let orderItemsToReturn = enrichedOrderItems
+    if (typeof order.order_items === 'string') {
+      try {
+        // Try to parse if it's a string
+        orderItemsToReturn = JSON.parse(order.order_items)
+      } catch (parseError) {
+        console.error("Failed to parse order items:", parseError)
+        // Keep the original enriched items if parsing fails
+      }
+    }
+    
     return NextResponse.json({
       success: true,
       order: {
         ...order,
-        order_items: enrichedOrderItems, // Use enriched items
+        order_items: orderItemsToReturn, // Use parsed or enriched items
         customer,
         timeline: timeline || [],
       },
     })
   } catch (error) {
     console.error("Order detail fetch error:", error)
-    return NextResponse.json({ success: false, error: "Failed to fetch order details" }, { status: 500 })
+    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred"
+    return NextResponse.json({ 
+      success: false, 
+      error: `Failed to fetch order details: ${errorMessage}` 
+    }, { status: 500 })
   }
 }
 
