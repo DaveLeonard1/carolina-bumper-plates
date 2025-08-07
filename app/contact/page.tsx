@@ -1,10 +1,22 @@
+"use client"
+
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Dumbbell, Mail, Phone, MapPin } from "lucide-react"
 import { colorUsage } from "@/lib/colors"
 import Link from "next/link"
+import { useBusinessSettings } from "@/hooks/use-options"
 
 export default function ContactPage() {
+  // Use our centralized hook to get business settings
+  const {
+    businessName,
+    businessEmail,
+    businessPhone,
+    businessAddress,
+    website
+  } = useBusinessSettings()
+  
   return (
     <div className="min-h-screen" style={{ backgroundColor: colorUsage.backgroundLight }}>
       {/* Header */}
@@ -15,7 +27,7 @@ export default function ContactPage() {
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Dumbbell className="h-8 w-8" style={{ color: colorUsage.textPrimary }} />
-            <span className="text-xl font-bold">CAROLINA BUMPER PLATES</span>
+            <span className="text-xl font-bold">{businessName.toUpperCase()}</span>
           </div>
           <Link href="/">
             <Button variant="outline" className="font-semibold">
@@ -50,21 +62,11 @@ export default function ContactPage() {
                       <p style={{ color: colorUsage.textMuted }}>
                         General inquiries:{" "}
                         <a
-                          href="mailto:info@carolinabumperplates.com"
+                          href={`mailto:${businessEmail}`}
                           className="font-semibold"
                           style={{ color: colorUsage.textOnLight }}
                         >
-                          info@carolinabumperplates.com
-                        </a>
-                      </p>
-                      <p style={{ color: colorUsage.textMuted }}>
-                        Orders:{" "}
-                        <a
-                          href="mailto:orders@carolinabumperplates.com"
-                          className="font-semibold"
-                          style={{ color: colorUsage.textOnLight }}
-                        >
-                          orders@carolinabumperplates.com
+                          {businessEmail}
                         </a>
                       </p>
                     </div>
@@ -75,8 +77,8 @@ export default function ContactPage() {
                     <div>
                       <h3 className="font-semibold mb-1">Phone</h3>
                       <p style={{ color: colorUsage.textMuted }}>
-                        <a href="tel:+1-555-PLATES" className="font-semibold" style={{ color: colorUsage.textOnLight }}>
-                          (607) 329-5976
+                        <a href={`tel:${businessPhone}`} className="font-semibold" style={{ color: colorUsage.textOnLight }}>
+                          {businessPhone}
                         </a>
                       </p>
                       <p className="text-sm" style={{ color: colorUsage.textMuted }}>
@@ -88,9 +90,9 @@ export default function ContactPage() {
                   <div className="flex items-start gap-4">
                     <MapPin className="h-6 w-6 mt-1" style={{ color: colorUsage.textOnLight }} />
                     <div>
-                      <h3 className="font-semibold mb-1">Service Area</h3>
-                      <p style={{ color: colorUsage.textMuted }}>North Carolina and surrounding areas</p>
-                      
+                      <h3 className="font-semibold mb-1">Location</h3>
+                      <p style={{ color: colorUsage.textMuted }}>{businessAddress}</p>
+                      <p style={{ color: colorUsage.textMuted }}>Service Area: North Carolina and surrounding areas</p>
                     </div>
                   </div>
                 </div>

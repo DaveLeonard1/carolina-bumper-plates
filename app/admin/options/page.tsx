@@ -12,6 +12,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Settings, Save, Eye, EyeOff, Plus, Trash2, RefreshCw } from 'lucide-react'
 import { colorUsage } from "@/lib/colors"
 
+// Import our custom hooks for options management
+import { useOptions, useBusinessSettings, useEmailSettings, useSiteOptions } from "@/hooks/use-options"
+
 interface Option {
   id: number
   option_name: string
@@ -25,12 +28,32 @@ interface Option {
 }
 
 export default function AdminOptionsPage() {
-  const [options, setOptions] = useState<Option[]>([])
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [showSensitive, setShowSensitive] = useState(false)
-  const [editedOptions, setEditedOptions] = useState<Record<string, any>>({})
+  // Use our centralized options hook instead of direct API fetch
   const [activeCategory, setActiveCategory] = useState("business")
+  const [showSensitive, setShowSensitive] = useState(false)
+  const [saving, setSaving] = useState(false)
+  
+  // Use the useOptions hook with category filter
+  const {
+    options: optionsData,
+    rawOptions,
+    loading,
+    error,
+    updateOption,
+    updateOptions,
+    refreshOptions
+  } = useOptions(activeCategory, true)
+  
+  // Track edited options separate from the hook's state
+  const [editedOptions, setEditedOptions] = useState<Record<string, any>>({})
+  
+  // Keep editedOptions in sync with optionsData when options change
+  useEffect(() => {
+    // Initialize edited options with current values
+    if (Object.keys(optionsData).length > 0) {
+      setEditedOptions(optionsData)
+    }
+  }, [optionsData])
 
   const categories = [
     { id: "business", label: "Business", icon: "🏢" },
@@ -42,76 +65,27 @@ export default function AdminOptionsPage() {
     { id: "app", label: "Application", icon: "🚀" },
   ]
 
-  const fetchOptions = async () => {
-    try {
-      setLoading(true)
-      const response = await fetch(`/api/admin/options?include_sensitive=${showSensitive}`)
-      const data = await response.json()
-      
-      if (data.success) {
-        setOptions(data.options)
-        // Initialize edited options with current values
-        const edited: Record<string, any> = {}
-        data.options.forEach((option: Option) => {
-          edited[option.option_name] = parseOptionValue(option.option_value, option.option_type)
-        })
-        setEditedOptions(edited)
-      }
-    } catch (error) {
-      console.error("Failed to fetch options:", error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const parseOptionValue = (value: string | null, type: string): any => {
-    if (value === null) return ""
-    
-    switch (type) {
-      case "boolean":
-        return value.toLowerCase() === "true"
-      case "number":
-        return parseInt(value, 10) || 0
-      case "decimal":
-        return parseFloat(value) || 0
-      case "json":
-        try {
-          return JSON.parse(value)
-        } catch {
-          return value
-        }
-      default:
-        return value
-    }
-  }
+  // No need for a separate fetchOptions function as our hook handles this
+  
+  // Refresh options when showSensitive changes
+  useEffect(() => {
+    refreshOptions()
+  }, [showSensitive, refreshOptions])
 
   const handleSave = async () => {
     try {
       setSaving(true)
       
-      // Prepare options for update
-      const updates = Object.entries(editedOptions).map(([name, value]) => ({
-        option_name: name,
-        option_value: value
-      }))
-
-      const response = await fetch("/api/admin/options", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ options: updates })
-      })
-
-      const data = await response.json()
+      // Use the updateOptions method from our hook to save all changes at once
+      await updateOptions(editedOptions)
       
-      if (data.success) {
-        alert("Options saved successfully!")
-        await fetchOptions() // Refresh the data
-      } else {
-        alert("Failed to save options: " + data.error)
-      }
+      // Refresh options to get the updated data
+      await refreshOptions()
+      
+      alert("Options saved successfully!")
     } catch (error) {
       console.error("Failed to save options:", error)
-      alert("Failed to save options")
+      alert(`Failed to save options: ${error instanceof Error ? error.message : "Unknown error"}`)
     } finally {
       setSaving(false)
     }
@@ -146,7 +120,7 @@ export default function AdminOptionsPage() {
         return (
           <div className="flex items-center space-x-2">
             <Switch
-              checked={value}
+              checked={!!value}
               onCheckedChange={(checked) => handleOptionChange(option.option_name, checked)}
             />
             <Label>{value ? "Enabled" : "Disabled"}</Label>
@@ -156,7 +130,7 @@ export default function AdminOptionsPage() {
       case "text":
         return (
           <Textarea
-            value={value}
+            value={value as string}
             onChange={(e) => handleOptionChange(option.option_name, e.target.value)}
             rows={3}
           />
@@ -168,7 +142,7 @@ export default function AdminOptionsPage() {
           <Input
             type="number"
             step={option.option_type === "decimal" ? "0.0001" : "1"}
-            value={value}
+            value={value as number}
             onChange={(e) => handleOptionChange(option.option_name, parseFloat(e.target.value) || 0)}
           />
         )
@@ -177,18 +151,18 @@ export default function AdminOptionsPage() {
         return (
           <Input
             type={option.option_type === "email" ? "email" : option.option_type === "url" ? "url" : "text"}
-            value={value}
+            value={value as string}
             onChange={(e) => handleOptionChange(option.option_name, e.target.value)}
           />
         )
     }
   }
 
-  const filteredOptions = options.filter(option => option.category === activeCategory)
+  // Filter the rawOptions by the currently active category
+  const filteredOptions = rawOptions.filter((option: Option) => option.category === activeCategory)
 
-  useEffect(() => {
-    fetchOptions()
-  }, [showSensitive])
+  // We already have the useEffect for refreshing options when showSensitive changes above,
+  // so this duplicate useEffect can be removed.
 
   if (loading) {
     return (
@@ -260,7 +234,7 @@ export default function AdminOptionsPage() {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <Label htmlFor={option.option_name} className="font-medium">
-                              {option.option_name.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())}
+                              {option.option_name.replace(/_/g, " ").replace(/\b\w/g, (l: string) => l.toUpperCase())}
                             </Label>
                             {option.is_sensitive && (
                               <Badge variant="outline" className="text-xs">
