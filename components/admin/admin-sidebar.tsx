@@ -1,73 +1,62 @@
-"use client";
+"use client"
 
-import React from 'react';
-import { Settings, Home, Users } from 'lucide-react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { LayoutDashboard, Package, Users, FileText, Settings, BarChart3, Zap, Activity, Webhook } from "lucide-react"
 import {
   Sidebar,
   SidebarContent,
-  SidebarHeader,
-  SidebarRail,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarMenu,
-  SidebarMenuItem,
   SidebarMenuButton,
-  SidebarSeparator
-} from "@/components/ui/sidebar";
+  SidebarMenuItem,
+} from "@/components/ui/sidebar"
 
-const AdminSidebar: React.FC = () => {
-  const pathname = usePathname();
-  
-  const navigationItems = [
-    {
-      title: "Dashboard",
-      href: "/admin/dashboard",
-      icon: Home,
-      description: "View admin dashboard"
-    },
-    {
-      title: "Users",
-      href: "/admin/users",
-      icon: Users,
-      description: "Manage users"
-    },
-    {
-      title: "Options",
-      href: "/admin/options",
-      icon: Settings,
-      description: "Manage configuration settings"
-    }
-  ];
+const navigation = [
+  { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
+  { name: "Orders", href: "/admin/orders", icon: FileText },
+  { name: "Customers", href: "/admin/customers", icon: Users },
+  { name: "Products", href: "/admin/products", icon: Package },
+  { name: "Stripe Products", href: "/admin/stripe-products", icon: Zap },
+  { name: "System Health", href: "/admin/system-health", icon: Activity },
+  { name: "Webhook Monitor", href: "/admin/webhook-monitor", icon: Webhook },
+  { name: "Reports", href: "/admin/reports", icon: BarChart3 },
+  { name: "Settings", href: "/admin/settings", icon: Settings },
+  { name: "Options", href: "/admin/options", icon: Settings },
+]
+
+const AdminSidebar = () => {
+  const pathname = usePathname()
 
   return (
     <Sidebar>
-      <SidebarHeader>
-        <Link href="/admin" className="flex items-center gap-2 px-2 py-1">
-          <span className="font-semibold">Admin Panel</span>
-        </Link>
-      </SidebarHeader>
-      <SidebarSeparator />
       <SidebarContent>
-        <SidebarMenu>
-          {navigationItems.map((item) => (
-            <SidebarMenuItem key={item.href}>
-              <SidebarMenuButton 
-                asChild 
-                isActive={pathname === item.href}
-              >
-                <Link href={item.href}>
-                  {item.icon && <item.icon className="h-4 w-4" />}
-                  <span>{item.title}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
-      </SidebarContent>
-      <SidebarRail />
-    </Sidebar>
-  );
-};
+        <SidebarGroup>
+          <SidebarGroupLabel>Carolina Bumper Plates Admin</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {navigation.map((item) => {
+                const isActive = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href))
 
-export default AdminSidebar;
+                return (
+                  <SidebarMenuItem key={item.name}>
+                    <SidebarMenuButton asChild isActive={isActive}>
+                      <Link href={item.href}>
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.name}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+    </Sidebar>
+  )
+}
+
+export default AdminSidebar
