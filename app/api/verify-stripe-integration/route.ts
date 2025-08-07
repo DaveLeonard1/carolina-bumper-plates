@@ -1,12 +1,25 @@
 import { NextResponse } from "next/server"
 import { getStripe } from "@/lib/stripe"
 import { createSupabaseAdmin } from "@/lib/supabase"
+import { getStripeConfig } from "@/lib/stripe-config"
+
+// Define types for the verification results
+interface VerificationResults {
+  timestamp: string
+  stripe_connection: boolean
+  webhook_secret: boolean
+  database_connection: boolean
+  recent_webhooks: any[]
+  recent_payments: any[]
+  configuration_issues: string[]
+  recommendations: string[]
+}
 
 export async function GET() {
   try {
     console.log("🔍 Verifying Stripe integration...")
 
-    const results = {
+    const results: VerificationResults = {
       timestamp: new Date().toISOString(),
       stripe_connection: false,
       webhook_secret: false,
@@ -29,13 +42,20 @@ export async function GET() {
     }
 
     // 2. Check webhook secret
-    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
-    if (webhookSecret) {
-      results.webhook_secret = true
-      console.log("✅ Webhook secret configured")
-    } else {
-      results.configuration_issues.push("STRIPE_WEBHOOK_SECRET environment variable not set")
-      console.error("❌ Webhook secret not configured")
+    try {
+      // Get webhook secret from centralized config
+      const { webhookSecret } = await getStripeConfig()
+      
+      if (webhookSecret) {
+        results.webhook_secret = true
+        console.log("✅ Webhook secret configured")
+      } else {
+        results.configuration_issues.push("Webhook secret not configured in options or environment variables")
+        console.error("❌ Webhook secret not configured")
+      }
+    } catch (error) {
+      results.configuration_issues.push("Webhook secret error: " + (error as Error).message)
+      console.error("❌ Webhook secret error:", error)
     }
 
     // 3. Test database connection
@@ -90,7 +110,7 @@ export async function GET() {
     }
 
     if (!results.webhook_secret) {
-      results.recommendations.push("Set STRIPE_WEBHOOK_SECRET in environment variables")
+      results.recommendations.push("Set webhook secret in environment variables or options table")
       results.recommendations.push("Configure webhook endpoint in Stripe Dashboard: /api/stripe/webhook")
     }
 

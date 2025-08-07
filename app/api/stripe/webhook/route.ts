@@ -4,9 +4,10 @@ import { getStripe } from "@/lib/stripe"
 import { createSupabaseAdmin } from "@/lib/supabase"
 import { zapierWebhook } from "@/lib/zapier-webhook-core"
 import { emailService } from "@/lib/email-service"
+import { getStripeConfig } from "@/lib/stripe-config"
 import type Stripe from "stripe"
 
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
+// webhookSecret will be retrieved from centralized config
 
 // Enhanced logging function
 async function logWebhookEvent(
@@ -105,8 +106,13 @@ async function updateOrderWithRetry(supabaseAdmin: any, orderId: number, updateD
 }
 
 export async function POST(request: NextRequest) {
-  if (!webhookSecret) {
-    console.error("STRIPE_WEBHOOK_SECRET is not set")
+  // Get webhook secret from centralized config
+  let webhookSecret: string;
+  try {
+    const config = await getStripeConfig()
+    webhookSecret = config.webhookSecret
+  } catch (error) {
+    console.error("Failed to get Stripe webhook secret:", error)
     return NextResponse.json({ error: "Webhook secret not configured" }, { status: 500 })
   }
 
