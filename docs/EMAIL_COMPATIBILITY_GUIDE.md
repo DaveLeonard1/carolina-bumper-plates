@@ -56,11 +56,11 @@ During development (v0):
 Before moving to production:
 
 1. Add the following environment variables:
-   ```
+   \`\`\`
    MAILGUN_API_KEY=your_api_key
    MAILGUN_DOMAIN=your_domain
    MAILGUN_FROM_EMAIL=your_from_email
-   ```
+   \`\`\`
 
 2. Test email sending with a sample order
 3. Verify all transactional emails are sending correctly
