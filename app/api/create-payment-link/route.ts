@@ -4,24 +4,62 @@ import { getStripe } from "@/lib/stripe"
 import { zapierWebhook } from "@/lib/zapier-webhook-core"
 import { emailService } from "@/lib/email-service"
 
+/**
+ * Error logger for payment link creation
+ * Logs detailed error information to help diagnose issues
+ */
+const logPaymentLinkError = async (error: any, context: string, orderId?: string, additionalData?: any) => {
+  const errorObj = {
+    timestamp: new Date().toISOString(),
+    context,
+    orderId,
+    errorMessage: error instanceof Error ? error.message : String(error),
+    errorName: error instanceof Error ? error.name : 'Unknown',
+    errorStack: error instanceof Error ? error.stack : undefined,
+    additionalData
+  }
+  
+  console.error(`💥 PAYMENT LINK ERROR [${context}]:`, errorObj)
+  
+  // Log to database if possible
+  try {
+    const supabase = createSupabaseAdmin()
+    await supabase.from("error_logs").insert({
+      error_type: "payment_link_error",
+      context,
+      order_id: orderId,
+      error_message: errorObj.errorMessage,
+      error_name: errorObj.errorName,
+      error_stack: errorObj.errorStack,
+      additional_data: additionalData,
+      created_at: errorObj.timestamp
+    })
+  } catch (logError) {
+    console.error("Failed to log error to database:", logError)
+  }
+  
+  return errorObj
+}
+
 export async function POST(request: NextRequest) {
   console.log("=== PAYMENT LINK CREATION START ===")
+  let orderId: any = null
 
   try {
     // Parse request body with error handling
-    let orderId: any
     try {
       const body = await request.json()
       orderId = body.orderId
     } catch (parseError) {
-      console.error("ERROR: Failed to parse request body:", parseError)
+      const errorDetails = await logPaymentLinkError(parseError, "request_parsing", undefined, { requestUrl: request.url })
       return NextResponse.json(
         {
           success: false,
           error: "Invalid request body",
           debug: {
             message: "Failed to parse JSON from request body",
-            error: parseError instanceof Error ? parseError.message : String(parseError)
+            error: errorDetails.errorMessage,
+            errorId: errorDetails.timestamp
           }
         },
         { status: 400 }
@@ -31,8 +69,12 @@ export async function POST(request: NextRequest) {
     console.log("1. Received orderId:", orderId)
 
     if (!orderId) {
-      console.error("ERROR: Order ID is required")
-      return NextResponse.json({ success: false, error: "Order ID is required" }, { status: 400 })
+      const errorDetails = await logPaymentLinkError(new Error("Order ID is required"), "validation", undefined, { request: "missing_order_id" })
+      return NextResponse.json({ 
+        success: false, 
+        error: "Order ID is required",
+        errorId: errorDetails.timestamp 
+      }, { status: 400 })
     }
 
     const supabase = createSupabaseAdmin()
@@ -42,14 +84,15 @@ export async function POST(request: NextRequest) {
     try {
       stripe = await getStripe()
     } catch (stripeInitError) {
-      console.error("ERROR: Failed to initialize Stripe:", stripeInitError)
+      const errorDetails = await logPaymentLinkError(stripeInitError, "stripe_initialization", orderId)
       return NextResponse.json(
         {
           success: false,
-          error: stripeInitError instanceof Error ? stripeInitError.message : "Failed to initialize Stripe. Please check environment variables.",
+          error: "Failed to initialize Stripe. Please check environment variables.",
           debug: {
             message: "Stripe initialization failed. Ensure STRIPE_TEST_SECRET_KEY or STRIPE_LIVE_SECRET_KEY is set.",
-            error: stripeInitError instanceof Error ? stripeInitError.message : String(stripeInitError)
+            error: errorDetails.errorMessage,
+            errorId: errorDetails.timestamp
           }
         },
         { status: 500 }
@@ -445,14 +488,34 @@ export async function POST(request: NextRequest) {
         );
 
         if (!emailResult.success) {
-          console.error("WARNING: Payment link email failed:", emailResult.error);
           // Log email failure but don't fail payment link creation
+          await logPaymentLinkError(
+            new Error(emailResult.error || "Unknown email error"),
+            "email_service",
+            orderId,
+            {
+              customerEmail: customerData.email,
+              orderNumber: order.order_number,
+              emailService: "mailgun"
+            }
+          );
+          console.log("⚠️ Payment link email failed but continuing with payment link creation");
         } else {
           console.log("✅ Payment link email sent successfully");
         }
       } catch (emailError) {
-        console.error("WARNING: Failed to send payment link email:", emailError);
-        // Don't fail the payment link creation if email fails
+        // Log detailed error but don't fail payment link creation
+        await logPaymentLinkError(
+          emailError,
+          "email_service_exception",
+          orderId,
+          {
+            customerEmail: customerData.email,
+            orderNumber: order.order_number,
+            emailService: "mailgun"
+          }
+        );
+        console.log("⚠️ Exception in email service but continuing with payment link creation");
       }
 
       console.log("=== PAYMENT LINK CREATION SUCCESS ===")
@@ -482,13 +545,32 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     console.error("=== PAYMENT LINK CREATION FAILED ===")
-    console.error("Unexpected error:", error)
+    
+    // Log detailed error information
+    const errorDetails = await logPaymentLinkError(
+      error, 
+      "unhandled_exception", 
+      orderId, 
+      { 
+        stage: "payment_link_creation",
+        requestUrl: request.url,
+        timestamp: new Date().toISOString()
+      }
+    )
+    
+    // Always return a proper JSON response, never HTML
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : "Failed to create payment link",
+        error: "Failed to create payment link",
+        message: "An unexpected error occurred while creating the payment link. Please try again or contact support.",
+        errorId: errorDetails.timestamp, // Reference ID for support
+        debug: {
+          errorMessage: errorDetails.errorMessage,
+          context: "unhandled_exception"
+        }
       },
-      { status: 500 },
+      { status: 500 }
     )
   }
 }
