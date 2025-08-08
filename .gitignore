@@ -1,0 +1,12 @@
+# exclude node_modules, dist, & build folders
+node_modules
+dist
+build
+.env
+.env.local
+.next
+yarn.lock
+.vercel
+.env*
+!.env.example
+.env*.local
