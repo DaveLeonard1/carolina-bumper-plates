@@ -28,8 +28,6 @@ import {
   CheckCircle,
   Bug,
   Search,
-  Package,
-  PackageCheck
 } from "lucide-react"
 import { colorUsage } from "@/lib/colors"
 import { ReinvoiceModal } from "./reinvoice-modal"
@@ -164,7 +162,6 @@ export function EnhancedOrderActions({ order, onOrderUpdate }: OrderActionsProps
 
   const hasPaymentLink = !!paymentLinkUrl
   const canMarkPaid = (order.status === "invoiced" || order.status === "shipped") && order.payment_status !== "paid"
-  const canMarkFulfilled = order.payment_status === "paid" && order.status === "paid"
   const canCancel = order.status === "pending" || order.status === "invoiced"
 
   const formatDate = (dateString?: string) => {
@@ -297,24 +294,6 @@ export function EnhancedOrderActions({ order, onOrderUpdate }: OrderActionsProps
           {/* Other Actions */}
           <div className="border-t pt-4">
             <div className="grid gap-2">
-              {/* Mark as Fulfilled Button */}
-              <Button
-                onClick={() => handleAction("mark_fulfilled", { notes: "Order fulfilled via admin interface" })}
-                disabled={!canMarkFulfilled || loading !== null}
-                className="w-full justify-start"
-                variant={order.status === "fulfilled" ? "secondary" : canMarkFulfilled ? "default" : "secondary"}
-              >
-                {loading === "mark_fulfilled" ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : order.status === "fulfilled" ? (
-                  <PackageCheck className="h-4 w-4 mr-2 text-green-600" />
-                ) : (
-                  <PackageCheck className="h-4 w-4 mr-2" />
-                )}
-                {order.status === "fulfilled" ? "Already Fulfilled" : "Mark as Fulfilled"}
-              </Button>
-
-              {/* Mark as Paid Button */}
               <Button
                 onClick={() => handleAction("mark_paid")}
                 disabled={order.payment_status === "paid" || !canMarkPaid || loading !== null}

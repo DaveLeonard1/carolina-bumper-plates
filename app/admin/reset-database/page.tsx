@@ -14,7 +14,7 @@ export default function ResetDatabasePage() {
     }
 
     const secondConfirm = confirm(
-      "This will permanently delete:\n• All customer accounts\n• All orders\n• All user authentication data\n• All webhook logs and queue entries\n\nClick OK to continue to final confirmation.",
+      "This will permanently delete:\n• All customer accounts\n• All orders\n• All user authentication data\n\nClick OK to continue to final confirmation.",
     )
     if (!secondConfirm) {
       return
@@ -46,12 +46,8 @@ export default function ResetDatabasePage() {
         deletedUsers: [],
         ordersCleared: false,
         customersCleared: false,
-        webhookLogsCleared: false,
-        webhookQueueCleared: false,
         ordersCount: 0,
         customersCount: 0,
-        webhookLogsCount: 0,
-        webhookQueueCount: 0,
         errors: [{ table: "network", error: "Failed to communicate with server" }],
       })
     } finally {
@@ -74,7 +70,6 @@ export default function ResetDatabasePage() {
                 <li>All customer accounts (customers table)</li>
                 <li>All orders (orders table)</li>
                 <li>All user authentication data (auth.users)</li>
-                <li>All webhook logs and queue entries</li>
                 <li>Products table will remain intact</li>
               </ul>
               <p className="text-red-700 text-sm mt-2 font-medium">This action cannot be undone!</p>
@@ -85,9 +80,7 @@ export default function ResetDatabasePage() {
               <p className="text-blue-700 text-sm">The system will:</p>
               <ol className="list-decimal list-inside text-blue-700 text-sm mt-2 space-y-1">
                 <li>Count existing records</li>
-                <li>Delete all webhook logs (to avoid foreign key conflicts)</li>
-                <li>Delete all webhook queue entries</li>
-                <li>Delete all orders</li>
+                <li>Delete all orders (to avoid foreign key conflicts)</li>
                 <li>Delete all customers</li>
                 <li>Delete all authentication users</li>
                 <li>Verify deletion was successful</li>
@@ -107,12 +100,6 @@ export default function ResetDatabasePage() {
                 </h3>
 
                 <div className={`text-sm space-y-1 ${result.success ? "text-green-700" : "text-red-700"}`}>
-                  <p>
-                    🗂️ Webhook logs deleted: {result.webhookLogsCount || 0} {result.webhookLogsCleared ? "✅" : "❌"}
-                  </p>
-                  <p>
-                    📋 Webhook queue deleted: {result.webhookQueueCount || 0} {result.webhookQueueCleared ? "✅" : "❌"}
-                  </p>
                   <p>
                     📊 Orders deleted: {result.ordersCount || 0} {result.ordersCleared ? "✅" : "❌"}
                   </p>

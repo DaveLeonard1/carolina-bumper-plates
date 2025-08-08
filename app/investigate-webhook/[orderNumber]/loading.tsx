@@ -1,6 +1,6 @@
 import { RefreshCw } from "lucide-react"
 
-export default function Loading() {
+export default function InvestigateWebhookLoading() {
   return (
     <div className="flex items-center justify-center min-h-screen">
       <div className="text-center">

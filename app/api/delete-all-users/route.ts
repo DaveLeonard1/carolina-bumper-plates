@@ -11,69 +11,21 @@ export async function DELETE() {
       deletedUsers: [],
       ordersCleared: false,
       customersCleared: false,
-      webhookLogsCleared: false,
-      webhookQueueCleared: false,
       ordersCount: 0,
       customersCount: 0,
-      webhookLogsCount: 0,
-      webhookQueueCount: 0,
       errors: [],
     }
 
-    // 1. Delete webhook logs first (they reference orders)
-    console.log("Deleting all webhook logs...")
-    try {
-      const { count: webhookLogsCount } = await supabase.from("webhook_logs").select("*", { count: "exact", head: true })
-      console.log(`Found ${webhookLogsCount || 0} webhook logs to delete`)
-
-      const { error: webhookLogsError } = await supabase.from("webhook_logs").delete().not("id", "is", null)
-
-      if (webhookLogsError) {
-        console.error("Error deleting webhook logs:", webhookLogsError)
-        results.errors.push({ table: "webhook_logs", error: webhookLogsError.message })
-      } else {
-        results.webhookLogsCleared = true
-        results.webhookLogsCount = webhookLogsCount || 0
-        console.log(`✅ Deleted ${webhookLogsCount || 0} webhook logs`)
-      }
-    } catch (error) {
-      console.error("Error with webhook logs deletion:", error)
-      results.errors.push({
-        table: "webhook_logs",
-        error: error instanceof Error ? error.message : "Unknown error",
-      })
-    }
-
-    // 2. Delete webhook queue entries (they may reference orders)
-    console.log("Deleting all webhook queue entries...")
-    try {
-      const { count: webhookQueueCount } = await supabase.from("webhook_queue").select("*", { count: "exact", head: true })
-      console.log(`Found ${webhookQueueCount || 0} webhook queue entries to delete`)
-
-      const { error: webhookQueueError } = await supabase.from("webhook_queue").delete().not("id", "is", null)
-
-      if (webhookQueueError) {
-        console.error("Error deleting webhook queue:", webhookQueueError)
-        results.errors.push({ table: "webhook_queue", error: webhookQueueError.message })
-      } else {
-        results.webhookQueueCleared = true
-        results.webhookQueueCount = webhookQueueCount || 0
-        console.log(`✅ Deleted ${webhookQueueCount || 0} webhook queue entries`)
-      }
-    } catch (error) {
-      console.error("Error with webhook queue deletion:", error)
-      results.errors.push({
-        table: "webhook_queue",
-        error: error instanceof Error ? error.message : "Unknown error",
-      })
-    }
-
-    // 3. Delete all orders (now that dependent records are gone)
+    // 1. Delete all orders first (due to foreign key constraints)
     console.log("Deleting all orders...")
     try {
+      // First get count of orders
       const { count: orderCount } = await supabase.from("orders").select("*", { count: "exact", head: true })
+
       console.log(`Found ${orderCount || 0} orders to delete`)
 
+      // Delete all orders by selecting all and then deleting
+      // This avoids any WHERE clause issues with UUID
       const { error: ordersError } = await supabase.from("orders").delete().not("id", "is", null)
 
       if (ordersError) {
@@ -92,12 +44,16 @@ export async function DELETE() {
       })
     }
 
-    // 4. Delete all customers
+    // 2. Delete all customers
     console.log("Deleting all customers...")
     try {
+      // First get count of customers
       const { count: customerCount } = await supabase.from("customers").select("*", { count: "exact", head: true })
+
       console.log(`Found ${customerCount || 0} customers to delete`)
 
+      // Delete all customers by selecting all and then deleting
+      // This avoids any WHERE clause issues with UUID
       const { error: customersError } = await supabase.from("customers").delete().not("id", "is", null)
 
       if (customersError) {
@@ -116,7 +72,7 @@ export async function DELETE() {
       })
     }
 
-    // 5. Get all auth users to delete
+    // 3. Get all auth users to delete
     console.log("Fetching auth users...")
     const { data: users, error: fetchError } = await supabase.auth.admin.listUsers()
 
@@ -126,7 +82,7 @@ export async function DELETE() {
     } else if (users?.users) {
       console.log(`Found ${users.users.length} auth users to delete`)
 
-      // 6. Delete each auth user
+      // 4. Delete each auth user
       for (const user of users.users) {
         try {
           console.log(`Deleting user: ${user.email}`)
@@ -155,7 +111,7 @@ export async function DELETE() {
       }
     }
 
-    // 7. Alternative approach: If the above doesn't work, try raw SQL
+    // 5. Alternative approach: If the above doesn't work, try raw SQL
     if (!results.ordersCleared || !results.customersCleared) {
       console.log("Trying alternative deletion method with raw SQL...")
 
@@ -222,20 +178,16 @@ export async function DELETE() {
       }
     }
 
-    // 8. Verify deletion by checking counts
+    // 6. Verify deletion by checking counts
     try {
       const { count: remainingOrders } = await supabase.from("orders").select("*", { count: "exact", head: true })
       const { count: remainingCustomers } = await supabase.from("customers").select("*", { count: "exact", head: true })
-      const { count: remainingWebhookLogs } = await supabase.from("webhook_logs").select("*", { count: "exact", head: true })
-      const { count: remainingWebhookQueue } = await supabase.from("webhook_queue").select("*", { count: "exact", head: true })
 
       console.log(`Remaining orders: ${remainingOrders || 0}`)
       console.log(`Remaining customers: ${remainingCustomers || 0}`)
-      console.log(`Remaining webhook logs: ${remainingWebhookLogs || 0}`)
-      console.log(`Remaining webhook queue: ${remainingWebhookQueue || 0}`)
 
       // Update success status based on remaining records
-      if ((remainingOrders || 0) === 0 && (remainingCustomers || 0) === 0 && (remainingWebhookLogs || 0) === 0 && (remainingWebhookQueue || 0) === 0) {
+      if ((remainingOrders || 0) === 0 && (remainingCustomers || 0) === 0) {
         console.log("🎉 All database records successfully cleared!")
         results.success = true
       } else {
@@ -258,12 +210,8 @@ export async function DELETE() {
       deletedUsers: [],
       ordersCleared: false,
       customersCleared: false,
-      webhookLogsCleared: false,
-      webhookQueueCleared: false,
       ordersCount: 0,
       customersCount: 0,
-      webhookLogsCount: 0,
-      webhookQueueCount: 0,
       errors: [
         {
           table: "system",

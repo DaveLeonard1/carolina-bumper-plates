@@ -37,6 +37,25 @@ export async function GET(request: NextRequest) {
       .order("created_at", { ascending: false })
       .limit(50)
 
+    // Get webhook statistics
+    const { data: webhookLogs, error: webhookLogsError } = await supabaseAdmin
+      .from("webhook_logs")
+      .select("id, success, response_status, response_time_ms, created_at")
+      .order("created_at", { ascending: false })
+      .limit(100)
+
+    const { data: webhookQueue, error: webhookQueueError } = await supabaseAdmin
+      .from("webhook_queue")
+      .select("id, status, attempts, max_attempts, created_at")
+      .order("created_at", { ascending: false })
+      .limit(50)
+
+    // Get webhook settings
+    const { data: webhookSettings, error: webhookSettingsError } = await supabaseAdmin
+      .from("admin_settings")
+      .select("key, value")
+      .in("key", ["zapier_webhook_enabled", "zapier_webhook_url"])
+
     // Calculate health metrics
     const totalOrders = orders?.length || 0
     const paidOrders = orders?.filter((order) => order.status === "paid").length || 0
@@ -52,6 +71,28 @@ export async function GET(request: NextRequest) {
         return orderDate > dayAgo
       }).length || 0
 
+    // Calculate webhook metrics
+    const totalWebhooks = webhookLogs?.length || 0
+    const successfulWebhooks = webhookLogs?.filter((log) => log.success).length || 0
+    const failedWebhooks = totalWebhooks - successfulWebhooks
+    const avgResponseTime = webhookLogs?.length
+      ? Math.round(webhookLogs.reduce((sum, log) => sum + (log.response_time_ms || 0), 0) / webhookLogs.length)
+      : 0
+
+    const pendingWebhooks = webhookQueue?.filter((item) => item.status === "pending").length || 0
+    const failedQueueItems = webhookQueue?.filter((item) => item.status === "failed").length || 0
+
+    const recentWebhooks =
+      webhookLogs?.filter((log) => {
+        const logDate = new Date(log.created_at)
+        const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
+        return logDate > dayAgo
+      }).length || 0
+
+    // Get webhook configuration
+    const webhookEnabled = webhookSettings?.find((s) => s.key === "zapier_webhook_enabled")?.value === "true"
+    const webhookUrl = webhookSettings?.find((s) => s.key === "zapier_webhook_url")?.value || ""
+
     // Check for potential issues
     const issues = []
     if (dbResponseTime > 1000) {
@@ -62,6 +103,24 @@ export async function GET(request: NextRequest) {
     }
     if (customersError) {
       issues.push(`Customers table error: ${customersError.message}`)
+    }
+    if (webhookLogsError) {
+      issues.push(`Webhook logs error: ${webhookLogsError.message}`)
+    }
+    if (webhookQueueError) {
+      issues.push(`Webhook queue error: ${webhookQueueError.message}`)
+    }
+    if (webhookEnabled && !webhookUrl) {
+      issues.push("Webhook enabled but no URL configured")
+    }
+    if (pendingWebhooks > 10) {
+      issues.push(`High number of pending webhooks (${pendingWebhooks})`)
+    }
+    if (failedQueueItems > 5) {
+      issues.push(`Multiple failed webhook deliveries (${failedQueueItems})`)
+    }
+    if (totalWebhooks > 0 && failedWebhooks / totalWebhooks > 0.2) {
+      issues.push(`High webhook failure rate (${Math.round((failedWebhooks / totalWebhooks) * 100)}%)`)
     }
 
     const totalResponseTime = Date.now() - startTime
@@ -88,13 +147,36 @@ export async function GET(request: NextRequest) {
         customers: {
           total: totalCustomers,
         },
+        webhooks: {
+          total: totalWebhooks,
+          successful: successfulWebhooks,
+          failed: failedWebhooks,
+          pending: pendingWebhooks,
+          failedQueue: failedQueueItems,
+          recent24h: recentWebhooks,
+          avgResponseTime: avgResponseTime,
+          enabled: webhookEnabled,
+          configured: !!webhookUrl,
+          successRate: totalWebhooks > 0 ? Math.round((successfulWebhooks / totalWebhooks) * 100) : 0,
+        },
       },
       issues: issues,
       checks: {
         databaseConnectivity: !dbError,
         orderSystemHealth: !ordersError,
         customerSystemHealth: !customersError,
+        webhookSystemHealth: !webhookLogsError && !webhookQueueError,
+        webhookConfiguration: webhookEnabled ? !!webhookUrl : true,
+        webhookDeliveryHealth: totalWebhooks === 0 || failedWebhooks / totalWebhooks < 0.2,
         performanceAcceptable: dbResponseTime < 1000,
+      },
+      webhookDetails: {
+        recentLogs: webhookLogs?.slice(0, 10) || [],
+        queueItems: webhookQueue?.slice(0, 10) || [],
+        settings: {
+          enabled: webhookEnabled,
+          url: webhookUrl ? `${webhookUrl.substring(0, 30)}...` : "Not configured",
+        },
       },
     })
   } catch (error) {

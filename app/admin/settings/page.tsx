@@ -7,42 +7,33 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
-import { Settings, Save, Globe, AlertTriangle, Zap, TestTube, CheckCircle2, XCircle, Info, Loader2 } from "lucide-react"
+import { Settings, Save, Globe, AlertTriangle, Zap, TestTube, CheckCircle2, XCircle, Info } from "lucide-react"
 import { colorUsage } from "@/lib/colors"
-import { useBusinessSettings } from "@/hooks/use-options"
 
 export default function AdminSettingsPage() {
-  const {
-    businessName,
-    businessEmail,
-    businessPhone,
-    businessAddress,
-    website,
-    minimumOrderWeight,
-    taxRate,
-    shippingRate,
-    pickupLocation,
-    pickupInstructions,
-    loading: businessLoading,
-    updateBusinessSettings,
-  } = useBusinessSettings()
-  
-  // Local state for form values
-  const [formValues, setFormValues] = useState({
-    businessName: "",
-    businessEmail: "",
-    businessPhone: "",
-    businessAddress: "",
-    website: "",
-    minimumOrderWeight: 0,
-    taxRate: 0,
-    shippingRate: 0,
-    pickupLocation: "",
-    pickupInstructions: "",
-  })
-  
-  // Zapier settings (will be refactored later)
-  const [zapierSettings, setZapierSettings] = useState({
+  const [settings, setSettings] = useState({
+    // Business Information
+    businessName: "Carolina Bumper Plates",
+    businessEmail: "info@carolinabumperplates.com",
+    businessPhone: "(555) 123-4567",
+    businessAddress: "123 Fitness St, Charlotte, NC 28202",
+    website: "https://carolinabumperplates.com",
+
+    // Order Settings
+    minimumOrderWeight: 10000,
+    taxRate: 0.0725,
+    shippingRate: 0.5,
+
+    // Email Settings
+    emailNotifications: true,
+    orderConfirmationEmail: true,
+    invoiceEmail: true,
+
+    // Pickup Settings
+    pickupLocation: "Charlotte, NC",
+    pickupInstructions: "We will contact you 24-48 hours before pickup to coordinate delivery.",
+
+    // Zapier Settings
     zapierWebhookUrl: "",
     zapierWebhookEnabled: false,
     zapierWebhookTimeout: 30,
@@ -74,19 +65,19 @@ export default function AdminSettingsPage() {
       if (response.ok) {
         const data = await response.json()
         if (data.success) {
-          const fetchedSettings = data.settings
-          setZapierSettings({
-            zapierWebhookUrl: fetchedSettings.webhook_url || "",
-            zapierWebhookEnabled: fetchedSettings.webhook_enabled || false,
-            zapierWebhookTimeout: fetchedSettings.webhook_timeout || 30,
-            zapierRetryAttempts: fetchedSettings.webhook_retry_attempts || 3,
-            zapierRetryDelay: fetchedSettings.webhook_retry_delay || 5,
-            zapierIncludeCustomerData: fetchedSettings.include_customer_data !== undefined ? fetchedSettings.include_customer_data : true,
-            zapierIncludeOrderItems: fetchedSettings.include_order_items !== undefined ? fetchedSettings.include_order_items : true,
-            zapierIncludePricingData: fetchedSettings.include_pricing_data !== undefined ? fetchedSettings.include_pricing_data : true,
-            zapierIncludeShippingData: fetchedSettings.include_shipping_data !== undefined ? fetchedSettings.include_shipping_data : true,
-            zapierWebhookSecret: fetchedSettings.webhook_secret || ""
-          })
+          const zapierSettings = data.settings
+          setSettings((prev) => ({
+            ...prev,
+            zapierWebhookUrl: zapierSettings.webhook_url || "",
+            zapierWebhookEnabled: zapierSettings.webhook_enabled || false,
+            zapierWebhookTimeout: zapierSettings.webhook_timeout || 30,
+            zapierRetryAttempts: zapierSettings.webhook_retry_attempts || 3,
+            zapierRetryDelay: zapierSettings.webhook_retry_delay || 5,
+            zapierIncludeCustomerData: zapierSettings.include_customer_data || true,
+            zapierIncludeOrderItems: zapierSettings.include_order_items || true,
+            zapierIncludePricingData: zapierSettings.include_pricing_data || true,
+            zapierIncludeShippingData: zapierSettings.include_shipping_data || true,
+          }))
         }
       }
     } catch (error) {
@@ -107,39 +98,9 @@ export default function AdminSettingsPage() {
       console.error("Failed to fetch Zapier stats:", error)
     }
   }
-  
-  // Update local form values when business settings load
-  useEffect(() => {
-    if (!businessLoading) {
-      setFormValues({
-        businessName,
-        businessEmail,
-        businessPhone,
-        businessAddress,
-        website,
-        minimumOrderWeight,
-        taxRate,
-        shippingRate,
-        pickupLocation,
-        pickupInstructions,
-      })
-    }
-  }, [
-    businessLoading,
-    businessName,
-    businessEmail,
-    businessPhone,
-    businessAddress,
-    website,
-    minimumOrderWeight,
-    taxRate,
-    shippingRate,
-    pickupLocation,
-    pickupInstructions
-  ])
 
   const testZapierWebhook = async (eventType: string) => {
-    if (!zapierSettings.zapierWebhookUrl) {
+    if (!settings.zapierWebhookUrl) {
       alert("Please enter a webhook URL first")
       return
     }
@@ -152,7 +113,7 @@ export default function AdminSettingsPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          webhook_url: zapierSettings.zapierWebhookUrl,
+          webhook_url: settings.zapierWebhookUrl,
           event_type: eventType,
         }),
       })
@@ -160,10 +121,9 @@ export default function AdminSettingsPage() {
       const result = await response.json()
       setTestResult(result)
     } catch (error) {
-      console.error("Error testing webhook:", error)
       setTestResult({
         success: false,
-        message: `Error: ${error instanceof Error ? error.message : "Unknown error"}`
+        error: "Failed to test webhook",
       })
     } finally {
       setTestingWebhook(false)
@@ -183,37 +143,25 @@ export default function AdminSettingsPage() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          webhook_url: zapierSettings.zapierWebhookUrl || null,
-          webhook_enabled: zapierSettings.zapierWebhookEnabled,
-          webhook_timeout: zapierSettings.zapierWebhookTimeout,
-          webhook_retry_attempts: zapierSettings.zapierRetryAttempts,
-          webhook_retry_delay: zapierSettings.zapierRetryDelay,
-          include_customer_data: zapierSettings.zapierIncludeCustomerData,
-          include_order_items: zapierSettings.zapierIncludeOrderItems,
-          include_pricing_data: zapierSettings.zapierIncludePricingData,
-          include_shipping_data: zapierSettings.zapierIncludeShippingData,
-          webhook_secret: zapierSettings.zapierWebhookSecret || null,
+          webhook_url: settings.zapierWebhookUrl || null,
+          webhook_enabled: settings.zapierWebhookEnabled,
+          webhook_timeout: settings.zapierWebhookTimeout,
+          webhook_retry_attempts: settings.zapierRetryAttempts,
+          webhook_retry_delay: settings.zapierRetryDelay,
+          include_customer_data: settings.zapierIncludeCustomerData,
+          include_order_items: settings.zapierIncludeOrderItems,
+          include_pricing_data: settings.zapierIncludePricingData,
+          include_shipping_data: settings.zapierIncludeShippingData,
+          webhook_secret: settings.zapierWebhookSecret || null,
         }),
       })
 
       if (!zapierResponse.ok) {
         throw new Error("Failed to save Zapier settings")
       }
-      
-      // Save business settings using our hook
-      await updateBusinessSettings({
-        businessName: formValues.businessName,
-        businessEmail: formValues.businessEmail,
-        businessPhone: formValues.businessPhone,
-        businessAddress: formValues.businessAddress,
-        website: formValues.website,
-        minimumOrderWeight: formValues.minimumOrderWeight,
-        taxRate: formValues.taxRate,
-        shippingRate: formValues.shippingRate,
-        pickupLocation: formValues.pickupLocation,
-        pickupInstructions: formValues.pickupInstructions
-      })
 
+      // Simulate API call for other settings
+      await new Promise((resolve) => setTimeout(resolve, 1000))
       setSaving(false)
 
       // Refresh stats after saving
@@ -221,13 +169,18 @@ export default function AdminSettingsPage() {
 
       alert("Settings saved successfully!")
     } catch (error) {
-      console.error("Error saving settings:", error)
+      console.error("Failed to save settings:", error)
+      alert("Failed to save settings: " + error.message)
       setSaving(false)
-      alert(`Error: ${error instanceof Error ? error.message : "Unknown error"}`)
     }
   }
 
-  // handleInputChange function has been removed as we now use direct setters with formValues and zapierSettings
+  const handleInputChange = (field: string, value: string | number | boolean) => {
+    setSettings((prev) => ({
+      ...prev,
+      [field]: value,
+    }))
+  }
 
   return (
     <div className="space-y-6">
@@ -259,8 +212,8 @@ export default function AdminSettingsPage() {
               <Label htmlFor="businessName">Business Name</Label>
               <Input
                 id="businessName"
-                value={formValues.businessName}
-                onChange={(e) => setFormValues(prev => ({ ...prev, businessName: e.target.value }))}
+                value={settings.businessName}
+                onChange={(e) => handleInputChange("businessName", e.target.value)}
               />
             </div>
             <div>
@@ -268,24 +221,24 @@ export default function AdminSettingsPage() {
               <Input
                 id="businessEmail"
                 type="email"
-                value={formValues.businessEmail}
-                onChange={(e) => setFormValues(prev => ({ ...prev, businessEmail: e.target.value }))}
+                value={settings.businessEmail}
+                onChange={(e) => handleInputChange("businessEmail", e.target.value)}
               />
             </div>
             <div>
               <Label htmlFor="businessPhone">Business Phone</Label>
               <Input
                 id="businessPhone"
-                value={formValues.businessPhone}
-                onChange={(e) => setFormValues(prev => ({ ...prev, businessPhone: e.target.value }))}
+                value={settings.businessPhone}
+                onChange={(e) => handleInputChange("businessPhone", e.target.value)}
               />
             </div>
             <div>
               <Label htmlFor="businessAddress">Business Address</Label>
               <Textarea
                 id="businessAddress"
-                value={formValues.businessAddress}
-                onChange={(e) => setFormValues(prev => ({ ...prev, businessAddress: e.target.value }))}
+                value={settings.businessAddress}
+                onChange={(e) => handleInputChange("businessAddress", e.target.value)}
                 rows={3}
               />
             </div>
@@ -293,8 +246,8 @@ export default function AdminSettingsPage() {
               <Label htmlFor="website">Website</Label>
               <Input
                 id="website"
-                value={formValues.website}
-                onChange={(e) => setFormValues(prev => ({ ...prev, website: e.target.value }))}
+                value={settings.website}
+                onChange={(e) => handleInputChange("website", e.target.value)}
               />
             </div>
           </CardContent>
@@ -314,8 +267,8 @@ export default function AdminSettingsPage() {
               <Input
                 id="minimumOrderWeight"
                 type="number"
-                value={formValues.minimumOrderWeight}
-                onChange={(e) => setFormValues(prev => ({ ...prev, minimumOrderWeight: Number(e.target.value) }))}
+                value={settings.minimumOrderWeight}
+                onChange={(e) => handleInputChange("minimumOrderWeight", Number(e.target.value))}
               />
               <p className="text-sm mt-1" style={{ color: colorUsage.textMuted }}>
                 Minimum weight required to place bulk orders
@@ -327,8 +280,8 @@ export default function AdminSettingsPage() {
                 id="taxRate"
                 type="number"
                 step="0.0001"
-                value={(formValues.taxRate * 100).toFixed(2)}
-                onChange={(e) => setFormValues(prev => ({ ...prev, taxRate: Number(e.target.value) / 100 }))}
+                value={(settings.taxRate * 100).toFixed(2)}
+                onChange={(e) => handleInputChange("taxRate", Number(e.target.value) / 100)}
               />
               <p className="text-sm mt-1" style={{ color: colorUsage.textMuted }}>
                 Sales tax rate for North Carolina
@@ -340,8 +293,8 @@ export default function AdminSettingsPage() {
                 id="shippingRate"
                 type="number"
                 step="0.01"
-                value={formValues.shippingRate}
-                onChange={(e) => setFormValues(prev => ({ ...prev, shippingRate: Number(e.target.value) }))}
+                value={settings.shippingRate}
+                onChange={(e) => handleInputChange("shippingRate", Number(e.target.value))}
               />
               <p className="text-sm mt-1" style={{ color: colorUsage.textMuted }}>
                 Cost per pound for local delivery
@@ -369,18 +322,18 @@ export default function AdminSettingsPage() {
               <Zap className="h-5 w-5" style={{ color: colorUsage.textMuted }} />
               <div>
                 <Label className="text-base font-medium">
-                  {zapierSettings.zapierWebhookEnabled ? "Automation Enabled" : "Automation Disabled"}
+                  {settings.zapierWebhookEnabled ? "Automation Enabled" : "Automation Disabled"}
                 </Label>
                 <p className="text-sm" style={{ color: colorUsage.textMuted }}>
-                  {zapierSettings.zapierWebhookEnabled
+                  {settings.zapierWebhookEnabled
                     ? "Automatically sending webhooks to Zapier"
                     : "Webhook automation is currently disabled"}
                 </p>
               </div>
             </div>
             <Switch
-              checked={zapierSettings.zapierWebhookEnabled}
-              onCheckedChange={(checked) => setZapierSettings(prev => ({ ...prev, zapierWebhookEnabled: checked }))}
+              checked={settings.zapierWebhookEnabled}
+              onCheckedChange={(checked) => handleInputChange("zapierWebhookEnabled", checked)}
             />
           </div>
 
@@ -392,8 +345,8 @@ export default function AdminSettingsPage() {
                 id="zapierWebhookUrl"
                 type="url"
                 placeholder="https://hooks.zapier.com/hooks/catch/..."
-                value={zapierSettings.zapierWebhookUrl}
-                onChange={(e) => setZapierSettings(prev => ({ ...prev, zapierWebhookUrl: e.target.value }))}
+                value={settings.zapierWebhookUrl}
+                onChange={(e) => handleInputChange("zapierWebhookUrl", e.target.value)}
                 className="flex-1"
               />
               <div className="flex gap-1">
@@ -402,7 +355,7 @@ export default function AdminSettingsPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => testZapierWebhook("payment_link_created")}
-                  disabled={testingWebhook || !zapierSettings.zapierWebhookUrl}
+                  disabled={testingWebhook || !settings.zapierWebhookUrl}
                 >
                   <TestTube className="h-4 w-4 mr-1" />
                   Test Payment Link
@@ -412,7 +365,7 @@ export default function AdminSettingsPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => testZapierWebhook("order_completed")}
-                  disabled={testingWebhook || !zapierSettings.zapierWebhookUrl}
+                  disabled={testingWebhook || !settings.zapierWebhookUrl}
                 >
                   <TestTube className="h-4 w-4 mr-1" />
                   Test Order Complete
@@ -501,8 +454,8 @@ export default function AdminSettingsPage() {
                 type="number"
                 min="5"
                 max="300"
-                value={zapierSettings.zapierWebhookTimeout}
-                onChange={(e) => setZapierSettings(prev => ({ ...prev, zapierWebhookTimeout: Number(e.target.value) }))}
+                value={settings.zapierWebhookTimeout}
+                onChange={(e) => handleInputChange("zapierWebhookTimeout", Number(e.target.value))}
               />
             </div>
             <div>
@@ -512,8 +465,8 @@ export default function AdminSettingsPage() {
                 type="number"
                 min="0"
                 max="10"
-                value={zapierSettings.zapierRetryAttempts}
-                onChange={(e) => setZapierSettings(prev => ({ ...prev, zapierRetryAttempts: Number(e.target.value) }))}
+                value={settings.zapierRetryAttempts}
+                onChange={(e) => handleInputChange("zapierRetryAttempts", Number(e.target.value))}
               />
             </div>
           </div>
@@ -526,8 +479,8 @@ export default function AdminSettingsPage() {
                 <input
                   type="checkbox"
                   id="zapierIncludeCustomerData"
-                  checked={zapierSettings.zapierIncludeCustomerData}
-                  onChange={(e) => setZapierSettings(prev => ({ ...prev, zapierIncludeCustomerData: e.target.checked }))}
+                  checked={settings.zapierIncludeCustomerData}
+                  onChange={(e) => handleInputChange("zapierIncludeCustomerData", e.target.checked)}
                   className="h-4 w-4"
                 />
                 <Label htmlFor="zapierIncludeCustomerData">Customer Information</Label>
@@ -536,8 +489,8 @@ export default function AdminSettingsPage() {
                 <input
                   type="checkbox"
                   id="zapierIncludeOrderItems"
-                  checked={zapierSettings.zapierIncludeOrderItems}
-                  onChange={(e) => setZapierSettings(prev => ({ ...prev, zapierIncludeOrderItems: e.target.checked }))}
+                  checked={settings.zapierIncludeOrderItems}
+                  onChange={(e) => handleInputChange("zapierIncludeOrderItems", e.target.checked)}
                   className="h-4 w-4"
                 />
                 <Label htmlFor="zapierIncludeOrderItems">Order Items</Label>
@@ -546,8 +499,8 @@ export default function AdminSettingsPage() {
                 <input
                   type="checkbox"
                   id="zapierIncludePricingData"
-                  checked={zapierSettings.zapierIncludePricingData}
-                  onChange={(e) => setZapierSettings(prev => ({ ...prev, zapierIncludePricingData: e.target.checked }))}
+                  checked={settings.zapierIncludePricingData}
+                  onChange={(e) => handleInputChange("zapierIncludePricingData", e.target.checked)}
                   className="h-4 w-4"
                 />
                 <Label htmlFor="zapierIncludePricingData">Pricing Details</Label>
@@ -556,8 +509,8 @@ export default function AdminSettingsPage() {
                 <input
                   type="checkbox"
                   id="zapierIncludeShippingData"
-                  checked={zapierSettings.zapierIncludeShippingData}
-                  onChange={(e) => setZapierSettings(prev => ({ ...prev, zapierIncludeShippingData: e.target.checked }))}
+                  checked={settings.zapierIncludeShippingData}
+                  onChange={(e) => handleInputChange("zapierIncludeShippingData", e.target.checked)}
                   className="h-4 w-4"
                 />
                 <Label htmlFor="zapierIncludeShippingData">Shipping Information</Label>
@@ -572,8 +525,8 @@ export default function AdminSettingsPage() {
               id="zapierWebhookSecret"
               type="password"
               placeholder="Enter secret for webhook signature verification"
-              value={zapierSettings.zapierWebhookSecret}
-              onChange={(e) => setZapierSettings(prev => ({ ...prev, zapierWebhookSecret: e.target.value }))}
+              value={settings.zapierWebhookSecret}
+              onChange={(e) => handleInputChange("zapierWebhookSecret", e.target.value)}
             />
             <p className="text-sm mt-1" style={{ color: colorUsage.textMuted }}>
               If provided, webhooks will include an X-Webhook-Signature header for verification

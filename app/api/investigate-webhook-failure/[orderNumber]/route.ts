@@ -1,27 +1,16 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { createSupabaseAdmin } from "@/lib/supabase"
-import { zapierWebhook } from "@/lib/zapier-webhook-core"
+import { NextResponse } from "next/server"
+import { createClient } from "@supabase/supabase-js"
 
-export async function GET(request: NextRequest, { params }: { params: { orderNumber: string } }) {
+const supabaseAdmin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+
+export async function GET(request: Request, { params }: { params: { orderNumber: string } }) {
   try {
     const { orderNumber } = params
-    console.log(`🔍 Investigating webhook failure for order: ${orderNumber}`)
 
-    const supabase = createSupabaseAdmin()
-
-    // 1. Get order details
-    const { data: order, error: orderError } = await supabase
+    // Get order details
+    const { data: order, error: orderError } = await supabaseAdmin
       .from("orders")
-      .select(`
-        *,
-        customers (
-          id,
-          email,
-          first_name,
-          last_name,
-          phone
-        )
-      `)
+      .select("*")
       .eq("order_number", orderNumber)
       .single()
 
@@ -33,118 +22,129 @@ export async function GET(request: NextRequest, { params }: { params: { orderNum
       })
     }
 
-    // 2. Check webhook settings
-    const webhookSettings = await zapierWebhook.getSettings()
+    // Get webhook settings
+    const { data: settings, error: settingsError } = await supabaseAdmin
+      .from("admin_settings")
+      .select("key, value")
+      .in("key", ["zapier_webhook_enabled", "zapier_webhook_url"])
 
-    // 3. Check webhook queue for this order
-    const { data: queuedWebhooks, error: queueError } = await supabase
-      .from("webhook_queue")
-      .select("*")
-      .eq("order_id", order.id)
-      .order("created_at", { ascending: false })
+    const webhookEnabled = settings?.find((s) => s.key === "zapier_webhook_enabled")?.value === "true"
+    const webhookUrl = settings?.find((s) => s.key === "zapier_webhook_url")?.value || ""
 
-    // 4. Check webhook logs for this order
-    const { data: webhookLogs, error: logsError } = await supabase
+    // Get webhook logs for this order
+    const { data: webhookLogs, error: logsError } = await supabaseAdmin
       .from("webhook_logs")
       .select("*")
       .eq("order_id", order.id)
       .order("created_at", { ascending: false })
 
-    // 5. Check order timeline for webhook events
-    const { data: timeline, error: timelineError } = await supabase
-      .from("order_timeline")
+    // Get webhook queue items for this order
+    const { data: queueItems, error: queueError } = await supabaseAdmin
+      .from("webhook_queue")
       .select("*")
       .eq("order_id", order.id)
       .order("created_at", { ascending: false })
 
-    // 6. Analyze the issue
-    const analysis = {
-      orderFound: true,
-      hasPaymentLink: !!order.payment_link_url,
-      paymentLinkCreatedAt: order.payment_link_created_at,
-      webhookEnabled: webhookSettings?.webhook_enabled || false,
-      webhookUrl: webhookSettings?.webhook_url || null,
-      webhookConfigured: !!(webhookSettings?.webhook_enabled && webhookSettings?.webhook_url),
-      queuedWebhooksCount: queuedWebhooks?.length || 0,
-      webhookLogsCount: webhookLogs?.length || 0,
-      timelineEventsCount: timeline?.length || 0,
-    }
-
-    // 7. Determine likely issues
+    // Analyze issues
     const issues = []
     const recommendations = []
 
-    if (!analysis.webhookConfigured) {
-      issues.push("Webhook not properly configured")
-      recommendations.push("Enable webhook and set webhook URL in admin settings")
+    // Check webhook configuration
+    if (!webhookEnabled) {
+      issues.push("Webhook automation is disabled")
+      recommendations.push("Enable webhook automation in Admin Settings")
     }
 
-    if (!analysis.hasPaymentLink) {
+    if (webhookEnabled && !webhookUrl) {
+      issues.push("Webhook URL is not configured")
+      recommendations.push("Add your Zapier webhook URL in Admin Settings")
+    }
+
+    // Check order status
+    if (!order.payment_link_url) {
       issues.push("Order does not have a payment link")
-      recommendations.push("Generate payment link for this order first")
+      recommendations.push("Generate a payment link for this order first")
     }
 
-    if (analysis.queuedWebhooksCount === 0 && analysis.hasPaymentLink) {
-      issues.push("No webhooks were queued for this order")
-      recommendations.push("Webhook trigger may have failed during payment link creation")
+    // Check webhook delivery
+    const hasWebhookLogs = webhookLogs && webhookLogs.length > 0
+    const hasQueueItems = queueItems && queueItems.length > 0
+
+    if (webhookEnabled && webhookUrl && order.payment_link_url && !hasWebhookLogs && !hasQueueItems) {
+      issues.push("No webhook delivery attempts found")
+      recommendations.push("Webhook may not have been triggered - check payment link creation process")
     }
 
-    if (analysis.queuedWebhooksCount > 0 && analysis.webhookLogsCount === 0) {
-      issues.push("Webhooks queued but never processed")
-      recommendations.push("Check webhook processing cron job or manually process queue")
-    }
+    if (hasQueueItems) {
+      const pendingItems = queueItems.filter((item) => item.status === "pending")
+      const failedItems = queueItems.filter((item) => item.status === "failed")
 
-    // 8. Check if we can manually trigger webhook
-    let manualTriggerResult = null
-    if (analysis.hasPaymentLink && analysis.webhookConfigured) {
-      try {
-        manualTriggerResult = await zapierWebhook.triggerPaymentLinkWebhook(order.id, {
-          source: "manual_investigation",
-          created_via: "debug_trigger",
-        })
-      } catch (error) {
-        manualTriggerResult = {
-          success: false,
-          error: error instanceof Error ? error.message : "Unknown error",
-        }
+      if (pendingItems.length > 0) {
+        issues.push(`${pendingItems.length} webhook(s) pending delivery`)
+        recommendations.push("Process webhook queue manually or wait for automatic processing")
       }
+
+      if (failedItems.length > 0) {
+        issues.push(`${failedItems.length} webhook(s) failed delivery`)
+        recommendations.push("Check webhook URL and endpoint configuration")
+      }
+    }
+
+    if (hasWebhookLogs) {
+      const failedLogs = webhookLogs.filter((log) => !log.success)
+      if (failedLogs.length > 0) {
+        issues.push(`${failedLogs.length} webhook delivery failure(s)`)
+        recommendations.push("Check webhook endpoint and review error messages")
+      }
+    }
+
+    // Determine overall status
+    let status = "healthy"
+    if (issues.length > 0) {
+      status = issues.some((issue) => issue.includes("failed") || issue.includes("error")) ? "error" : "warning"
     }
 
     return NextResponse.json({
       success: true,
       orderNumber,
+      status,
       order: {
         id: order.id,
         order_number: order.order_number,
         status: order.status,
-        payment_status: order.payment_status,
+        customer_email: order.customer_email,
+        total_amount: order.total_amount,
         payment_link_url: order.payment_link_url,
         payment_link_created_at: order.payment_link_created_at,
-        customer_email: order.customer_email,
-        customer_name: order.customer_name,
-        total_amount: order.total_amount,
         created_at: order.created_at,
+        updated_at: order.updated_at,
       },
-      webhookSettings: {
-        enabled: webhookSettings?.webhook_enabled || false,
-        url: webhookSettings?.webhook_url || null,
-        timeout: webhookSettings?.webhook_timeout || 30,
-        retryAttempts: webhookSettings?.webhook_retry_attempts || 3,
+      webhookConfig: {
+        enabled: webhookEnabled,
+        url: webhookUrl,
+        configured: webhookEnabled && !!webhookUrl,
       },
-      queuedWebhooks: queuedWebhooks || [],
-      webhookLogs: webhookLogs || [],
-      timeline: timeline || [],
-      analysis,
-      issues,
-      recommendations,
-      manualTriggerResult,
+      webhookActivity: {
+        logs: webhookLogs || [],
+        queueItems: queueItems || [],
+        totalAttempts: (webhookLogs?.length || 0) + (queueItems?.length || 0),
+        lastAttempt: webhookLogs?.[0]?.created_at || queueItems?.[0]?.created_at || null,
+      },
+      analysis: {
+        issues,
+        recommendations,
+        hasPaymentLink: !!order.payment_link_url,
+        hasWebhookActivity: hasWebhookLogs || hasQueueItems,
+        webhookConfigured: webhookEnabled && !!webhookUrl,
+      },
     })
   } catch (error) {
     console.error("Error investigating webhook failure:", error)
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
+        error: "Failed to investigate webhook failure",
+        details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 },
     )

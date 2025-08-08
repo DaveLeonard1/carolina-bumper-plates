@@ -2,32 +2,12 @@ import { type NextRequest, NextResponse } from "next/server"
 import { createSupabaseAdmin } from "@/lib/supabase"
 import { getStripe } from "@/lib/stripe"
 import { zapierWebhook } from "@/lib/zapier-webhook-core"
-import { emailService } from "@/lib/email-service"
 
 export async function POST(request: NextRequest) {
   console.log("=== PAYMENT LINK CREATION START ===")
 
   try {
-    // Parse request body with error handling
-    let orderId: any
-    try {
-      const body = await request.json()
-      orderId = body.orderId
-    } catch (parseError) {
-      console.error("ERROR: Failed to parse request body:", parseError)
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Invalid request body",
-          debug: {
-            message: "Failed to parse JSON from request body",
-            error: parseError instanceof Error ? parseError.message : String(parseError)
-          }
-        },
-        { status: 400 }
-      )
-    }
-    
+    const { orderId } = await request.json()
     console.log("1. Received orderId:", orderId)
 
     if (!orderId) {
@@ -36,25 +16,7 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = createSupabaseAdmin()
-    
-    // Initialize Stripe with error handling for missing env vars
-    let stripe: any
-    try {
-      stripe = await getStripe()
-    } catch (stripeInitError) {
-      console.error("ERROR: Failed to initialize Stripe:", stripeInitError)
-      return NextResponse.json(
-        {
-          success: false,
-          error: stripeInitError instanceof Error ? stripeInitError.message : "Failed to initialize Stripe. Please check environment variables.",
-          debug: {
-            message: "Stripe initialization failed. Ensure STRIPE_TEST_SECRET_KEY or STRIPE_LIVE_SECRET_KEY is set.",
-            error: stripeInitError instanceof Error ? stripeInitError.message : String(stripeInitError)
-          }
-        },
-        { status: 500 }
-      )
-    }
+    const stripe = await getStripe()
 
     // 1. Check if order exists and get current status
     console.log("2. Checking order status and payment link existence...")
@@ -422,37 +384,6 @@ export async function POST(request: NextRequest) {
       } catch (webhookError) {
         console.error("WARNING: Failed to trigger payment link webhook:", webhookError)
         // Don't fail the payment link creation if webhook fails
-      }
-
-      // 13. Send payment link email
-      console.log("16. Sending payment link email...")
-      try {
-        const customerName = 
-          customerData.first_name && customerData.last_name 
-            ? `${customerData.first_name} ${customerData.last_name}` 
-            : order.customer_name || 'Customer';
-
-        const emailResult = await emailService.sendPaymentLinkEmail(
-          customerData.email,
-          order.order_number,
-          customerName,
-          session.url!,
-          {
-            total_amount: order.total_amount,
-            order_items: orderItems,
-            order_number: order.order_number
-          }
-        );
-
-        if (!emailResult.success) {
-          console.error("WARNING: Payment link email failed:", emailResult.error);
-          // Log email failure but don't fail payment link creation
-        } else {
-          console.log("✅ Payment link email sent successfully");
-        }
-      } catch (emailError) {
-        console.error("WARNING: Failed to send payment link email:", emailError);
-        // Don't fail the payment link creation if email fails
       }
 
       console.log("=== PAYMENT LINK CREATION SUCCESS ===")

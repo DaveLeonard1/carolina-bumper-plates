@@ -4,8 +4,6 @@ import { CheckCircle, Dumbbell, Package, Calendar, Mail, Edit } from "lucide-rea
 import { colorUsage } from "@/lib/colors"
 import { getOrderByNumber } from "@/lib/actions/orders"
 import Link from "next/link"
-import OrderHeader from "./order-header"
-import OrderFooter from "./order-footer"
 
 interface OrderConfirmationPageProps {
   searchParams: { order?: string; orderNumber?: string; modified?: string; updated?: string }
@@ -100,11 +98,33 @@ export default async function OrderConfirmationPage({ searchParams }: OrderConfi
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: colorUsage.backgroundLight }}>
-      {/* Header - Using our client component with dynamic business name */}
-      <OrderHeader 
-        orderNumber={order.order_number} 
-        canModify={canModify} 
-      />
+      {/* Header */}
+      <header
+        className="border-b px-4 py-4"
+        style={{ backgroundColor: colorUsage.backgroundPrimary, borderColor: colorUsage.border }}
+      >
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Dumbbell className="h-8 w-8" style={{ color: colorUsage.textPrimary }} />
+            <span className="text-xl font-bold">CAROLINA BUMPER PLATES</span>
+          </div>
+          <div className="flex gap-2">
+            {canModify && (
+              <Link href={`/modify-order?order=${order.order_number}`}>
+                <Button variant="outline" className="font-semibold">
+                  <Edit className="h-4 w-4 mr-2" />
+                  Modify Order
+                </Button>
+              </Link>
+            )}
+            <Link href="/">
+              <Button variant="outline" className="font-semibold">
+                Return Home
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </header>
 
       <div className="px-4 py-8">
         <div className="max-w-4xl mx-auto">
@@ -198,7 +218,7 @@ export default async function OrderConfirmationPage({ searchParams }: OrderConfi
 
                 <div className="space-y-4 mb-6">
                   {orderItems.length > 0 ? (
-                    orderItems.map((item: any, index: number) => (
+                    orderItems.map((item, index) => (
                       <div key={index} className="flex justify-between items-center">
                         <span className="font-semibold">
                           {item.quantity}x {item.title || `${item.weight} LB Bumper Plates`}
@@ -387,7 +407,44 @@ export default async function OrderConfirmationPage({ searchParams }: OrderConfi
           )}
 
           {/* Contact Information */}
-          <OrderFooter orderNumber={order?.order_number} />
+          <div className="text-center mt-8">
+            <p style={{ color: colorUsage.textMuted }}>
+              {isPaid ? (
+                <>
+                  Questions about your order?{" "}
+                  <a
+                    href="mailto:orders@carolinabumperplates.com"
+                    className="font-semibold"
+                    style={{ color: colorUsage.textOnLight }}
+                  >
+                    Contact our support team
+                  </a>
+                </>
+              ) : (
+                <>
+                  Need to make changes to your order?{" "}
+                  <Link
+                    href="/order-lookup"
+                    className="font-semibold underline"
+                    style={{ color: colorUsage.textOnLight }}
+                  >
+                    Modify your order
+                  </Link>{" "}
+                  before invoicing begins.
+                </>
+              )}
+            </p>
+            <p className="mt-2" style={{ color: colorUsage.textMuted }}>
+              Questions? Email us at{" "}
+              <a
+                href="mailto:orders@carolinabumperplates.com"
+                className="font-semibold"
+                style={{ color: colorUsage.textOnLight }}
+              >
+                orders@carolinabumperplates.com
+              </a>
+            </p>
+          </div>
         </div>
       </div>
     </div>

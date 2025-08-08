@@ -3,7 +3,6 @@
 import { z } from "zod"
 import { sql } from "@vercel/postgres"
 import { revalidatePath } from "next/cache"
-import { emailService } from "@/lib/email-service"
 import { redirect } from "next/navigation"
 import { createSupabaseAdmin } from "@/lib/supabase"
 
@@ -139,38 +138,10 @@ export async function submitOrder(prevState: State, formData: FormData) {
   const lastName = nameParts.slice(1).join(" ") || ""
 
   try {
-    // Insert the order into the database
-    const result = await sql`
+    await sql`
       INSERT INTO orders (customer_id, customer_name, first_name, last_name, amount, status, date)
-      VALUES (${customer_id}, ${String(formData.get("customerName") || "")}, ${firstName}, ${lastName}, ${amountInCents}, ${status}, ${date})
-      RETURNING id, customer_name, customer_email, order_number
+      VALUES (${customer_id}, ${formData.get("customerName")}, ${firstName}, ${lastName}, ${amountInCents}, ${status}, ${date})
     `
-    
-    const order = result.rows[0];
-    
-    // Send confirmation email if we have an email address
-    if (order && order.customer_email) {
-      try {
-        const customerName = order.customer_name || `${firstName} ${lastName}`.trim();
-        
-        await emailService.sendPreorderConfirmationEmail(
-          order.customer_email,
-          order.order_number || `CBP-${date}-${order.id}`,
-          customerName,
-          {
-            total_amount: amount,
-            order_id: order.id,
-            status: status,
-            date: date
-          }
-        );
-        
-        console.log(`✅ Preorder confirmation email sent to ${order.customer_email}`);
-      } catch (emailError) {
-        console.error("Failed to send preorder confirmation email:", emailError);
-        // Continue with order creation even if email fails
-      }
-    }
   } catch (error) {
     return {
       message: "Database Error: Failed to Create Order.",

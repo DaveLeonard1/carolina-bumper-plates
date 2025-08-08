@@ -1,13 +1,14 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { createSupabaseAdmin } from "@/lib/supabase"
+import { NextResponse } from "next/server"
+import { createClient } from "@supabase/supabase-js"
 
-export async function GET(request: NextRequest, { params }: { params: { orderNumber: string } }) {
+const supabaseAdmin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+
+export async function GET(request: Request, { params }: { params: { orderNumber: string } }) {
   try {
     const { orderNumber } = params
-    const supabase = createSupabaseAdmin()
 
-    // Get order ID first
-    const { data: order, error: orderError } = await supabase
+    // Get order ID
+    const { data: order, error: orderError } = await supabaseAdmin
       .from("orders")
       .select("id")
       .eq("order_number", orderNumber)
@@ -21,62 +22,60 @@ export async function GET(request: NextRequest, { params }: { params: { orderNum
       })
     }
 
-    // Get all webhook-related logs
-    const [queueResult, logsResult, timelineResult, debugLogsResult] = await Promise.all([
-      // Webhook queue entries
-      supabase
-        .from("webhook_queue")
-        .select("*")
-        .eq("order_id", order.id)
-        .order("created_at", { ascending: false }),
+    // Get all webhook logs for this order
+    const { data: logs, error: logsError } = await supabaseAdmin
+      .from("webhook_logs")
+      .select("*")
+      .eq("order_id", order.id)
+      .order("created_at", { ascending: false })
 
-      // Webhook delivery logs
-      supabase
-        .from("webhook_logs")
-        .select("*")
-        .eq("order_id", order.id)
-        .order("created_at", { ascending: false }),
+    // Get all webhook queue items for this order
+    const { data: queue, error: queueError } = await supabaseAdmin
+      .from("webhook_queue")
+      .select("*")
+      .eq("order_id", order.id)
+      .order("created_at", { ascending: false })
 
-      // Order timeline events
-      supabase
-        .from("order_timeline")
-        .select("*")
-        .eq("order_id", order.id)
-        .in("event_type", ["payment_link_created", "manual_webhook_trigger", "webhook_sent", "webhook_failed"])
-        .order("created_at", { ascending: false }),
+    // Get webhook settings for context
+    const { data: settings, error: settingsError } = await supabaseAdmin
+      .from("admin_settings")
+      .select("key, value")
+      .in("key", ["zapier_webhook_enabled", "zapier_webhook_url"])
 
-      // Debug logs from webhook processing
-      supabase
-        .from("webhook_debug_logs")
-        .select("*")
-        .eq("order_number", orderNumber)
-        .order("created_at", { ascending: false }),
-    ])
+    const webhookEnabled = settings?.find((s) => s.key === "zapier_webhook_enabled")?.value === "true"
+    const webhookUrl = settings?.find((s) => s.key === "zapier_webhook_url")?.value || ""
+
+    // Analyze the logs
+    const analysis = {
+      totalAttempts: (logs?.length || 0) + (queue?.length || 0),
+      successfulDeliveries: logs?.filter((log) => log.success).length || 0,
+      failedDeliveries: logs?.filter((log) => !log.success).length || 0,
+      pendingDeliveries: queue?.filter((item) => item.status === "pending").length || 0,
+      lastAttempt: logs?.[0]?.created_at || queue?.[0]?.created_at || null,
+      avgResponseTime: logs?.length
+        ? Math.round(logs.reduce((sum, log) => sum + (log.response_time_ms || 0), 0) / logs.length)
+        : 0,
+    }
 
     return NextResponse.json({
       success: true,
       orderNumber,
       orderId: order.id,
-      logs: {
-        webhook_queue: queueResult.data || [],
-        webhook_logs: logsResult.data || [],
-        timeline_events: timelineResult.data || [],
-        debug_logs: debugLogsResult.data || [],
+      webhookConfig: {
+        enabled: webhookEnabled,
+        url: webhookUrl,
       },
-      summary: {
-        queued_webhooks: queueResult.data?.length || 0,
-        delivered_webhooks: logsResult.data?.filter((log) => log.success).length || 0,
-        failed_webhooks: logsResult.data?.filter((log) => !log.success).length || 0,
-        timeline_events: timelineResult.data?.length || 0,
-        debug_entries: debugLogsResult.data?.length || 0,
-      },
+      logs: logs || [],
+      queue: queue || [],
+      analysis,
     })
   } catch (error) {
     console.error("Error fetching webhook debug logs:", error)
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
+        error: "Failed to fetch webhook logs",
+        details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 },
     )
