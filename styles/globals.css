@@ -43,6 +43,26 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Brand tokens from Figma */
+    --carolina-bumper-plates-black-600: #1a1a1a;
+    --carolina-bumper-plates-white-600: #ffffff;
+    --carolina-bumper-plates-lime-600: #cfff5e;
+    --carolina-bumper-plates-lime-700: #b9ff16;
+
+    /* Header typography tokens (Oswald) */
+    --san-serif-h2-font-family: "Oswald", Helvetica, Arial, sans-serif;
+    --san-serif-h2-font-size: 72px;
+    --san-serif-h2-font-style: normal;
+    --san-serif-h2-font-weight: 700;
+    --san-serif-h2-letter-spacing: -2px;
+    --san-serif-h2-line-height: 76px;
+
+    --san-serif-h4-font-family: "Oswald", Helvetica, Arial, sans-serif;
+    --san-serif-h4-font-size: 40px;
+    --san-serif-h4-font-style: normal;
+    --san-serif-h4-font-weight: 700;
+    --san-serif-h4-letter-spacing: -0.4px;
+    --san-serif-h4-line-height: 44px;
   }
   .dark {
     --background: 0 0% 3.9%;
@@ -87,4 +107,8 @@
   body {
     @apply bg-background text-foreground;
   }
+  h1, h2, h3 {
+    @apply font-heading;
+  }
 }
+

@@ -10,7 +10,15 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        heading: ["Oswald", "ui-sans-serif", "system-ui", "-apple-system", "Segoe UI", "Roboto", "Arial", "Noto Sans", "sans-serif"],
+      },
       colors: {
+        // Figma brand tokens mapped to CSS variables
+        "carolina-bumper-plates-black-600": "var(--carolina-bumper-plates-black-600)",
+        "carolina-bumper-plates-white-600": "var(--carolina-bumper-plates-white-600)",
+        "carolina-bumper-plates-lime-600": "var(--carolina-bumper-plates-lime-600)",
+        "carolina-bumper-plates-lime-700": "var(--carolina-bumper-plates-lime-700)",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -56,3 +64,4 @@ const config: Config = {
 }
 
 export default config
+

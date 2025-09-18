@@ -1,9 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import React from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Dumbbell, Truck, User } from "lucide-react"
+import { User } from "lucide-react"
 import { colors, colorUsage } from "@/lib/colors"
 import Link from "next/link"
 import { useAuth } from "@/lib/auth/auth-context"
@@ -11,206 +10,120 @@ import ProductConfigurator from "@/components/product-configurator"
 
 export default function HomePage() {
   const { user, loading } = useAuth()
-  const [faqs, setFaqs] = useState([
-    {
-      q: "Are these plates really Hi-Temp?",
-      a: "Yes — all plates are official Hi-Temp USA-made bumper plates. They're just discounted due to minor visual defects.",
-    },
-    {
-      q: "Why are they cheaper?",
-      a: "These are factory seconds with small blemishes — not structural defects. Same durability, less cost.",
-    },
-    {
-      q: "When do I pay?",
-      a: "You'll receive an invoice once we reach our batch goal. No payment required until then.",
-    },
-    {
-      q: "How does delivery work?",
-      a: "We deliver on our return route after picking up from Hi-Temp. You'll get notified in advance.",
-    },
-    {
-      q: "Can I change or cancel my preorder?",
-      a: "Yes — you can make changes anytime before your invoice is sent.",
-    },
-  ])
-
-  const [faqStates, setFaqStates] = useState(faqs.map(() => false))
+  // Homepage metrics
 
   const currentProgress = 8320
   const targetWeight = 10000
   const progressPercentage = (currentProgress / targetWeight) * 100
 
-  const toggleFaq = (index: number) => {
-    setFaqStates((prev) => prev.map((state, i) => (i === index ? !state : state)))
-  }
-
   return (
     <div className="min-h-screen" style={{ backgroundColor: colorUsage.backgroundPrimary }}>
-      {/* Header */}
-      <header className="border-b px-4 py-4" style={{ borderColor: colorUsage.border }}>
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Dumbbell className="h-8 w-8" style={{ color: colorUsage.textPrimary }} />
-            <span className="text-xl font-bold">CAROLINA BUMPER PLATES</span>
+      {/* Hero + Nav (overlay) */}
+      <section className="relative h-[650px] overflow-hidden">
+        <div
+          className="absolute inset-0 bg-center bg-cover"
+          style={{ backgroundImage: "url('/images/style-reference-1.webp')" }}
+        />
+        <div className="absolute inset-0 opacity-60" style={{ backgroundColor: "var(--carolina-bumper-plates-black-600)" }} />
+
+        {/* Top bars */}
+        <div className="absolute top-0 left-0 right-0">
+          {/* Shipping bar */}
+          <div className="hidden md:flex items-center justify-start px-[52px] py-3 h-12 text-white/90 text-sm">
+            <span>Free delivery on every order</span>
           </div>
-          <div className="flex items-center gap-2">
-            {!loading && (
-              <>
-                {user ? (
-                  <Link href="/my-account">
-                    <Button variant="outline" className="font-semibold">
-                      <User className="h-4 w-4 mr-2" />
-                      My Account
-                    </Button>
-                  </Link>
-                ) : (
+          {/* Main nav */}
+          <div className="flex items-center justify-between px-[57px] py-2 border-b border-transparent">
+            <div className="flex items-center">
+              <img
+                src="/The-Plate-Yard_Logo.svg"
+                alt="The Plate Yard"
+                className="w-[200px] h-[40.08px]"
+              />
+            </div>
+            <div className="flex items-center gap-[30px]">
+                {!loading && (
                   <>
-                    <Link href="/order-lookup">
-                      <Button variant="outline" className="font-semibold">
-                        Find My Order
-                      </Button>
-                    </Link>
-                    <Link href="/login">
-                      <Button variant="outline" className="font-semibold">
-                        Sign In
-                      </Button>
-                    </Link>
+                    {user ? (
+                      <Link href="/my-account">
+                        <Button variant="outline" className="border-white text-white hover:bg-white hover:text-black">
+                          <User className="h-4 w-4 mr-2" />
+                          My Account
+                        </Button>
+                      </Link>
+                    ) : (
+                      <>
+                        <Link href="/order-lookup">
+                          <Button variant="outline" className="border-white text-white hover:bg-white hover:text-black">
+                            Find My Order
+                          </Button>
+                        </Link>
+                        <Link href="/login">
+                          <Button variant="outline" className="border-white text-white hover:bg-white hover:text-black">
+                            Sign In
+                          </Button>
+                        </Link>
+                      </>
+                    )}
                   </>
                 )}
-              </>
-            )}
-            <Link href="/contact">
-              <Button variant="outline" className="font-semibold">
-                Contact Us
-              </Button>
-            </Link>
-          </div>
+                <Link href="/contact">
+                  <Button variant="outline" className="border-white text-white hover:bg-white hover:text-black">
+                    Contact Us
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          
         </div>
-      </header>
 
-      {/* Hero Section */}
-      <section className="px-4 py-16" style={{ backgroundColor: colorUsage.backgroundDark }}>
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center" style={{ color: colorUsage.textOnDark }}>
+        {/* Hero copy */}
+        <div className="relative z-10 flex h-full items-center justify-center">
+          <div className="text-center text-white px-6">
             <h1
-              className="text-5xl md:text-7xl font-black mb-6 tracking-tight"
-              style={{ fontFamily: "Oswald, sans-serif" }}
+              className="font-heading mb-2 text-[length:var(--san-serif-h2-font-size)] leading-[var(--san-serif-h2-line-height)] tracking-[var(--san-serif-h2-letter-spacing)] font-[number:var(--san-serif-h2-font-weight)]"
             >
               OFFICIAL HI-TEMP PLATES.
-              <br />
-              MINOR BLEMISHES.
-              <br />
-              MAJOR SAVINGS.
             </h1>
-            <p className="text-xl md:text-2xl mb-8 text-gray-300 max-w-3xl mx-auto leading-relaxed">
-              Factory-second bumper plates made in the USA by Hi-Temp — with small cosmetic flaws and serious
-              performance.
+            <p className="font-heading mt-1 text-[length:var(--san-serif-h4-font-size)] leading-[var(--san-serif-h4-line-height)] tracking-[var(--san-serif-h4-letter-spacing)] font-[number:var(--san-serif-h4-font-weight)] uppercase">
+              MINOR BLEMISHES.  MAJOR SAVINGS.
             </p>
             <a href="#configurator">
               <Button
                 size="lg"
-                className="font-bold text-lg px-8 py-4"
-                style={{
-                  backgroundColor: colorUsage.buttonPrimary,
-                  color: colorUsage.textOnAccent,
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colorUsage.buttonPrimaryHover)}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = colorUsage.buttonPrimary)}
+                className="mt-8 h-auto px-[55px] py-[15px] pb-[23px] bg-carolina-bumper-plates-lime-600 hover:bg-carolina-bumper-plates-lime-700 text-carolina-bumper-plates-black-600 font-heading text-[26px] leading-[38px] rounded-lg"
               >
-                BUILD YOUR SET →
+                Build Your Set →
               </Button>
             </a>
           </div>
         </div>
       </section>
 
-      {/* USA Made Section */}
-      <section className="px-4 py-16" style={{ backgroundColor: colorUsage.backgroundLight }}>
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center">
-            <h2 className="text-4xl md:text-5xl font-black mb-6" style={{ fontFamily: "Oswald, sans-serif" }}>
-              USA-MADE. DISCOUNTED.
-            </h2>
-            <p className="text-lg max-w-3xl mx-auto leading-relaxed" style={{ color: colorUsage.textMuted }}>
-              We sell official Hi-Temp bumper plates with visual imperfections at discounted prices. These aren't
-              knockoffs — they're the same plates trusted by gyms across the country, just with small scuffs or cosmetic
-              inconsistencies.
-            </p>
-            <p className="text-xl font-semibold mt-6" style={{ color: colorUsage.textOnLight }}>
-              You only pay when the next batch is ready.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works */}
-      <section className="px-4 py-16">
-        <div className="max-w-6xl mx-auto">
-          <h2
-            className="text-4xl md:text-5xl font-black text-center mb-12"
-            style={{ fontFamily: "Oswald, sans-serif" }}
-          >
+      {/* How It Works (dark) */}
+      <section className="px-4 py-20 bg-[#1a1a1a]">
+        <div className="max-w-6xl mx-auto text-white text-center">
+          <h2 className="text-4xl md:text-5xl font-black uppercase">
             HOW IT WORKS
           </h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            <Card className="text-center p-6 rounded-lg border">
-              <CardContent className="pt-6">
-                <div
-                  className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
-                  style={{ backgroundColor: colorUsage.buttonSecondary }}
-                >
-                  <span className="text-2xl font-bold" style={{ color: colorUsage.textOnDark }}>
-                    1
-                  </span>
-                </div>
-                <h3 className="text-xl font-bold mb-3">BUILD YOUR SET</h3>
-                <p style={{ color: colorUsage.textMuted }}>
-                  Choose the plate sizes and quantities you want. Submit your preorder — no payment up front.
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="text-center p-6 rounded-lg border">
-              <CardContent className="pt-6">
-                <div
-                  className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
-                  style={{ backgroundColor: colorUsage.buttonSecondary }}
-                >
-                  <span className="text-2xl font-bold" style={{ color: colorUsage.textOnDark }}>
-                    2
-                  </span>
-                </div>
-                <h3 className="text-xl font-bold mb-3">WE HIT 10,000 LBS</h3>
-                <p style={{ color: colorUsage.textMuted }}>
-                  When we reach 10,000 lbs in total preorders, we schedule our pickup with Hi-Temp.
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="text-center p-6 rounded-lg border">
-              <CardContent className="pt-6">
-                <div
-                  className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
-                  style={{ backgroundColor: colorUsage.buttonSecondary }}
-                >
-                  <Truck className="h-8 w-8" style={{ color: colorUsage.textOnDark }} />
-                </div>
-                <h3 className="text-xl font-bold mb-3">YOU GET DELIVERY</h3>
-                <p style={{ color: colorUsage.textMuted }}>
-                  We pick up the batch and deliver locally on our return route. Simple, fast, and cheaper for everyone.
-                </p>
-              </CardContent>
-            </Card>
+          <div className="mt-12 grid md:grid-cols-3 gap-8">
+            <div className="bg-white h-[250px] rounded-lg" />
+            <div className="bg-white h-[250px] rounded-lg" />
+            <div className="bg-white h-[250px] rounded-lg" />
           </div>
         </div>
       </section>
 
       {/* Product Configurator */}
-      <ProductConfigurator />
+      <section id="configurator">
+        <ProductConfigurator />
+      </section>
 
-      {/* Progress Tracker */}
+      {/* Batch Progress */}
       <section className="px-4 py-16" style={{ backgroundColor: colorUsage.backgroundDark }}>
         <div className="max-w-4xl mx-auto">
           <div className="text-center" style={{ color: colorUsage.textOnDark }}>
-            <h2 className="text-4xl md:text-5xl font-black mb-8" style={{ fontFamily: "Oswald, sans-serif" }}>
+            <h2 className="text-4xl md:text-5xl font-black mb-8 uppercase">
               BATCH PROGRESS
             </h2>
             <div className="rounded-2xl p-8" style={{ backgroundColor: colorUsage.backgroundDark }}>
@@ -223,7 +136,7 @@ export default function HomePage() {
                   <div
                     className="h-4 rounded-full transition-all duration-300"
                     style={{
-                      backgroundColor: colorUsage.accent,
+                      backgroundColor: "#cfff5e",
                       width: `${progressPercentage}%`,
                     }}
                   ></div>
@@ -237,104 +150,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* FAQ */}
-      <section className="px-4 py-16">
-        <div className="max-w-4xl mx-auto">
-          <h2
-            className="text-4xl md:text-5xl font-black text-center mb-12"
-            style={{ fontFamily: "Oswald, sans-serif" }}
-          >
-            FREQUENTLY ASKED QUESTIONS
-          </h2>
-          <div className="space-y-4">
-            {faqs.map((faq, index) => (
-              <Card key={index} className="rounded-lg border">
-                <CardContent className="p-0">
-                  <button
-                    className="w-full text-left p-6 flex justify-between items-center transition-colors"
-                    onClick={() => toggleFaq(index)}
-                    aria-expanded={faqStates[index]}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colorUsage.backgroundLight)}
-                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
-                  >
-                    <h3 className="text-xl font-bold pr-4">{faq.q}</h3>
-                    <div
-                      className={`transform transition-transform duration-200 ${faqStates[index] ? "rotate-180" : ""}`}
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </div>
-                  </button>
-                  {faqStates[index] && (
-                    <div className="px-6 pb-6">
-                      <p style={{ color: colorUsage.textMuted }}>{faq.a}</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-            <Card className="p-6 rounded-lg border" style={{ backgroundColor: colorUsage.backgroundLight }}>
-              <CardContent className="pt-6 text-center">
-                <h3 className="text-xl font-bold mb-3">Still have questions?</h3>
-                <p style={{ color: colorUsage.textMuted }}>
-                  Email us at{" "}
-                  <a
-                    href="mailto:info@carolinabumperplates.com"
-                    className="font-semibold"
-                    style={{ color: colorUsage.textOnLight }}
-                  >
-                    info@carolinabumperplates.com
-                  </a>
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Final CTA */}
-      <section className="px-4 py-16" style={{ backgroundColor: colorUsage.backgroundAccent }}>
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center" style={{ color: colorUsage.textOnAccent }}>
-            <h2 className="text-4xl md:text-5xl font-black mb-6" style={{ fontFamily: "Oswald, sans-serif" }}>
-              READY TO LIFT?
-            </h2>
-            <p className="text-xl mb-8 font-semibold">
-              Get the same plates for less. Submit your preorder today — no payment required.
-            </p>
-            <Link href="/checkout">
-              <Button
-                size="lg"
-                className="font-bold text-lg px-8 py-4"
-                style={{
-                  backgroundColor: colorUsage.buttonDark,
-                  color: colorUsage.textOnDark,
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colorUsage.buttonDarkHover)}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = colorUsage.buttonDark)}
-              >
-                BUILD MY SET →
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer
-        className="px-4 py-8"
-        style={{ backgroundColor: colorUsage.backgroundDark, color: colorUsage.textOnDark }}
-      >
-        <div className="max-w-6xl mx-auto text-center">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Dumbbell className="h-6 w-6" />
-            <span className="font-bold">CAROLINA BUMPER PLATES</span>
-          </div>
-          <p className="text-gray-400">Official Hi-Temp factory seconds. USA-made quality at wholesale prices.</p>
-        </div>
-      </footer>
     </div>
   )
 }

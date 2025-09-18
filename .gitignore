@@ -1,12 +1,47 @@
-# exclude node_modules, dist, & build folders
 node_modules
 dist
 build
+
+# Next.js build output
+.next/
+out/
+
+# Vercel
+.vercel/
+
+# Environment files (keep generic templates, ignore local secrets)
 .env
 .env.local
-.next
-yarn.lock
-.vercel
 .env*
 !.env.example
 .env*.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Lockfiles (keep only one depending on your package manager; ignore others)
+yarn.lock
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Testing/coverage
+coverage/
+.nyc_output/
+
+# Lint/cache
+.eslintcache
+
+# OS/editor
+.DS_Store
+.idea/
+.vscode/
+
+# Turbo repo cache (if ever used)
+.turbo/
