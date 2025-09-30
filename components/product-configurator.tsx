@@ -20,14 +20,19 @@ export default function ProductConfigurator() {
         initialQuantities[product.id] = 0
       })
       setQuantities(initialQuantities)
+      console.log("🔢 Initialized quantities for", products.length, "products")
     }
   }, [products])
 
   const updateQuantity = (productId: number, change: number) => {
-    setQuantities((prev) => ({
-      ...prev,
-      [productId]: Math.max(0, (prev[productId] || 0) + change),
-    }))
+    setQuantities((prev) => {
+      const newQuantity = Math.max(0, (prev[productId] || 0) + change)
+      console.log(`📝 Updated quantity for product ${productId}: ${prev[productId] || 0} → ${newQuantity}`)
+      return {
+        ...prev,
+        [productId]: newQuantity,
+      }
+    })
   }
 
   const selectedProducts = products.filter((product) => quantities[product.id] && quantities[product.id] > 0)
@@ -39,13 +44,30 @@ export default function ProductConfigurator() {
   )
 
   const handleCheckout = () => {
-    if (selectedProducts.length === 0) return
+    console.log("🛒 Checkout button clicked")
+    console.log("📦 Total products:", products.length)
+    console.log("🔢 Current quantities:", quantities)
+    console.log("✅ Selected products:", selectedProducts.length)
+    console.log("💰 Total cost:", totalCost)
 
-    // Save cart data to localStorage
-    saveCartToStorage(products, quantities)
+    if (selectedProducts.length === 0) {
+      console.warn("⚠️ No products selected")
+      alert("Please select at least one product before checking out")
+      return
+    }
 
-    // Navigate to checkout
-    window.location.href = "/checkout"
+    try {
+      // Save cart data to localStorage
+      console.log("💾 Saving cart to localStorage...")
+      saveCartToStorage(products, quantities)
+      console.log("✅ Cart saved successfully, redirecting to checkout...")
+
+      // Navigate to checkout
+      window.location.href = "/checkout"
+    } catch (error) {
+      console.error("❌ Error during checkout:", error)
+      alert("There was an error processing your cart. Please try again.")
+    }
   }
 
   if (loading) {
@@ -101,7 +123,7 @@ export default function ProductConfigurator() {
           </h2>
           <div className="text-center py-8">
             <p style={{ color: colorUsage.textMuted }}>No products available at the moment.</p>
-            <Button onClick={refresh} variant="outline" className="mt-4">
+            <Button onClick={refresh} variant="outline" className="mt-4 bg-transparent">
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh
             </Button>

@@ -1,47 +1,27 @@
-node_modules
-dist
-build
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# Next.js build output
-.next/
-out/
+# dependencies
+/node_modules
 
-# Vercel
-.vercel/
+# next.js
+/.next/
+/out/
 
-# Environment files (keep generic templates, ignore local secrets)
-.env
-.env.local
-.env*
-!.env.example
-.env*.local
-.env.*.local
-.env.development.local
-.env.test.local
-.env.production.local
+# production
+/build
 
-# Lockfiles (keep only one depending on your package manager; ignore others)
-yarn.lock
-
-# Logs
-logs
-*.log
+# debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
+.pnpm-debug.log*
 
-# Testing/coverage
-coverage/
-.nyc_output/
+# env files
+.env*
 
-# Lint/cache
-.eslintcache
+# vercel
+.vercel
 
-# OS/editor
-.DS_Store
-.idea/
-.vscode/
-
-# Turbo repo cache (if ever used)
-.turbo/
+# typescript
+*.tsbuildinfo
+next-env.d.ts

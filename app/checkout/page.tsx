@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -12,7 +11,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
   ArrowLeft,
-  Dumbbell,
   AlertCircle,
   CheckCircle,
   Eye,
@@ -21,12 +19,14 @@ import {
   UserPlus,
   LogIn,
   RefreshCw,
+  TrendingUp,
 } from "lucide-react"
 import { colorUsage } from "@/lib/colors"
 import Link from "next/link"
 import { useAuth } from "@/lib/auth/auth-context"
 import { supabase } from "@/lib/supabase/client"
 import { getCartFromStorage, clearCartFromStorage, type CartItem } from "@/lib/cart-storage"
+import { PageLayout } from "@/components/page-layout"
 
 export default function CheckoutPage() {
   const [formData, setFormData] = useState({
@@ -53,8 +53,8 @@ export default function CheckoutPage() {
   })
   const [cartLoading, setCartLoading] = useState(true)
 
-  const [emailStatus, setEmailStatus] = useState("unchecked") // unchecked, checking, exists, new
-  const [authMode, setAuthMode] = useState("none") // none, login, signup
+  const [emailStatus, setEmailStatus] = useState("unchecked")
+  const [authMode, setAuthMode] = useState("none")
   const [showPassword, setShowPassword] = useState(false)
   const [authError, setAuthError] = useState("")
   const [isSignedIn, setIsSignedIn] = useState(false)
@@ -64,51 +64,55 @@ export default function CheckoutPage() {
 
   const { user } = useAuth()
 
-  // Load cart data on component mount
   useEffect(() => {
-    console.log("🛒 CheckoutPage: Loading cart data...")
+    console.log("=== CHECKOUT PAGE MOUNT ===")
+    console.log("🛒 CheckoutPage: Component mounted, loading cart data...")
+    console.log("🔍 sessionStorage available:", typeof sessionStorage !== "undefined")
+
     setCartLoading(true)
 
-    try {
-      const cartData = getCartFromStorage()
+    setTimeout(() => {
+      try {
+        console.log("📖 Attempting to load cart from storage...")
+        const cartData = getCartFromStorage()
+        console.log("📦 Cart data from storage:", cartData)
 
-      if (cartData && cartData.items && Array.isArray(cartData.items) && cartData.items.length > 0) {
-        console.log("✅ CheckoutPage: Cart loaded successfully:", {
-          itemCount: cartData.items.length,
-          subtotal: cartData.subtotal,
-          totalWeight: cartData.totalWeight,
-          totalSavings: cartData.totalSavings,
-        })
+        if (cartData && cartData.items && Array.isArray(cartData.items) && cartData.items.length > 0) {
+          console.log("✅ CheckoutPage: Cart loaded successfully:", {
+            itemCount: cartData.items.length,
+            subtotal: cartData.subtotal,
+            totalWeight: cartData.totalWeight,
+          })
 
-        setCartItems(cartData.items)
-        setCartTotals({
-          subtotal: cartData.subtotal || 0,
-          totalWeight: cartData.totalWeight || 0,
-          totalSavings: cartData.totalSavings || 0,
-        })
-      } else {
-        console.log("⚠️ CheckoutPage: No valid cart data found")
+          setCartItems(cartData.items)
+          setCartTotals({
+            subtotal: cartData.subtotal || 0,
+            totalWeight: cartData.totalWeight || 0,
+            totalSavings: cartData.totalContribution || 0,
+          })
+        } else {
+          console.log("⚠️ CheckoutPage: No valid cart data found")
+          setCartItems([])
+          setCartTotals({
+            subtotal: 0,
+            totalWeight: 0,
+            totalSavings: 0,
+          })
+        }
+      } catch (error) {
+        console.error("❌ CheckoutPage: Error loading cart:", error)
         setCartItems([])
         setCartTotals({
           subtotal: 0,
           totalWeight: 0,
           totalSavings: 0,
         })
+      } finally {
+        setCartLoading(false)
       }
-    } catch (error) {
-      console.error("❌ CheckoutPage: Error loading cart:", error)
-      setCartItems([])
-      setCartTotals({
-        subtotal: 0,
-        totalWeight: 0,
-        totalSavings: 0,
-      })
-    } finally {
-      setCartLoading(false)
-    }
+    }, 100)
   }, [])
 
-  // Check if user is already signed in
   useEffect(() => {
     if (user) {
       console.log("👤 CheckoutPage: User already signed in:", user.email)
@@ -124,14 +128,13 @@ export default function CheckoutPage() {
     }
   }, [user])
 
-  // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [])
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
-    setSubmitError("") // Clear any previous errors
+    setSubmitError("")
 
     if (field === "email" && !user) {
       setEmailStatus("unchecked")
@@ -227,13 +230,11 @@ export default function CheckoutPage() {
     if (!formData.agreeToTerms) errors.push("You must agree to the terms and conditions")
     if (cartItems.length === 0) errors.push("Your cart is empty")
 
-    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (formData.email && !emailRegex.test(formData.email)) {
       errors.push("Please enter a valid email address")
     }
 
-    // Authentication validation
     if (!user && !isSignedIn) {
       if (authMode === "signup" && (!formData.password || formData.password.length < 6)) {
         errors.push("Password must be at least 6 characters long for new accounts")
@@ -255,7 +256,6 @@ export default function CheckoutPage() {
 
     setSubmitError("")
 
-    // Validate form
     const validationErrors = validateForm()
     if (validationErrors.length > 0) {
       const errorMessage = validationErrors.join(", ")
@@ -267,7 +267,6 @@ export default function CheckoutPage() {
     setIsSubmitting(true)
 
     try {
-      // If user needs to sign in first, do that
       if (authMode === "login" && !isSignedIn && !user) {
         console.log("🔐 CheckoutPage: Signing in user first...")
         await handleSignIn()
@@ -292,14 +291,13 @@ export default function CheckoutPage() {
         orderItems: cartItems.map((item) => ({
           productId: item.productId,
           weight: item.weight,
-          title: item.title,
+          title: item.name,
           quantity: item.quantity,
-          price: item.sellingPrice,
-          regularPrice: item.regularPrice,
+          price: item.pricePerUnit,
+          regularPrice: item.pricePerUnit * 1.5,
         })),
         subtotal: cartTotals.subtotal,
         totalWeight: cartTotals.totalWeight,
-        // Authentication data
         createAccount: authMode === "signup" && !user,
         password: authMode === "signup" ? formData.password : undefined,
       }
@@ -331,10 +329,8 @@ export default function CheckoutPage() {
           console.log("✅ CheckoutPage: User account created successfully")
         }
 
-        // Clear cart after successful order
         clearCartFromStorage()
 
-        // Use the provided redirect URL or construct one
         const redirectUrl = result.redirectUrl || `/order-confirmation?order=${result.orderNumber}`
         console.log("🔄 CheckoutPage: Redirecting to:", redirectUrl)
 
@@ -353,30 +349,11 @@ export default function CheckoutPage() {
   }
 
   const isFormValid = validateForm().length === 0
-  const buttonBackgroundColor = isFormValid && !isSubmitting ? colorUsage.buttonSecondary : colorUsage.textDisabled
+  const buttonBackgroundColor = isFormValid && !isSubmitting ? "#B9FF16" : colorUsage.textDisabled
 
-  // Loading state for cart
   if (cartLoading) {
     return (
-      <div className="min-h-screen" style={{ backgroundColor: colorUsage.backgroundLight }}>
-        <header
-          className="border-b px-4 py-4"
-          style={{ backgroundColor: colorUsage.backgroundPrimary, borderColor: colorUsage.border }}
-        >
-          <div className="max-w-6xl mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Dumbbell className="h-8 w-8" style={{ color: colorUsage.textPrimary }} />
-              <span className="text-xl font-bold">CAROLINA BUMPER PLATES</span>
-            </div>
-            <Link href="/">
-              <Button variant="outline" className="font-semibold">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Home
-              </Button>
-            </Link>
-          </div>
-        </header>
-
+      <PageLayout>
         <div className="px-4 py-16">
           <div className="max-w-4xl mx-auto text-center">
             <RefreshCw className="h-16 w-16 animate-spin mx-auto mb-6" style={{ color: colorUsage.textMuted }} />
@@ -388,32 +365,13 @@ export default function CheckoutPage() {
             </p>
           </div>
         </div>
-      </div>
+      </PageLayout>
     )
   }
 
-  // If cart is empty, show empty cart message
   if (cartItems.length === 0) {
     return (
-      <div className="min-h-screen" style={{ backgroundColor: colorUsage.backgroundLight }}>
-        <header
-          className="border-b px-4 py-4"
-          style={{ backgroundColor: colorUsage.backgroundPrimary, borderColor: colorUsage.border }}
-        >
-          <div className="max-w-6xl mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Dumbbell className="h-8 w-8" style={{ color: colorUsage.textPrimary }} />
-              <span className="text-xl font-bold">CAROLINA BUMPER PLATES</span>
-            </div>
-            <Link href="/">
-              <Button variant="outline" className="font-semibold">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Home
-              </Button>
-            </Link>
-          </div>
-        </header>
-
+      <PageLayout>
         <div className="px-4 py-16">
           <div className="max-w-4xl mx-auto text-center">
             <ShoppingCart className="h-16 w-16 mx-auto mb-6" style={{ color: colorUsage.textMuted }} />
@@ -428,7 +386,7 @@ export default function CheckoutPage() {
                 size="lg"
                 className="font-bold text-lg px-8 py-4"
                 style={{
-                  backgroundColor: colorUsage.buttonSecondary,
+                  backgroundColor: "#6EBA5E",
                   color: colorUsage.textOnDark,
                 }}
               >
@@ -437,33 +395,23 @@ export default function CheckoutPage() {
             </Link>
           </div>
         </div>
-      </div>
+      </PageLayout>
     )
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: colorUsage.backgroundLight }}>
-      {/* Header */}
-      <header
-        className="border-b px-4 py-4"
-        style={{ backgroundColor: colorUsage.backgroundPrimary, borderColor: colorUsage.border }}
-      >
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Dumbbell className="h-8 w-8" style={{ color: colorUsage.textPrimary }} />
-            <span className="text-xl font-bold">CAROLINA BUMPER PLATES</span>
-          </div>
-          <Link href="/">
-            <Button variant="outline" className="font-semibold">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Home
-            </Button>
-          </Link>
-        </div>
-      </header>
-
-      <div className="px-4 py-8">
+    <PageLayout>
+      <div className="px-4 py-8" style={{ backgroundColor: colorUsage.backgroundLight }}>
         <div className="max-w-6xl mx-auto">
+          <div className="mb-6">
+            <Link href="/">
+              <Button variant="outline" className="font-semibold bg-transparent">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Home
+              </Button>
+            </Link>
+          </div>
+
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Left Side - Form */}
             <div className="lg:col-span-2">
@@ -677,9 +625,7 @@ export default function CheckoutPage() {
                                     className="font-semibold px-6"
                                     style={{
                                       backgroundColor:
-                                        formData.password && !isSigningIn
-                                          ? colorUsage.buttonSecondary
-                                          : colorUsage.textDisabled,
+                                        formData.password && !isSigningIn ? "#6EBA5E" : colorUsage.textDisabled,
                                       color: colorUsage.textOnDark,
                                     }}
                                   >
@@ -814,7 +760,7 @@ export default function CheckoutPage() {
                         disabled={!isFormValid || isSubmitting}
                         style={{
                           backgroundColor: buttonBackgroundColor,
-                          color: colorUsage.textOnDark,
+                          color: "#1a1a1a",
                         }}
                       >
                         {isSubmitting ? "Processing..." : "Complete Preorder Reservation"}
@@ -833,27 +779,31 @@ export default function CheckoutPage() {
                     <h3 className="text-xl font-bold mb-6">Order Summary</h3>
 
                     <div className="space-y-4 mb-6">
-                      {cartItems.map((item) => (
-                        <div key={item.productId} className="border-b pb-4 last:border-b-0">
-                          <div className="flex justify-between items-start mb-2">
-                            <div className="flex-1">
-                              <span className="font-semibold">{item.title}</span>
-                              <div className="text-sm mt-1" style={{ color: colorUsage.textMuted }}>
-                                Quantity: {item.quantity}
+                      {cartItems.map((item) => {
+                        const itemTotal = item.quantity * item.pricePerUnit
+                        const regularTotal = itemTotal * 1.5
+                        const savings = regularTotal - itemTotal
+
+                        return (
+                          <div key={item.productId} className="border-b pb-4 last:border-b-0">
+                            <div className="flex justify-between items-start mb-2">
+                              <div className="flex-1">
+                                <span className="font-semibold">{item.name}</span>
+                                <div className="text-sm mt-1" style={{ color: colorUsage.textMuted }}>
+                                  Quantity: {item.quantity}
+                                </div>
                               </div>
-                            </div>
-                            <div className="text-right">
-                              <span className="font-semibold">${(item.quantity * item.sellingPrice).toFixed(2)}</span>
-                              <div className="text-sm line-through" style={{ color: colorUsage.textDisabled }}>
-                                ${(item.quantity * item.regularPrice).toFixed(2)}
-                              </div>
-                              <div className="text-sm text-green-600">
-                                Save ${(item.quantity * (item.regularPrice - item.sellingPrice)).toFixed(2)}
+                              <div className="text-right">
+                                <span className="font-semibold">${itemTotal.toFixed(2)}</span>
+                                <div className="text-sm line-through" style={{ color: colorUsage.textDisabled }}>
+                                  ${regularTotal.toFixed(2)}
+                                </div>
+                                <div className="text-sm text-green-600">Save ${savings.toFixed(2)}</div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        )
+                      })}
                     </div>
 
                     <div className="border-t pt-4 space-y-2">
@@ -864,10 +814,6 @@ export default function CheckoutPage() {
                       <div className="flex justify-between text-green-600">
                         <span>Total Savings</span>
                         <span className="font-semibold">${cartTotals.totalSavings.toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between text-sm" style={{ color: colorUsage.textMuted }}>
-                        <span>Tax</span>
-                        <span>Calculated on invoice</span>
                       </div>
                     </div>
 
@@ -883,24 +829,41 @@ export default function CheckoutPage() {
                       </p>
                     </div>
 
-                    <div className="rounded-lg p-4 mt-4" style={{ backgroundColor: colorUsage.backgroundLight }}>
-                      <div className="text-center">
-                        <p className="font-semibold">Your Contribution</p>
-                        <p className="text-2xl font-bold" style={{ color: colorUsage.textOnLight }}>
-                          {cartTotals.totalWeight} lbs
-                        </p>
-                        <p className="text-sm" style={{ color: colorUsage.textMuted }}>
-                          Helping reach the goal!
+                    <div
+                      className="relative overflow-hidden rounded-xl p-6 mt-4"
+                      style={{
+                        background: `linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)`,
+                      }}
+                    >
+                      <div className="absolute top-0 right-0 w-32 h-32 opacity-10">
+                        <TrendingUp className="w-full h-full" style={{ color: "#B9FF16" }} />
+                      </div>
+                      <div className="relative">
+                        <div className="flex items-center gap-2 mb-3">
+                          <div
+                            className="w-8 h-8 rounded-lg flex items-center justify-center"
+                            style={{ backgroundColor: "#B9FF16" }}
+                          >
+                            <TrendingUp className="w-5 h-5" style={{ color: "#1a1a1a" }} />
+                          </div>
+                          <span className="text-sm font-semibold tracking-wider uppercase" style={{ color: "#B9FF16" }}>
+                            Your Impact
+                          </span>
+                        </div>
+                        <div className="mb-2">
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-4xl font-black" style={{ color: "#ffffff", fontFamily: "Oswald" }}>
+                              {cartTotals.totalWeight}
+                            </span>
+                            <span className="text-2xl font-bold" style={{ color: "#B9FF16" }}>
+                              lbs
+                            </span>
+                          </div>
+                        </div>
+                        <p className="text-sm" style={{ color: "#a0a0a0" }}>
+                          Bringing us closer to the 10,000 lb goal
                         </p>
                       </div>
-                    </div>
-
-                    <div className="mt-4 text-center">
-                      <Link href="/#configurator">
-                        <Button variant="outline" size="sm" className="text-sm">
-                          Modify Cart
-                        </Button>
-                      </Link>
                     </div>
                   </CardContent>
                 </Card>
@@ -912,8 +875,8 @@ export default function CheckoutPage() {
                       <div className="flex items-start gap-3">
                         <AlertCircle className="h-5 w-5 mt-0.5 text-orange-500 flex-shrink-0" />
                         <p>
-                          This is a preorder reservation. No payment will be taken now. Once we reach our 10,000 lb
-                          goal, we'll email you an invoice for payment.
+                          This is a preorder reservation. No payment will be taken now. Once we reach our goal, we'll
+                          email you an invoice for payment.
                         </p>
                       </div>
                       <div className="flex items-start gap-3">
@@ -933,6 +896,6 @@ export default function CheckoutPage() {
           </div>
         </div>
       </div>
-    </div>
+    </PageLayout>
   )
 }

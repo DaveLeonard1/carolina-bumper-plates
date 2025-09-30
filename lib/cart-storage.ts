@@ -1,216 +1,142 @@
-import type { Product } from "@/lib/supabase"
+import type { Product } from "@/hooks/use-products"
+
+const CART_STORAGE_KEY = "carolina-bumper-plates-cart"
 
 export interface CartItem {
   productId: number
+  name: string
   weight: number
-  title: string
-  description: string
   quantity: number
-  sellingPrice: number
-  regularPrice: number
-  available: boolean
+  pricePerUnit: number
+  totalPrice: number
+  totalWeight: number
+  yourContribution: number
 }
 
 export interface CartData {
   items: CartItem[]
   subtotal: number
   totalWeight: number
-  totalSavings: number
-  timestamp: number
+  totalContribution: number
+  createdAt: string
 }
 
-const CART_STORAGE_KEY = "carolina_bumper_plates_cart"
-
-export function saveCartToStorage(products: Product[], quantities: Record<number, number>): void {
+export function saveCartToStorage(products: Product[], quantities: Record<number, number>): boolean {
   try {
     console.log("💾 saveCartToStorage: Starting save process...")
     console.log("📦 Products:", products.length)
     console.log("🔢 Quantities:", quantities)
 
-    const cartItems: CartItem[] = products
-      .filter((product) => {
-        const quantity = quantities[product.id]
-        const hasQuantity = quantity && quantity > 0
-        console.log(`🔍 Product ${product.id} (${product.title}): quantity=${quantity}, hasQuantity=${hasQuantity}`)
-        return hasQuantity
-      })
-      .map((product) => {
-        const item: CartItem = {
+    const items: CartItem[] = []
+
+    products.forEach((product) => {
+      const quantity = quantities[product.id] || 0
+      console.log(`🔍 Product ${product.id} (${product.name}): quantity=${quantity}, hasQuantity=${quantity > 0}`)
+
+      if (quantity > 0) {
+        const productWeight = Number.parseFloat(product.name.split("lb")[0])
+        const pricePerUnit = product.price / 100
+        const totalPrice = quantity * pricePerUnit
+        const totalWeight = quantity * productWeight * 2
+        const yourContribution = quantity * 12.5
+
+        console.log(`✅ Created cart item:`, {
           productId: product.id,
-          weight: product.weight,
-          title: product.title,
-          description: product.description || "",
-          quantity: quantities[product.id] || 0,
-          sellingPrice: product.selling_price,
-          regularPrice: product.regular_price,
-          available: product.available,
-        }
-        console.log(`✅ Created cart item:`, item)
-        return item
-      })
+          name: product.name,
+          weight: productWeight,
+          quantity,
+          pricePerUnit,
+          totalPrice,
+          totalWeight,
+          yourContribution,
+        })
 
-    console.log("🛒 Cart items created:", cartItems.length)
+        items.push({
+          productId: product.id,
+          name: product.name,
+          weight: productWeight,
+          quantity,
+          pricePerUnit,
+          totalPrice,
+          totalWeight,
+          yourContribution,
+        })
+      }
+    })
 
-    const subtotal = cartItems.reduce((sum, item) => {
-      const itemTotal = item.quantity * item.sellingPrice
-      console.log(`💰 Item ${item.productId}: ${item.quantity} × $${item.sellingPrice} = $${itemTotal}`)
-      return sum + itemTotal
+    console.log("🛒 Cart items created:", items.length)
+
+    const subtotal = items.reduce((sum, item) => {
+      console.log(`💰 Item ${item.productId}: ${item.quantity} × $${item.pricePerUnit} = $${item.totalPrice}`)
+      return sum + item.totalPrice
     }, 0)
 
-    const totalWeight = cartItems.reduce((sum, item) => {
-      const itemWeight = item.quantity * item.weight * 2 // pairs
-      console.log(`⚖️ Item ${item.productId}: ${item.quantity} × ${item.weight} × 2 = ${itemWeight} lbs`)
-      return sum + itemWeight
+    const totalWeight = items.reduce((sum, item) => {
+      console.log(`⚖️ Item ${item.productId}: ${item.quantity} × ${item.weight} × 2 = ${item.totalWeight} lbs`)
+      return sum + item.totalWeight
     }, 0)
 
-    const totalSavings = cartItems.reduce((sum, item) => {
-      const itemSavings = item.quantity * (item.regularPrice - item.sellingPrice)
-      console.log(
-        `💚 Item ${item.productId}: ${item.quantity} × $${item.regularPrice - item.sellingPrice} = $${itemSavings}`,
-      )
-      return sum + itemSavings
+    const totalContribution = items.reduce((sum, item) => {
+      console.log(`💚 Item ${item.productId}: ${item.quantity} × $12.5 = $${item.yourContribution}`)
+      return sum + item.yourContribution
     }, 0)
 
     const cartData: CartData = {
-      items: cartItems,
+      items,
       subtotal,
       totalWeight,
-      totalSavings,
-      timestamp: Date.now(),
+      totalContribution,
+      createdAt: new Date().toISOString(),
     }
 
-    console.log("📊 Final cart data:", {
-      itemCount: cartData.items.length,
-      subtotal: cartData.subtotal,
-      totalWeight: cartData.totalWeight,
-      totalSavings: cartData.totalSavings,
-    })
+    console.log("📊 Final cart data:", cartData)
 
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartData))
-    console.log("✅ Cart saved to localStorage successfully")
+    // Use sessionStorage instead of localStorage for iframe/sandboxed environments
+    sessionStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartData))
+    console.log("✅ Cart saved to sessionStorage successfully")
+
+    // Verify the save
+    const verification = sessionStorage.getItem(CART_STORAGE_KEY)
+    console.log("🔍 Verification - Data in sessionStorage:", verification ? "YES" : "NO")
+
+    return true
   } catch (error) {
-    console.error("❌ Error saving cart to storage:", error)
-    throw error
+    console.error("❌ Error saving cart to sessionStorage:", error)
+    return false
   }
 }
 
 export function getCartFromStorage(): CartData | null {
   try {
     console.log("📖 getCartFromStorage: Loading cart...")
-    const stored = localStorage.getItem(CART_STORAGE_KEY)
+    const cartJson = sessionStorage.getItem(CART_STORAGE_KEY)
 
-    if (!stored) {
-      console.log("ℹ️ No cart data found in localStorage")
+    if (!cartJson) {
+      console.log("ℹ️ No cart data found in sessionStorage")
       return null
     }
 
-    const cartData: CartData = JSON.parse(stored)
-    console.log("📦 Loaded cart data:", {
-      itemCount: cartData.items?.length || 0,
+    console.log("📦 Raw cart JSON:", cartJson.substring(0, 100) + "...")
+
+    const cartData = JSON.parse(cartJson) as CartData
+    console.log("✅ Cart loaded successfully:", {
+      itemCount: cartData.items.length,
       subtotal: cartData.subtotal,
-      timestamp: new Date(cartData.timestamp).toLocaleString(),
+      totalWeight: cartData.totalWeight,
     })
-
-    // Check if cart is older than 24 hours
-    const twentyFourHours = 24 * 60 * 60 * 1000
-    const age = Date.now() - cartData.timestamp
-
-    if (age > twentyFourHours) {
-      console.log("⏰ Cart is older than 24 hours, clearing...")
-      clearCartFromStorage()
-      return null
-    }
-
-    // Validate cart data structure
-    if (!cartData.items || !Array.isArray(cartData.items)) {
-      console.warn("⚠️ Invalid cart data structure, clearing...")
-      clearCartFromStorage()
-      return null
-    }
-
-    // Validate each cart item
-    const validItems = cartData.items.filter((item) => {
-      const isValid =
-        item.productId &&
-        item.title &&
-        typeof item.quantity === "number" &&
-        item.quantity > 0 &&
-        typeof item.sellingPrice === "number" &&
-        item.sellingPrice > 0 &&
-        typeof item.weight === "number" &&
-        item.weight > 0
-
-      if (!isValid) {
-        console.warn("⚠️ Invalid cart item filtered out:", item)
-      }
-
-      return isValid
-    })
-
-    if (validItems.length !== cartData.items.length) {
-      console.log(`🔧 Filtered cart: ${cartData.items.length} → ${validItems.length} items`)
-      cartData.items = validItems
-    }
 
     return cartData
   } catch (error) {
-    console.error("❌ Error loading cart from storage:", error)
-    clearCartFromStorage()
+    console.error("❌ Error loading cart from sessionStorage:", error)
     return null
   }
 }
 
 export function clearCartFromStorage(): void {
   try {
-    console.log("🗑️ Clearing cart from storage...")
-    localStorage.removeItem(CART_STORAGE_KEY)
-    console.log("✅ Cart cleared successfully")
+    sessionStorage.removeItem(CART_STORAGE_KEY)
+    console.log("🗑️ Cart cleared from sessionStorage")
   } catch (error) {
-    console.error("❌ Error clearing cart from storage:", error)
-  }
-}
-
-export function updateCartItemQuantity(productId: number, quantity: number): void {
-  try {
-    console.log(`🔄 Updating cart item ${productId} quantity to ${quantity}`)
-    const cartData = getCartFromStorage()
-    if (!cartData) {
-      console.log("ℹ️ No cart data to update")
-      return
-    }
-
-    const itemIndex = cartData.items.findIndex((item) => item.productId === productId)
-    if (itemIndex === -1) {
-      console.log(`ℹ️ Product ${productId} not found in cart`)
-      return
-    }
-
-    if (quantity <= 0) {
-      console.log(`🗑️ Removing product ${productId} from cart`)
-      cartData.items.splice(itemIndex, 1)
-    } else {
-      console.log(`📝 Updating product ${productId} quantity: ${cartData.items[itemIndex].quantity} → ${quantity}`)
-      cartData.items[itemIndex].quantity = quantity
-    }
-
-    // Recalculate totals
-    cartData.subtotal = cartData.items.reduce((sum, item) => sum + item.quantity * item.sellingPrice, 0)
-    cartData.totalWeight = cartData.items.reduce((sum, item) => sum + item.quantity * item.weight * 2, 0)
-    cartData.totalSavings = cartData.items.reduce(
-      (sum, item) => sum + item.quantity * (item.regularPrice - item.sellingPrice),
-      0,
-    )
-    cartData.timestamp = Date.now()
-
-    console.log("📊 Recalculated totals:", {
-      subtotal: cartData.subtotal,
-      totalWeight: cartData.totalWeight,
-      totalSavings: cartData.totalSavings,
-    })
-
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartData))
-    console.log("✅ Cart updated successfully")
-  } catch (error) {
-    console.error("❌ Error updating cart item:", error)
+    console.error("❌ Error clearing cart from sessionStorage:", error)
   }
 }

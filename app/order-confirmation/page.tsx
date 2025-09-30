@@ -1,452 +1,420 @@
-import { Card, CardContent } from "@/components/ui/card"
+"use client"
+
+import { useEffect, useState, Suspense } from "react"
+import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { CheckCircle, Dumbbell, Package, Calendar, Mail, Edit } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
+import { CheckCircle, AlertCircle, Loader2, Package, Calendar, Mail, Phone } from "lucide-react"
 import { colorUsage } from "@/lib/colors"
-import { getOrderByNumber } from "@/lib/actions/orders"
 import Link from "next/link"
+import { PageLayout } from "@/components/page-layout"
 
-interface OrderConfirmationPageProps {
-  searchParams: { order?: string; orderNumber?: string; modified?: string; updated?: string }
-}
+function OrderConfirmationContent() {
+  const searchParams = useSearchParams()
+  const orderNumber = searchParams.get("order")
 
-export default async function OrderConfirmationPage({ searchParams }: OrderConfirmationPageProps) {
-  // Support both 'order' and 'orderNumber' parameters for backward compatibility
-  const orderNumber = searchParams.order || searchParams.orderNumber
-  const isModified = searchParams.modified === "true"
-  const isUpdated = searchParams.updated === "true"
+  const [order, setOrder] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
 
-  console.log("🔍 Order confirmation page accessed with:", { orderNumber, searchParams })
-
-  if (!orderNumber) {
-    console.log("❌ No order number provided in URL")
-    return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{ backgroundColor: colorUsage.backgroundLight }}
-      >
-        <Card className="p-8 max-w-md">
-          <CardContent className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Order Not Found</h1>
-            <p className="mb-6">We couldn't find the order you're looking for. No order number was provided.</p>
-            <Link href="/">
-              <Button>Return Home</Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
-  console.log("🔍 Fetching order:", orderNumber)
-  const order = await getOrderByNumber(orderNumber)
-
-  if (!order) {
-    console.log("❌ Order not found in database:", orderNumber)
-    return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{ backgroundColor: colorUsage.backgroundLight }}
-      >
-        <Card className="p-8 max-w-md">
-          <CardContent className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Order Not Found</h1>
-            <p className="mb-6">We couldn't find order #{orderNumber} in our system.</p>
-            <p className="text-sm mb-6" style={{ color: colorUsage.textMuted }}>
-              If you just placed this order, please wait a moment and try refreshing the page. If the problem persists,
-              please contact support.
-            </p>
-            <div className="space-y-2">
-              <Link href="/">
-                <Button className="w-full">Return Home</Button>
-              </Link>
-              <Link href="/order-lookup">
-                <Button variant="outline" className="w-full">
-                  Look Up Order
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
-  console.log("✅ Order found:", { order_number: order.order_number, customer_name: order.customer_name })
-
-  // Parse order items safely
-  let orderItems = []
-  try {
-    if (typeof order.order_items === "string") {
-      orderItems = JSON.parse(order.order_items)
-    } else if (Array.isArray(order.order_items)) {
-      orderItems = order.order_items
+  useEffect(() => {
+    if (orderNumber) {
+      fetchOrderDetails(orderNumber)
+    } else {
+      setError("No order number provided")
+      setLoading(false)
     }
-  } catch (error) {
-    console.error("Error parsing order items:", error)
-    orderItems = []
+  }, [orderNumber])
+
+  const fetchOrderDetails = async (orderNum: string) => {
+    try {
+      const response = await fetch(`/api/get-order/${orderNum}`)
+      const data = await response.json()
+
+      if (data.success && data.order) {
+        setOrder(data.order)
+      } else {
+        setError(data.error || "Order not found")
+      }
+    } catch (err) {
+      console.error("Error fetching order:", err)
+      setError("Failed to load order details")
+    } finally {
+      setLoading(false)
+    }
   }
 
-  // Enhanced modification check - includes payment status
-  const canModify =
-    !order.invoiced_at &&
-    order.status === "pending" &&
-    !order.order_locked &&
-    !order.payment_link_url &&
-    order.payment_status !== "paid"
+  if (loading) {
+    return (
+      <div className="px-4 py-16">
+        <div className="max-w-2xl mx-auto text-center">
+          <Loader2 className="h-16 w-16 animate-spin mx-auto mb-6" style={{ color: colorUsage.textMuted }} />
+          <h1 className="text-3xl font-black mb-4" style={{ fontFamily: "Oswald, sans-serif" }}>
+            LOADING ORDER DETAILS
+          </h1>
+          <p className="text-lg" style={{ color: colorUsage.textMuted }}>
+            Please wait while we retrieve your order...
+          </p>
+        </div>
+      </div>
+    )
+  }
 
-  const isPaid = order.payment_status === "paid"
+  if (error || !order) {
+    return (
+      <div className="px-4 py-16">
+        <div className="max-w-2xl mx-auto text-center">
+          <AlertCircle className="h-16 w-16 mx-auto mb-6 text-red-500" />
+          <h1 className="text-3xl font-black mb-4" style={{ fontFamily: "Oswald, sans-serif" }}>
+            ORDER NOT FOUND
+          </h1>
+          <p className="text-lg mb-8" style={{ color: colorUsage.textMuted }}>
+            {error || "We couldn't find your order. Please check your order number and try again."}
+          </p>
+          <Link href="/order-lookup">
+            <Button
+              size="lg"
+              className="font-bold text-lg px-8 py-4"
+              style={{
+                backgroundColor: colorUsage.buttonSecondary,
+                color: colorUsage.textOnDark,
+              }}
+            >
+              Look Up Order
+            </Button>
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  const orderItems = order.order_items || []
+  const totalWeight = orderItems.reduce((sum: number, item: any) => sum + (item.quantity * item.weight * 2 || 0), 0)
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: colorUsage.backgroundLight }}>
-      {/* Header */}
-      <header
-        className="border-b px-4 py-4"
-        style={{ backgroundColor: colorUsage.backgroundPrimary, borderColor: colorUsage.border }}
-      >
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Dumbbell className="h-8 w-8" style={{ color: colorUsage.textPrimary }} />
-            <span className="text-xl font-bold">CAROLINA BUMPER PLATES</span>
+      {/* Hero Section */}
+      <div className="px-4 py-16" style={{ backgroundColor: colorUsage.backgroundDark }}>
+        <div className="max-w-4xl mx-auto text-center">
+          <div
+            className="inline-flex items-center justify-center w-24 h-24 rounded-full mb-6"
+            style={{ backgroundColor: colorUsage.accent }}
+          >
+            <CheckCircle className="h-14 w-14" style={{ color: colorUsage.textOnAccent }} />
           </div>
-          <div className="flex gap-2">
-            {canModify && (
-              <Link href={`/modify-order?order=${order.order_number}`}>
-                <Button variant="outline" className="font-semibold">
-                  <Edit className="h-4 w-4 mr-2" />
-                  Modify Order
-                </Button>
-              </Link>
-            )}
-            <Link href="/">
-              <Button variant="outline" className="font-semibold">
-                Return Home
-              </Button>
-            </Link>
+          <h1
+            className="text-5xl md:text-6xl font-black mb-4"
+            style={{ fontFamily: "Oswald, sans-serif", color: colorUsage.textOnDark }}
+          >
+            ORDER CONFIRMED!
+          </h1>
+          <p className="text-xl md:text-2xl mb-4" style={{ color: "#9ca3af" }}>
+            Your preorder has been reserved
+          </p>
+          <div
+            className="inline-block px-6 py-3 rounded-lg mt-2"
+            style={{ backgroundColor: "rgba(185, 255, 22, 0.1)", border: `2px solid ${colorUsage.accent}` }}
+          >
+            <p className="text-sm uppercase tracking-wider mb-1" style={{ color: "#9ca3af" }}>
+              Order Number
+            </p>
+            <p className="text-2xl font-black" style={{ fontFamily: "Oswald, sans-serif", color: colorUsage.accent }}>
+              {orderNumber}
+            </p>
           </div>
         </div>
-      </header>
+      </div>
 
-      <div className="px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          {/* Success Header */}
-          <div className="text-center mb-8">
-            <div className="flex justify-center mb-4">
-              <div
-                className="w-16 h-16 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: isPaid ? "#10b981" : colorUsage.buttonSecondary }}
+      <div className="px-4 py-12">
+        <div className="max-w-4xl mx-auto space-y-6">
+          {/* Order Summary Card */}
+          <Card
+            className="overflow-hidden border-2"
+            style={{ backgroundColor: colorUsage.backgroundDark, borderColor: "#2a2a2a" }}
+          >
+            <div className="px-6 py-4 border-b-2" style={{ backgroundColor: "#1a1a1a", borderColor: "#2a2a2a" }}>
+              <h2
+                className="text-2xl font-black flex items-center gap-2"
+                style={{ fontFamily: "Oswald, sans-serif", color: colorUsage.textOnDark }}
               >
-                <CheckCircle className="h-8 w-8 text-white" />
-              </div>
+                <Package className="h-6 w-6" style={{ color: colorUsage.accent }} />
+                ORDER DETAILS
+              </h2>
             </div>
-            <h1 className="text-4xl font-black mb-2" style={{ fontFamily: "Oswald, sans-serif" }}>
-              {isPaid ? "PAYMENT RECEIVED!" : isModified ? "ORDER UPDATED!" : "PREORDER CONFIRMED!"}
-            </h1>
-            <p className="text-xl" style={{ color: colorUsage.textMuted }}>
-              {isPaid
-                ? "Your payment has been successfully processed"
-                : isModified
-                  ? "Your order changes have been saved successfully"
-                  : "Your preorder has been successfully submitted"}
-            </p>
-            <p className="text-lg font-semibold mt-2" style={{ color: colorUsage.textOnLight }}>
-              Order #{order.order_number}
-            </p>
-          </div>
-
-          {/* Payment Confirmation Notice */}
-          {isPaid && (
-            <div className="mb-8">
-              <Card className="p-4 border-green-200 bg-green-50">
-                <CardContent className="pt-4">
-                  <div className="flex items-center gap-2 text-green-800">
-                    <CheckCircle className="h-5 w-5" />
-                    <p className="text-sm">
-                      <strong>Payment Confirmed!</strong> Your payment has been received and your order is being
-                      processed.
-                      {order.paid_at && (
-                        <span className="block mt-1">
-                          Payment received on {new Date(order.paid_at).toLocaleDateString()}
-                        </span>
-                      )}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
-          {isUpdated && (
-            <div className="mb-6">
-              <Card className="p-4 border-green-200 bg-green-50">
-                <CardContent className="pt-4">
-                  <div className="flex items-center gap-2 text-green-800">
-                    <CheckCircle className="h-5 w-5" />
-                    <p className="text-sm">
-                      <strong>Order Updated!</strong> Your changes have been saved successfully.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
-          {/* Modification Notice */}
-          {isModified && (
-            <div className="mb-8">
-              <Card className="p-4 border-green-200 bg-green-50">
-                <CardContent className="pt-4">
-                  <div className="flex items-center gap-2 text-green-800">
-                    <CheckCircle className="h-5 w-5" />
-                    <p className="text-sm">
-                      <strong>Changes Saved:</strong> Your order has been updated with your latest selections and
-                      information.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* Order Details */}
-            <Card className="p-6 rounded-lg border" style={{ backgroundColor: colorUsage.backgroundPrimary }}>
-              <CardContent className="pt-6">
-                <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-                  <Package className="h-5 w-5" />
-                  Order Details
-                </h2>
-
-                <div className="space-y-4 mb-6">
-                  {orderItems.length > 0 ? (
-                    orderItems.map((item, index) => (
-                      <div key={index} className="flex justify-between items-center">
-                        <span className="font-semibold">
-                          {item.quantity}x {item.title || `${item.weight} LB Bumper Plates`}
-                        </span>
-                        <span className="font-semibold">${((item.quantity || 1) * (item.price || 0)).toFixed(2)}</span>
+            <CardContent className="p-6 space-y-6">
+              {/* Order Items */}
+              <div>
+                <div className="space-y-4">
+                  {orderItems.map((item: any, index: number) => (
+                    <div
+                      key={index}
+                      className="p-4 rounded-lg border"
+                      style={{ backgroundColor: "#1a1a1a", borderColor: "#2a2a2a" }}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3">
+                            <div
+                              className="w-10 h-10 rounded-lg flex items-center justify-center font-black"
+                              style={{
+                                backgroundColor: "rgba(185, 255, 22, 0.1)",
+                                color: colorUsage.accent,
+                                fontFamily: "Oswald, sans-serif",
+                              }}
+                            >
+                              x{item.quantity}
+                            </div>
+                            <div>
+                              <p
+                                className="font-bold text-lg"
+                                style={{ fontFamily: "Oswald, sans-serif", color: colorUsage.textOnDark }}
+                              >
+                                {item.weight}LB BUMPER PLATE
+                              </p>
+                              <p className="text-sm" style={{ color: "#9ca3af" }}>
+                                Hi-Temp Factory Seconds
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p
+                            className="text-2xl font-black"
+                            style={{ fontFamily: "Oswald, sans-serif", color: colorUsage.accent }}
+                          >
+                            ${(item.quantity * item.price).toFixed(2)}
+                          </p>
+                        </div>
                       </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-4" style={{ color: colorUsage.textMuted }}>
-                      <p>Order items information not available</p>
                     </div>
-                  )}
+                  ))}
                 </div>
+              </div>
 
-                <div className="border-t pt-4 space-y-2">
-                  <div className="flex justify-between">
-                    <span>Subtotal</span>
-                    <span className="font-semibold">${Number(order.subtotal || 0).toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm" style={{ color: colorUsage.textMuted }}>
-                    <span>Tax</span>
-                    <span>Calculated on invoice</span>
-                  </div>
-                </div>
-
-                <div className="border-t pt-4 mt-4">
+              {/* Totals */}
+              <div
+                className="p-6 rounded-lg border-2"
+                style={{ backgroundColor: "#1a1a1a", borderColor: colorUsage.accent }}
+              >
+                <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-lg font-bold">Total Weight</span>
-                    <span className="text-lg font-bold" style={{ color: colorUsage.textOnLight }}>
-                      {Number(order.total_weight || 0).toFixed(0)} lbs
+                    <span className="text-lg" style={{ color: "#9ca3af" }}>
+                      Subtotal
+                    </span>
+                    <span className="text-xl font-bold" style={{ color: colorUsage.textOnDark }}>
+                      ${order.subtotal?.toFixed(2)}
                     </span>
                   </div>
-                </div>
-
-                {/* Payment Status Display */}
-                {isPaid && (
-                  <div className="mt-6 pt-4 border-t">
-                    <div className="flex items-center gap-2 p-3 rounded-lg bg-green-50">
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                      <div>
-                        <p className="font-semibold text-green-900">Payment Received</p>
-                        <p className="text-sm text-green-700">Your order is now being processed for delivery</p>
-                      </div>
-                    </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-lg" style={{ color: "#9ca3af" }}>
+                      Tax
+                    </span>
+                    <span className="text-sm" style={{ color: "#9ca3af" }}>
+                      Calculated on invoice
+                    </span>
                   </div>
-                )}
-
-                {canModify && (
-                  <div className="mt-6 pt-4 border-t">
-                    <Link href={`/modify-order?order=${order.order_number}`}>
-                      <Button
-                        variant="outline"
-                        className="w-full font-semibold"
-                        style={{ borderColor: colorUsage.textOnLight, color: colorUsage.textOnLight }}
+                  <div className="flex justify-between items-center">
+                    <span className="text-lg" style={{ color: "#9ca3af" }}>
+                      Total Weight
+                    </span>
+                    <span className="text-xl font-bold" style={{ color: colorUsage.textOnDark }}>
+                      {totalWeight} lbs
+                    </span>
+                  </div>
+                  <div className="pt-3 border-t" style={{ borderColor: "#2a2a2a" }}>
+                    <div className="flex justify-between items-center mb-2">
+                      <span
+                        className="text-xl font-black"
+                        style={{ fontFamily: "Oswald, sans-serif", color: colorUsage.textOnDark }}
                       >
-                        <Edit className="h-4 w-4 mr-2" />
-                        Modify This Order
-                      </Button>
-                    </Link>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Delivery Information */}
-            <Card className="p-6 rounded-lg border" style={{ backgroundColor: colorUsage.backgroundPrimary }}>
-              <CardContent className="pt-6">
-                <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-                  <Mail className="h-5 w-5" />
-                  Delivery Information
-                </h2>
-
-                <div className="space-y-4 text-sm">
-                  <div>
-                    <p className="font-semibold">Delivery Address:</p>
-                    <p style={{ color: colorUsage.textMuted }}>
-                      {order.street_address || "Address not provided"}
-                      <br />
-                      {order.city && order.state && order.zip_code
-                        ? `${order.city}, ${order.state} ${order.zip_code}`
-                        : "City, State, ZIP not provided"}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="font-semibold">Contact:</p>
-                    <p style={{ color: colorUsage.textMuted }}>
-                      {order.customer_name || "Name not provided"}
-                      <br />
-                      {order.customer_email || "Email not provided"}
-                      <br />
-                      {order.customer_phone || "Phone not provided"}
-                    </p>
-                  </div>
-
-                  {order.delivery_instructions && (
-                    <div>
-                      <p className="font-semibold">Delivery Instructions:</p>
-                      <p style={{ color: colorUsage.textMuted }}>{order.delivery_instructions}</p>
+                        ESTIMATED TOTAL
+                      </span>
+                      <span
+                        className="text-3xl font-black"
+                        style={{ fontFamily: "Oswald, sans-serif", color: colorUsage.accent }}
+                      >
+                        ${order.subtotal?.toFixed(2)}
+                      </span>
                     </div>
-                  )}
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+            </CardContent>
+          </Card>
 
-          {/* Next Steps */}
-          <Card className="p-6 rounded-lg border mt-8" style={{ backgroundColor: colorUsage.backgroundPrimary }}>
-            <CardContent className="pt-6">
-              <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                What Happens Next?
+          {/* Customer Info Card */}
+          <Card
+            className="overflow-hidden border-2"
+            style={{ backgroundColor: colorUsage.backgroundDark, borderColor: "#2a2a2a" }}
+          >
+            <div className="px-6 py-4 border-b-2" style={{ backgroundColor: "#1a1a1a", borderColor: "#2a2a2a" }}>
+              <h2
+                className="text-2xl font-black flex items-center gap-2"
+                style={{ fontFamily: "Oswald, sans-serif", color: colorUsage.textOnDark }}
+              >
+                <Mail className="h-6 w-6" style={{ color: colorUsage.accent }} />
+                CUSTOMER INFORMATION
               </h2>
-
-              <div className="grid md:grid-cols-3 gap-6">
-                <div className="text-center">
-                  <div
-                    className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3"
-                    style={{ backgroundColor: isPaid ? "#10b981" : colorUsage.buttonSecondary }}
-                  >
-                    <span className="text-white font-bold">1</span>
-                  </div>
-                  <h3 className="font-bold mb-2">{isPaid ? "Order Processing" : "We Collect Orders"}</h3>
-                  <p className="text-sm" style={{ color: colorUsage.textMuted }}>
-                    {isPaid
-                      ? "Your paid order is now being prepared for delivery."
-                      : "Your preorder is added to our batch. We'll reach out with updates as we approach our 10,000 lb goal."}
+            </div>
+            <CardContent className="p-6">
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="p-4 rounded-lg" style={{ backgroundColor: "#1a1a1a" }}>
+                  <p className="text-sm uppercase tracking-wider mb-2" style={{ color: "#9ca3af" }}>
+                    Contact Details
+                  </p>
+                  <p className="font-bold text-lg mb-1" style={{ color: colorUsage.textOnDark }}>
+                    {order.customer_name}
+                  </p>
+                  <p className="text-sm mb-1" style={{ color: "#d1d5db" }}>
+                    {order.customer_email}
+                  </p>
+                  <p className="text-sm flex items-center gap-1" style={{ color: "#d1d5db" }}>
+                    <Phone className="h-3 w-3" />
+                    {order.customer_phone}
                   </p>
                 </div>
-
-                <div className="text-center">
-                  <div
-                    className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3"
-                    style={{ backgroundColor: isPaid ? "#10b981" : colorUsage.buttonSecondary }}
-                  >
-                    <span className="text-white font-bold">2</span>
-                  </div>
-                  <h3 className="font-bold mb-2">{isPaid ? "Preparation" : "Invoice Sent"}</h3>
-                  <p className="text-sm" style={{ color: colorUsage.textMuted }}>
-                    {isPaid
-                      ? "We prepare your order and coordinate with our delivery team."
-                      : "Once we hit our goal, you'll receive an invoice via email. Payment is due within 7 days."}
+                <div className="p-4 rounded-lg" style={{ backgroundColor: "#1a1a1a" }}>
+                  <p className="text-sm uppercase tracking-wider mb-2" style={{ color: "#9ca3af" }}>
+                    Delivery Address
                   </p>
-                </div>
-
-                <div className="text-center">
-                  <div
-                    className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3"
-                    style={{ backgroundColor: colorUsage.buttonSecondary }}
-                  >
-                    <span className="text-white font-bold">3</span>
-                  </div>
-                  <h3 className="font-bold mb-2">Delivery</h3>
-                  <p className="text-sm" style={{ color: colorUsage.textMuted }}>
-                    {isPaid
-                      ? "Your order will be delivered within 2-3 weeks. You'll get advance notice."
-                      : "After payment, we'll schedule delivery within 2-3 weeks. You'll get advance notice."}
+                  <p className="text-sm mb-1" style={{ color: colorUsage.textOnDark }}>
+                    {order.street_address}
+                  </p>
+                  <p className="text-sm" style={{ color: "#d1d5db" }}>
+                    {order.city}, {order.state} {order.zip_code}
                   </p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Order Modification Notice */}
-          {canModify && (
-            <Card className="p-6 rounded-lg border mt-8" style={{ backgroundColor: "#f0f9ff" }}>
-              <CardContent className="pt-6">
-                <div className="flex items-start gap-3">
-                  <Edit className="h-6 w-6 mt-0.5 text-blue-500 flex-shrink-0" />
-                  <div>
-                    <h3 className="font-bold text-blue-900 mb-2">Need to Make Changes?</h3>
-                    <p className="text-sm text-blue-800 mb-4">
-                      You can modify your order anytime before we send your invoice. Changes include plate quantities,
-                      delivery address, and contact information.
-                    </p>
-                    <Link href={`/modify-order?order=${order.order_number}`}>
-                      <Button className="font-semibold" style={{ backgroundColor: "#3b82f6", color: "white" }}>
-                        <Edit className="h-4 w-4 mr-2" />
-                        Modify Order
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Contact Information */}
-          <div className="text-center mt-8">
-            <p style={{ color: colorUsage.textMuted }}>
-              {isPaid ? (
-                <>
-                  Questions about your order?{" "}
-                  <a
-                    href="mailto:orders@carolinabumperplates.com"
-                    className="font-semibold"
-                    style={{ color: colorUsage.textOnLight }}
-                  >
-                    Contact our support team
-                  </a>
-                </>
-              ) : (
-                <>
-                  Need to make changes to your order?{" "}
-                  <Link
-                    href="/order-lookup"
-                    className="font-semibold underline"
-                    style={{ color: colorUsage.textOnLight }}
-                  >
-                    Modify your order
-                  </Link>{" "}
-                  before invoicing begins.
-                </>
-              )}
-            </p>
-            <p className="mt-2" style={{ color: colorUsage.textMuted }}>
-              Questions? Email us at{" "}
-              <a
-                href="mailto:orders@carolinabumperplates.com"
-                className="font-semibold"
-                style={{ color: colorUsage.textOnLight }}
+          {/* What's Next Card */}
+          <Card
+            className="overflow-hidden border-2"
+            style={{ backgroundColor: colorUsage.backgroundDark, borderColor: "#2a2a2a" }}
+          >
+            <div className="px-6 py-4 border-b-2" style={{ backgroundColor: "#1a1a1a", borderColor: "#2a2a2a" }}>
+              <h2
+                className="text-2xl font-black flex items-center gap-2"
+                style={{ fontFamily: "Oswald, sans-serif", color: colorUsage.textOnDark }}
               >
-                orders@carolinabumperplates.com
-              </a>
+                <Calendar className="h-6 w-6" style={{ color: colorUsage.accent }} />
+                WHAT HAPPENS NEXT?
+              </h2>
+            </div>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                {[
+                  {
+                    num: "1",
+                    title: "Confirmation Email",
+                    desc: "You'll receive a confirmation email with your complete order details",
+                  },
+                  {
+                    num: "2",
+                    title: "Weight Goal Progress",
+                    desc: "We'll keep you updated as we work toward our goal weight",
+                  },
+                  {
+                    num: "3",
+                    title: "Invoice & Payment",
+                    desc: "Once the goal is reached, you'll receive an invoice via email for payment",
+                  },
+                  {
+                    num: "4",
+                    title: "Delivery",
+                    desc: "After payment, your plates will be delivered within 2-3 weeks",
+                  },
+                ].map((step) => (
+                  <div key={step.num} className="flex gap-4 p-4 rounded-lg" style={{ backgroundColor: "#1a1a1a" }}>
+                    <div
+                      className="flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center font-black text-2xl"
+                      style={{
+                        backgroundColor: colorUsage.accent,
+                        color: colorUsage.textOnAccent,
+                        fontFamily: "Oswald, sans-serif",
+                      }}
+                    >
+                      {step.num}
+                    </div>
+                    <div>
+                      <h3
+                        className="font-bold text-lg mb-1"
+                        style={{ fontFamily: "Oswald, sans-serif", color: colorUsage.textOnDark }}
+                      >
+                        {step.title}
+                      </h3>
+                      <p className="text-sm" style={{ color: "#9ca3af" }}>
+                        {step.desc}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/">
+              <Button
+                size="lg"
+                className="font-bold text-lg px-8 py-4 w-full sm:w-auto"
+                style={{
+                  backgroundColor: colorUsage.buttonSecondary,
+                  color: colorUsage.textOnDark,
+                }}
+              >
+                Return to Home
+              </Button>
+            </Link>
+            <Link href={`/order-lookup?order=${orderNumber}`}>
+              <Button
+                variant="outline"
+                size="lg"
+                className="font-bold text-lg px-8 py-4 w-full sm:w-auto bg-transparent"
+              >
+                View Order Status
+              </Button>
+            </Link>
+          </div>
+
+          {/* Contact CTA */}
+          <div className="text-center p-8 rounded-lg" style={{ backgroundColor: colorUsage.backgroundDark }}>
+            <p className="font-bold text-xl mb-3" style={{ color: colorUsage.textOnDark }}>
+              Questions about your order?
             </p>
+            <a
+              href="mailto:orders@theplateyard.com"
+              className="font-black text-xl underline"
+              style={{ color: colorUsage.accent, fontFamily: "Oswald, sans-serif" }}
+            >
+              orders@theplateyard.com
+            </a>
           </div>
         </div>
       </div>
     </div>
+  )
+}
+
+export default function OrderConfirmationPage() {
+  return (
+    <PageLayout>
+      <Suspense
+        fallback={
+          <div className="px-4 py-16">
+            <div className="max-w-2xl mx-auto text-center">
+              <Loader2 className="h-16 w-16 animate-spin mx-auto mb-6" style={{ color: colorUsage.textMuted }} />
+              <h1 className="text-3xl font-black mb-4" style={{ fontFamily: "Oswald, sans-serif" }}>
+                LOADING...
+              </h1>
+            </div>
+          </div>
+        }
+      >
+        <OrderConfirmationContent />
+      </Suspense>
+    </PageLayout>
   )
 }

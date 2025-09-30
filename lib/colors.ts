@@ -6,12 +6,12 @@ export const colors = {
   lightGray: "#f2f2f2", // Light gray - for subtle backgrounds
 
   // Brand Colors
-  greenLight: "#a1ea93", // Light green - for dark backgrounds, highlights
-  greenDark: "#4a7c59", // Dark green - for light backgrounds, readable text
+  accent: "#B9FF16", // Bright yellow-green - accent color
+  green: "#6EBA5E", // Brand green - for buttons, highlights
+  greenHover: "#5da34e", // Hover state for brand green
 
   // Interactive States
-  greenLightHover: "#8fd982", // Hover state for light green
-  greenDarkHover: "#3d6b4a", // Hover state for dark green
+  accentHover: "#a3e612", // Hover state for accent
   darkHover: "#2a2a2a", // Hover state for dark
 
   // Utility Colors
@@ -27,26 +27,28 @@ export const colorUsage = {
   backgroundPrimary: colors.light,
   backgroundDark: colors.dark,
   backgroundLight: colors.lightGray,
-  backgroundAccent: colors.greenLight,
+  backgroundAccent: colors.accent,
 
   // Text
   textPrimary: colors.dark,
   textOnDark: colors.light,
-  textOnLight: colors.greenDark,
-  textOnAccent: colors.dark,
+  textOnLight: colors.dark,
+  textOnAccent: "#1a1a1a",
   textMuted: colors.gray600,
   textDisabled: colors.gray400,
 
   // Interactive
-  buttonPrimary: colors.greenLight,
-  buttonPrimaryHover: colors.greenLightHover,
-  buttonSecondary: colors.greenDark,
-  buttonSecondaryHover: colors.greenDarkHover,
+  buttonPrimary: colors.green,
+  buttonPrimaryHover: colors.greenHover,
+  buttonAccent: colors.accent,
+  buttonAccentHover: colors.accentHover,
   buttonDark: colors.dark,
   buttonDarkHover: colors.darkHover,
 
   // Accents
-  accent: colors.greenLight,
-  accentReadable: colors.greenDark,
+  accent: colors.accent,
+  accentHover: colors.accentHover,
+  green: colors.green,
+  greenHover: colors.greenHover,
   border: "#e5e7eb",
 } as const

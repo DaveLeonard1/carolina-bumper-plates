@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   title: "Carolina Bumper Plates - Official Hi-Temp Factory Seconds",
   description:
     "USA-made Hi-Temp bumper plates with minor cosmetic blemishes at wholesale prices. Pre-order now, pay when ready.",
-    generator: 'v0.dev'
+  generator: "v0.dev",
 }
 
 export default function RootLayout({
@@ -27,7 +27,9 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <div className="min-h-screen flex flex-col">{children}</div>
+        </AuthProvider>
       </body>
     </html>
   )
