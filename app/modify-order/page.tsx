@@ -524,15 +524,8 @@ export default function ModifyOrderPage() {
     <PageLayout>
       <div className="px-4 py-8" style={{ backgroundColor: colorUsage.backgroundLight }}>
         <div className="max-w-6xl mx-auto">
-          <div className="mb-6">
-            <Link href="/my-account">
-              <Button variant="outline" className="font-semibold bg-transparent">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to My Account
-              </Button>
-            </Link>
-          </div>
-
+          <div className="mb-6"></div>
+          
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Left Side - Modification Form */}
             <div className="lg:col-span-2">
@@ -548,23 +541,11 @@ export default function ModifyOrderPage() {
                   <p className="mb-8" style={{ color: colorUsage.textMuted }}>
                     Order #{orderData.order_number} • Status: {orderData.status}
                   </p>
-                  <div className="flex items-center justify-between mb-6">
-                    <div>
-                      <h2 className="text-xl font-bold">Update Your Plate Selection</h2>
-                      <p className="text-sm mt-1" style={{ color: colorUsage.textMuted }}>
-                        Adjust quantities below to update your order
-                      </p>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={refreshProducts}
-                      disabled={productsLoading}
-                      className="flex items-center gap-2"
-                    >
-                      <RefreshCw className={`h-4 w-4 ${productsLoading ? "animate-spin" : ""}`} />
-                      {productsLoading ? "Updating..." : "Refresh Products"}
-                    </Button>
+                  <div className="mb-6">
+                    <h2 className="text-xl font-bold">Update Your Plate Selection</h2>
+                    <p className="text-sm mt-1" style={{ color: colorUsage.textMuted }}>
+                      Adjust quantities below to update your order
+                    </p>
                   </div>
 
                   {plates.length === 0 ? (
