@@ -21,6 +21,7 @@ export default function AdminSettingsPage() {
     // Order Settings
     minimumOrderWeight: 10000,
     taxRate: 0.0725,
+    batchProgressOffset: 0,
   })
 
   const [saving, setSaving] = useState(false)
@@ -41,6 +42,7 @@ export default function AdminSettingsPage() {
             website: bizSettings.website || prev.website,
             minimumOrderWeight: bizSettings.minimum_order_weight || prev.minimumOrderWeight,
             taxRate: bizSettings.tax_rate || prev.taxRate,
+            batchProgressOffset: bizSettings.batch_progress_offset || prev.batchProgressOffset,
           }))
         }
       }
@@ -68,11 +70,19 @@ export default function AdminSettingsPage() {
           website: settings.website,
           minimum_order_weight: settings.minimumOrderWeight,
           tax_rate: settings.taxRate,
+          batch_progress_offset: settings.batchProgressOffset,
         }),
       })
 
       if (!businessResponse.ok) {
         throw new Error("Failed to save business settings")
+      }
+
+      // Clear batch progress cache so changes show immediately
+      try {
+        await fetch("/api/batch-progress", { method: "DELETE" })
+      } catch (cacheError) {
+        console.warn("Failed to clear batch progress cache:", cacheError)
       }
 
       setSaving(false)
@@ -211,6 +221,18 @@ export default function AdminSettingsPage() {
                   />
                   <p className="text-sm mt-1" style={{ color: colorUsage.textMuted }}>
                     Sales tax rate for North Carolina
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="batchProgressOffset">Batch Progress Weight Offset (lbs)</Label>
+                  <Input
+                    id="batchProgressOffset"
+                    type="number"
+                    value={settings.batchProgressOffset}
+                    onChange={(e) => handleInputChange("batchProgressOffset", Number(e.target.value))}
+                  />
+                  <p className="text-sm mt-1" style={{ color: colorUsage.textMuted }}>
+                    Add extra pounds to batch progress for social proof (default: 0)
                   </p>
                 </div>
               </CardContent>

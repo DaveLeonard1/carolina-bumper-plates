@@ -4,12 +4,13 @@ import { supabase } from "@/lib/supabase/client"
 // Default settings
 const DEFAULT_SETTINGS = {
   business_name: "The Plate Yard",
-  business_email: "info@carolinabumperplates.com",
-  business_phone: "(555) 123-4567",
-  business_address: "123 Fitness St, Charlotte, NC 28202",
+  business_email: "info@theplateyard.com",
+  business_phone: "(607) 329-5976",
+  business_address: "1013 Hazeltn ln. Fuquay-Varina, NC 27526",
   website: "https://carolinabumperplates.com",
-  minimum_order_weight: 10000,
+  minimum_order_weight: 7000,
   tax_rate: 0.0725,
+  batch_progress_offset: 0,
 }
 
 export async function GET() {
@@ -26,6 +27,7 @@ export async function GET() {
         "website",
         "minimum_order_weight",
         "tax_rate",
+        "batch_progress_offset",
       ])
 
     if (error) {
@@ -43,6 +45,8 @@ export async function GET() {
           value = parseInt(value) || DEFAULT_SETTINGS.minimum_order_weight
         } else if (row.option_name === "tax_rate") {
           value = parseFloat(value) || DEFAULT_SETTINGS.tax_rate
+        } else if (row.option_name === "batch_progress_offset") {
+          value = parseInt(value) || DEFAULT_SETTINGS.batch_progress_offset
         }
         settings[row.option_name] = value
       })
@@ -75,6 +79,7 @@ export async function POST(request: Request) {
       website,
       minimum_order_weight,
       tax_rate,
+      batch_progress_offset,
     } = body
 
     // Prepare settings to update
@@ -86,6 +91,7 @@ export async function POST(request: Request) {
       { option_name: "website", option_value: website },
       { option_name: "minimum_order_weight", option_value: String(minimum_order_weight) },
       { option_name: "tax_rate", option_value: String(tax_rate) },
+      { option_name: "batch_progress_offset", option_value: String(batch_progress_offset || 0) },
     ]
 
     // Upsert each setting (insert or update)

@@ -9,6 +9,7 @@ import { saveCartToStorage } from "@/lib/cart-storage"
 import { useRouter } from "next/navigation"
 import { TopBar } from "@/components/top-bar"
 import { Header } from "@/components/header"
+import { BatchProgress } from "@/components/batch-progress"
 
 export default function HomePage() {
   const { products: dbProducts, loading: productsLoading } = useProducts()
@@ -353,37 +354,7 @@ export default function HomePage() {
       </section>
 
       {/* Batch Progress */}
-      <section style={{ backgroundColor: "#1a1a1a" }}>
-        <div className="px-[27px] md:px-[52px] py-[60px] md:py-[80px]">
-          <div className="max-w-[1440px] mx-auto text-center">
-            <h2 className="text-4xl lg:text-5xl font-black mb-12 text-white">BATCH PROGRESS</h2>
-
-            <div className="bg-gray-800 rounded-2xl p-8">
-              <div className="flex justify-between items-center mb-6 text-white">
-                <div className="text-3xl font-bold">{currentProgress.toLocaleString()} lbs</div>
-                <div className="text-3xl font-bold">{targetWeight.toLocaleString()} lbs</div>
-              </div>
-
-              <div className="w-full bg-gray-700 rounded-full h-4 mb-6">
-                <div
-                  className="h-4 rounded-full transition-all duration-300"
-                  style={{
-                    backgroundColor: "#cfff5e",
-                    width: `${progressPercentage}%`,
-                  }}
-                ></div>
-              </div>
-
-              <div className="flex items-center justify-center gap-2 text-white">
-                <span className="text-2xl">⚠️</span>
-                <p className="text-xl font-semibold" style={{ color: "#cfff5e" }}>
-                  Only {(targetWeight - currentProgress).toLocaleString()} lbs to go before the next batch is fulfilled!
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <BatchProgress />
 
       {/* Footer */}
       <footer className="bg-gray-900 text-white">
