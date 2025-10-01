@@ -92,112 +92,131 @@ export default function AdminSettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold" style={{ fontFamily: "Oswald, sans-serif" }}>
-            Settings
-          </h1>
-          <p style={{ color: colorUsage.textMuted }}>Configure your business settings</p>
+    <div className="bg-gray-50">
+      {/* Page Header */}
+      <div className="px-4 py-8 md:py-16 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1
+                className="text-3xl md:text-4xl lg:text-5xl font-black mb-2 md:mb-4"
+                style={{ fontFamily: "Oswald, sans-serif", color: "#1a1a1a" }}
+              >
+                SETTINGS
+              </h1>
+              <p className="text-base md:text-xl" style={{ color: "#1a1a1a" }}>
+                Configure your business settings
+              </p>
+            </div>
+            <Button
+              onClick={handleSave}
+              disabled={saving}
+              className="font-black w-full md:w-auto"
+              style={{ backgroundColor: "#B9FF16", color: "#000", fontFamily: "Oswald, sans-serif" }}
+            >
+              <Save className="h-4 w-4 mr-2" />
+              {saving ? "SAVING..." : "SAVE CHANGES"}
+            </Button>
+          </div>
         </div>
-        <Button onClick={handleSave} disabled={saving}>
-          <Save className="h-4 w-4 mr-2" />
-          {saving ? "Saving..." : "Save Changes"}
-        </Button>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Business Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Globe className="h-5 w-5" />
-              Business Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="businessName">Business Name</Label>
-              <Input
-                id="businessName"
-                value={settings.businessName}
-                onChange={(e) => handleInputChange("businessName", e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="businessEmail">Business Email</Label>
-              <Input
-                id="businessEmail"
-                type="email"
-                value={settings.businessEmail}
-                onChange={(e) => handleInputChange("businessEmail", e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="businessPhone">Business Phone</Label>
-              <Input
-                id="businessPhone"
-                value={settings.businessPhone}
-                onChange={(e) => handleInputChange("businessPhone", e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="businessAddress">Business Address</Label>
-              <Textarea
-                id="businessAddress"
-                value={settings.businessAddress}
-                onChange={(e) => handleInputChange("businessAddress", e.target.value)}
-                rows={3}
-              />
-            </div>
-            <div>
-              <Label htmlFor="website">Website</Label>
-              <Input
-                id="website"
-                value={settings.website}
-                onChange={(e) => handleInputChange("website", e.target.value)}
-              />
-            </div>
-          </CardContent>
-        </Card>
+      {/* Main Content */}
+      <div className="px-4 py-6 md:py-8">
+        <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
+          <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2">
+            {/* Business Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Globe className="h-5 w-5" />
+                  Business Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="businessName">Business Name</Label>
+                  <Input
+                    id="businessName"
+                    value={settings.businessName}
+                    onChange={(e) => handleInputChange("businessName", e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="businessEmail">Business Email</Label>
+                  <Input
+                    id="businessEmail"
+                    type="email"
+                    value={settings.businessEmail}
+                    onChange={(e) => handleInputChange("businessEmail", e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="businessPhone">Business Phone</Label>
+                  <Input
+                    id="businessPhone"
+                    value={settings.businessPhone}
+                    onChange={(e) => handleInputChange("businessPhone", e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="businessAddress">Business Address</Label>
+                  <Textarea
+                    id="businessAddress"
+                    value={settings.businessAddress}
+                    onChange={(e) => handleInputChange("businessAddress", e.target.value)}
+                    rows={3}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="website">Website</Label>
+                  <Input
+                    id="website"
+                    value={settings.website}
+                    onChange={(e) => handleInputChange("website", e.target.value)}
+                  />
+                </div>
+              </CardContent>
+            </Card>
 
-        {/* Order Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="h-5 w-5" />
-              Order Settings
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="minimumOrderWeight">Minimum Order Weight (lbs)</Label>
-              <Input
-                id="minimumOrderWeight"
-                type="number"
-                value={settings.minimumOrderWeight}
-                onChange={(e) => handleInputChange("minimumOrderWeight", Number(e.target.value))}
-              />
-              <p className="text-sm mt-1" style={{ color: colorUsage.textMuted }}>
-                Minimum weight required to place bulk orders
-              </p>
-            </div>
-            <div>
-              <Label htmlFor="taxRate">Tax Rate (%)</Label>
-              <Input
-                id="taxRate"
-                type="number"
-                step="0.0001"
-                value={(settings.taxRate * 100).toFixed(2)}
-                onChange={(e) => handleInputChange("taxRate", Number(e.target.value) / 100)}
-              />
-              <p className="text-sm mt-1" style={{ color: colorUsage.textMuted }}>
-                Sales tax rate for North Carolina
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+            {/* Order Settings */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="h-5 w-5" />
+                  Order Settings
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="minimumOrderWeight">Minimum Order Weight (lbs)</Label>
+                  <Input
+                    id="minimumOrderWeight"
+                    type="number"
+                    value={settings.minimumOrderWeight}
+                    onChange={(e) => handleInputChange("minimumOrderWeight", Number(e.target.value))}
+                  />
+                  <p className="text-sm mt-1" style={{ color: colorUsage.textMuted }}>
+                    Minimum weight required to place bulk orders
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="taxRate">Tax Rate (%)</Label>
+                  <Input
+                    id="taxRate"
+                    type="number"
+                    step="0.0001"
+                    value={(settings.taxRate * 100).toFixed(2)}
+                    onChange={(e) => handleInputChange("taxRate", Number(e.target.value) / 100)}
+                  />
+                  <p className="text-sm mt-1" style={{ color: colorUsage.textMuted }}>
+                    Sales tax rate for North Carolina
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     </div>
   )

@@ -58,36 +58,33 @@ export default function AdminDashboard() {
     paidOrders: 0,
     totalRevenue: 0,
     recentOrders: 0,
-    recentCustomers: 0,
   }
 
   return (
     <div className="bg-gray-50">
       {/* Page Header */}
-      <div className="px-4 py-16 bg-white">
+      <div className="px-4 py-8 md:py-16 bg-white">
         <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h1
-                className="text-4xl md:text-5xl font-black mb-4"
+                className="text-3xl md:text-4xl lg:text-5xl font-black mb-2 md:mb-4"
                 style={{ fontFamily: "Oswald, sans-serif", color: "#1a1a1a" }}
               >
-                ADMIN DASHBOARD
+                DASHBOARD
               </h1>
-              <div className="flex items-center gap-4">
-                <p className="text-xl" style={{ color: "#1a1a1a" }}>
-                  Manage orders, customers, and products
-                </p>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                <p className="text-base md:text-lg">Manage orders, customers, and products</p>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-[#B9FF16] rounded-full animate-pulse"></div>
-                  <span className="text-sm text-gray-600">Live data • Auto-refresh every 30s</span>
+                  <span className="text-xs md:text-sm text-gray-600">Live data • Auto-refresh every 30s</span>
                 </div>
               </div>
             </div>
             <Button
               onClick={refresh}
-              className="border-2 border-black font-bold bg-transparent hover:bg-gray-100 text-black"
-              variant="outline"
+              className="font-bold border-2 border-black w-full md:w-auto"
+              style={{ fontFamily: "Oswald, sans-serif", backgroundColor: colorUsage.accent, color: colorUsage.textOnAccent }}
               disabled={loading}
             >
               {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
@@ -98,10 +95,10 @@ export default function AdminDashboard() {
       </div>
 
       {/* Main Content */}
-      <div className="px-4 py-8">
-        <div className="max-w-6xl mx-auto space-y-6">
+      <div className="px-4 py-6 md:py-8">
+        <div className="max-w-6xl mx-auto space-y-4 md:space-y-6">
           {/* Stats Cards */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-3 md:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
             <div className="bg-white rounded-lg border-2 border-black overflow-hidden">
               <div className="bg-black text-white p-4">
                 <div className="flex items-center justify-between">
@@ -201,7 +198,7 @@ export default function AdminDashboard() {
       {data?.charts && <DashboardCharts data={data.charts} />}
 
           {/* Quick Actions */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             <div className="bg-white rounded-lg border-2 border-black overflow-hidden">
               <div className="bg-black text-white p-4">
                 <h3 className="text-xl font-black" style={{ fontFamily: "Oswald, sans-serif" }}>

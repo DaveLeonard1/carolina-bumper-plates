@@ -216,17 +216,32 @@ export default function AdminProductsPage() {
   const maxWeight = products.length > 0 ? Math.max(...products.map((p) => p.weight)) : 0
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Products Management</h1>
-          <p className="text-muted-foreground">Manage your Hi-Temp bumper plate inventory</p>
+    <div className="bg-gray-50">
+      {/* Page Header */}
+      <div className="px-4 py-8 md:py-16 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1
+                className="text-3xl md:text-4xl lg:text-5xl font-black mb-2 md:mb-4"
+                style={{ fontFamily: "Oswald, sans-serif", color: "#1a1a1a" }}
+              >
+                PRODUCTS MANAGEMENT
+              </h1>
+              <p className="text-base md:text-xl" style={{ color: "#1a1a1a" }}>
+                Manage your Hi-Temp bumper plate inventory
+              </p>
+            </div>
+            <Button
+              onClick={() => setShowForm(true)}
+              className="font-black w-full md:w-auto"
+              style={{ backgroundColor: "#B9FF16", color: "#000", fontFamily: "Oswald, sans-serif" }}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              ADD PRODUCT
+            </Button>
+          </div>
         </div>
-        <Button onClick={() => setShowForm(true)} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Add Product
-        </Button>
       </div>
 
       {/* Error Display */}
@@ -243,48 +258,79 @@ export default function AdminProductsPage() {
         </Card>
       )}
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Products</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{products.length}</div>
-          </CardContent>
-        </Card>
+      {/* Main Content */}
+      <div className="px-4 py-6 md:py-8">
+        <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
+          {/* Stats Cards */}
+          <div className="grid gap-3 md:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="bg-white rounded-lg border-2 border-black overflow-hidden">
+              <div className="bg-black text-white p-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-black" style={{ fontFamily: "Oswald, sans-serif" }}>
+                    TOTAL PRODUCTS
+                  </h3>
+                  <Package className="h-5 w-5" />
+                </div>
+              </div>
+              <div className="p-4">
+                <div className="text-3xl font-black mb-1" style={{ fontFamily: "Oswald, sans-serif" }}>
+                  {products.length}
+                </div>
+                <p className="text-xs text-gray-600">All products</p>
+              </div>
+            </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Available</CardTitle>
-            <Package className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{availableProducts.length}</div>
-          </CardContent>
-        </Card>
+            <div className="bg-white rounded-lg border-2 border-black overflow-hidden">
+              <div className="bg-black text-white p-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-black" style={{ fontFamily: "Oswald, sans-serif" }}>
+                    AVAILABLE
+                  </h3>
+                  <Package className="h-5 w-5" />
+                </div>
+              </div>
+              <div className="p-4">
+                <div className="text-3xl font-black mb-1" style={{ fontFamily: "Oswald, sans-serif" }}>
+                  {availableProducts.length}
+                </div>
+                <p className="text-xs text-gray-600">In stock</p>
+              </div>
+            </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg. Savings</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{averageSavings}%</div>
-          </CardContent>
-        </Card>
+            <div className="bg-white rounded-lg border-2 border-black overflow-hidden">
+              <div className="bg-black text-white p-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-black" style={{ fontFamily: "Oswald, sans-serif" }}>
+                    AVG. SAVINGS
+                  </h3>
+                  <DollarSign className="h-5 w-5" />
+                </div>
+              </div>
+              <div className="p-4">
+                <div className="text-3xl font-black mb-1" style={{ fontFamily: "Oswald, sans-serif" }}>
+                  {averageSavings}%
+                </div>
+                <p className="text-xs text-gray-600">Off regular price</p>
+              </div>
+            </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Weight Range</CardTitle>
-            <Scale className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{products.length > 0 ? `${minWeight}-${maxWeight}lbs` : "0lbs"}</div>
-          </CardContent>
-        </Card>
-      </div>
+            <div className="bg-white rounded-lg border-2 border-black overflow-hidden">
+              <div className="bg-black text-white p-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-black" style={{ fontFamily: "Oswald, sans-serif" }}>
+                    WEIGHT RANGE
+                  </h3>
+                  <Scale className="h-5 w-5" />
+                </div>
+              </div>
+              <div className="p-4">
+                <div className="text-3xl font-black mb-1" style={{ fontFamily: "Oswald, sans-serif" }}>
+                  {products.length > 0 ? `${minWeight}-${maxWeight}` : "0"}
+                </div>
+                <p className="text-xs text-gray-600">lbs range</p>
+              </div>
+            </div>
+          </div>
 
       {/* Add/Edit Product Form */}
       {showForm && (
@@ -548,6 +594,8 @@ export default function AdminProductsPage() {
           )}
         </CardContent>
       </Card>
+        </div>
+      </div>
     </div>
   )
 }

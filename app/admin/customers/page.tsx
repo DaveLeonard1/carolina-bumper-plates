@@ -74,60 +74,85 @@ export default function AdminCustomersPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold" style={{ fontFamily: "Oswald, sans-serif" }}>
-            Customer Management
-          </h1>
-          <p style={{ color: colorUsage.textMuted }}>View and manage customer accounts</p>
+    <div className="bg-gray-50">
+      {/* Page Header */}
+      <div className="px-4 py-8 md:py-16 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1
+                className="text-3xl md:text-4xl lg:text-5xl font-black mb-2 md:mb-4"
+                style={{ fontFamily: "Oswald, sans-serif", color: "#1a1a1a" }}
+              >
+                CUSTOMER MANAGEMENT
+              </h1>
+              <p className="text-base md:text-xl" style={{ color: "#1a1a1a" }}>
+                View and manage customer accounts
+              </p>
+            </div>
+            <Button
+              onClick={fetchCustomers}
+              disabled={loading}
+              className="border-2 border-black font-bold bg-transparent hover:bg-gray-100 text-black w-full md:w-auto"
+              variant="outline"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
+              REFRESH
+            </Button>
+          </div>
         </div>
-        <Button onClick={fetchCustomers} disabled={loading}>
-          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
-          Refresh
-        </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <Users className="h-8 w-8" style={{ color: colorUsage.textMuted }} />
-              <div className="ml-4">
-                <p className="text-sm font-medium" style={{ color: colorUsage.textMuted }}>
-                  Total Customers
-                </p>
-                <p className="text-2xl font-bold">{customers.length}</p>
+      {/* Main Content */}
+      <div className="px-4 py-6 md:py-8">
+        <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
+          {/* Stats Cards */}
+          <div className="grid gap-3 md:gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+            <div className="bg-white rounded-lg border-2 border-black overflow-hidden">
+              <div className="bg-black text-white p-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-black" style={{ fontFamily: "Oswald, sans-serif" }}>
+                    TOTAL CUSTOMERS
+                  </h3>
+                  <Users className="h-5 w-5" />
+                </div>
+              </div>
+              <div className="p-4">
+                <div className="text-3xl font-black mb-1" style={{ fontFamily: "Oswald, sans-serif" }}>
+                  {customers.length}
+                </div>
+                <p className="text-xs text-gray-600">All customers</p>
               </div>
             </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <ShoppingCart className="h-8 w-8" style={{ color: colorUsage.textMuted }} />
-              <div className="ml-4">
-                <p className="text-sm font-medium" style={{ color: colorUsage.textMuted }}>
-                  Active Customers
-                </p>
-                <p className="text-2xl font-bold">{customers.filter((c) => c.order_count > 0).length}</p>
+            <div className="bg-white rounded-lg border-2 border-black overflow-hidden">
+              <div className="bg-black text-white p-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-black" style={{ fontFamily: "Oswald, sans-serif" }}>
+                    ACTIVE CUSTOMERS
+                  </h3>
+                  <ShoppingCart className="h-5 w-5" />
+                </div>
+              </div>
+              <div className="p-4">
+                <div className="text-3xl font-black mb-1" style={{ fontFamily: "Oswald, sans-serif" }}>
+                  {customers.filter((c) => c.order_count > 0).length}
+                </div>
+                <p className="text-xs text-gray-600">With orders</p>
               </div>
             </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <Calendar className="h-8 w-8" style={{ color: colorUsage.textMuted }} />
-              <div className="ml-4">
-                <p className="text-sm font-medium" style={{ color: colorUsage.textMuted }}>
-                  New This Month
-                </p>
-                <p className="text-2xl font-bold">
+            <div className="bg-white rounded-lg border-2 border-black overflow-hidden">
+              <div className="bg-black text-white p-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-black" style={{ fontFamily: "Oswald, sans-serif" }}>
+                    NEW THIS MONTH
+                  </h3>
+                  <Calendar className="h-5 w-5" />
+                </div>
+              </div>
+              <div className="p-4">
+                <div className="text-3xl font-black mb-1" style={{ fontFamily: "Oswald, sans-serif" }}>
                   {
                     customers.filter((c) => {
                       const created = new Date(c.created_at)
@@ -135,12 +160,11 @@ export default function AdminCustomersPage() {
                       return created.getMonth() === now.getMonth() && created.getFullYear() === now.getFullYear()
                     }).length
                   }
-                </p>
+                </div>
+                <p className="text-xs text-gray-600">This month</p>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
 
       {/* Search */}
       <Card>
@@ -258,6 +282,8 @@ export default function AdminCustomersPage() {
           )}
         </CardContent>
       </Card>
+        </div>
+      </div>
     </div>
   )
 }

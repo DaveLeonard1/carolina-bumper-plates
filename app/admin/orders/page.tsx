@@ -180,88 +180,119 @@ export default function AdminOrdersPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold" style={{ fontFamily: "Oswald, sans-serif" }}>
-            Orders Management
-          </h1>
-          <p style={{ color: colorUsage.textMuted }}>View and manage all customer orders</p>
+    <div className="bg-gray-50">
+      {/* Page Header */}
+      <div className="px-4 py-8 md:py-16 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1
+                className="text-3xl md:text-4xl lg:text-5xl font-black mb-2 md:mb-4"
+                style={{ fontFamily: "Oswald, sans-serif", color: "#1a1a1a" }}
+              >
+                ORDERS MANAGEMENT
+              </h1>
+              <p className="text-base md:text-xl" style={{ color: "#1a1a1a" }}>
+                View and manage all customer orders
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+              <Button
+                onClick={fetchOrders}
+                disabled={loading}
+                className="border-2 border-black font-bold bg-transparent hover:bg-gray-100 text-black"
+                variant="outline"
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
+                REFRESH
+              </Button>
+              <Button
+                onClick={() => setShowBulkDialog(true)}
+                disabled={loading || orders.length === 0}
+                className="font-black"
+                style={{ backgroundColor: "#B9FF16", color: "#000", fontFamily: "Oswald, sans-serif" }}
+              >
+                <CreditCard className="h-4 w-4 mr-2" />
+                CREATE PAYMENT LINKS
+              </Button>
+            </div>
+          </div>
         </div>
-        <Button onClick={fetchOrders} disabled={loading}>
-          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
-          Refresh
-        </Button>
-        <Button onClick={() => setShowBulkDialog(true)} disabled={loading || orders.length === 0} variant="outline">
-          <CreditCard className="h-4 w-4 mr-2" />
-          Create Payment Links
-        </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <Package className="h-8 w-8" style={{ color: colorUsage.textMuted }} />
-              <div className="ml-4">
-                <p className="text-sm font-medium" style={{ color: colorUsage.textMuted }}>
-                  Total Orders
-                </p>
-                <p className="text-2xl font-bold">{orders.length}</p>
+      {/* Main Content */}
+      <div className="px-4 py-6 md:py-8">
+        <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
+          {/* Stats Cards */}
+          <div className="grid gap-3 md:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="bg-white rounded-lg border-2 border-black overflow-hidden">
+              <div className="bg-black text-white p-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-black" style={{ fontFamily: "Oswald, sans-serif" }}>
+                    TOTAL ORDERS
+                  </h3>
+                  <Package className="h-5 w-5" />
+                </div>
+              </div>
+              <div className="p-4">
+                <div className="text-3xl font-black mb-1" style={{ fontFamily: "Oswald, sans-serif" }}>
+                  {orders.length}
+                </div>
+                <p className="text-xs text-gray-600">All orders</p>
               </div>
             </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <Calendar className="h-8 w-8" style={{ color: colorUsage.textMuted }} />
-              <div className="ml-4">
-                <p className="text-sm font-medium" style={{ color: colorUsage.textMuted }}>
-                  Pending
-                </p>
-                <p className="text-2xl font-bold">{orders.filter((o) => o.status === "pending").length}</p>
+            <div className="bg-white rounded-lg border-2 border-black overflow-hidden">
+              <div className="bg-black text-white p-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-black" style={{ fontFamily: "Oswald, sans-serif" }}>
+                    PENDING
+                  </h3>
+                  <Calendar className="h-5 w-5" />
+                </div>
+              </div>
+              <div className="p-4">
+                <div className="text-3xl font-black mb-1" style={{ fontFamily: "Oswald, sans-serif" }}>
+                  {orders.filter((o) => o.status === "pending").length}
+                </div>
+                <p className="text-xs text-gray-600">Awaiting payment</p>
               </div>
             </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <DollarSign className="h-8 w-8" style={{ color: colorUsage.textMuted }} />
-              <div className="ml-4">
-                <p className="text-sm font-medium" style={{ color: colorUsage.textMuted }}>
-                  Total Value
-                </p>
-                <p className="text-2xl font-bold">
-                  $
-                  {orders.reduce((sum, order) => sum + (order.subtotal || order.total_amount || 0), 0).toLocaleString()}
-                </p>
+            <div className="bg-white rounded-lg border-2 border-black overflow-hidden">
+              <div className="bg-black text-white p-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-black" style={{ fontFamily: "Oswald, sans-serif" }}>
+                    TOTAL VALUE
+                  </h3>
+                  <DollarSign className="h-5 w-5" />
+                </div>
+              </div>
+              <div className="p-4">
+                <div className="text-3xl font-black mb-1" style={{ fontFamily: "Oswald, sans-serif" }}>
+                  ${orders.reduce((sum, order) => sum + (order.subtotal || order.total_amount || 0), 0).toLocaleString()}
+                </div>
+                <p className="text-xs text-gray-600">All orders combined</p>
               </div>
             </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <Scale className="h-8 w-8" style={{ color: colorUsage.textMuted }} />
-              <div className="ml-4">
-                <p className="text-sm font-medium" style={{ color: colorUsage.textMuted }}>
-                  Total Weight
-                </p>
-                <p className="text-2xl font-bold">
-                  {orders.reduce((sum, order) => sum + (order.total_weight || 0), 0).toLocaleString()} lbs
-                </p>
+            <div className="bg-white rounded-lg border-2 border-black overflow-hidden">
+              <div className="bg-black text-white p-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-black" style={{ fontFamily: "Oswald, sans-serif" }}>
+                    TOTAL WEIGHT
+                  </h3>
+                  <Scale className="h-5 w-5" />
+                </div>
+              </div>
+              <div className="p-4">
+                <div className="text-3xl font-black mb-1" style={{ fontFamily: "Oswald, sans-serif" }}>
+                  {orders.reduce((sum, order) => sum + (order.total_weight || 0), 0).toLocaleString()}
+                </div>
+                <p className="text-xs text-gray-600">lbs total</p>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
 
       {/* Search and Filters */}
       <Card>
@@ -495,6 +526,8 @@ export default function AdminOrdersPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+        </div>
+      </div>
     </div>
   )
 }

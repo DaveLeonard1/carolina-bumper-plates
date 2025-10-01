@@ -5,7 +5,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { useAuth } from "@/lib/auth/auth-context"
-import { LogOut, Menu, X } from "lucide-react"
+import { LogOut, Menu, X, Shield } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 interface HeaderProps {
@@ -15,7 +15,7 @@ interface HeaderProps {
 export function Header({ transparent = false }: HeaderProps) {
   const bgColor = transparent ? "bg-transparent" : "bg-[#1a1a1a]"
   const position = transparent ? "absolute" : "relative"
-  const { user, signOut } = useAuth()
+  const { user, isAdmin, signOut } = useAuth()
   const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
@@ -66,6 +66,17 @@ export function Header({ transparent = false }: HeaderProps) {
                 Contact Us
               </Button>
             </Link>
+            {isAdmin && (
+              <Link href="/admin">
+                <Button
+                  variant="outline"
+                  className="border-amber-500 text-amber-500 hover:bg-amber-500 hover:text-black font-semibold bg-transparent"
+                >
+                  <Shield className="h-4 w-4 mr-2" />
+                  Admin
+                </Button>
+              </Link>
+            )}
             {user && (
               <Button
                 onClick={handleSignOut}
@@ -106,6 +117,17 @@ export function Header({ transparent = false }: HeaderProps) {
                 Contact Us
               </Button>
             </Link>
+            {isAdmin && (
+              <Link href="/admin" onClick={() => setMobileMenuOpen(false)}>
+                <Button
+                  variant="outline"
+                  className="w-full border-amber-500 text-amber-500 hover:bg-amber-500 hover:text-black font-semibold bg-transparent justify-start"
+                >
+                  <Shield className="h-4 w-4 mr-2" />
+                  Admin
+                </Button>
+              </Link>
+            )}
             {user && (
               <Button
                 onClick={handleSignOut}

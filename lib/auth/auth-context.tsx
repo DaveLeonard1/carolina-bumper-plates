@@ -5,10 +5,12 @@ import type React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
 import type { User } from "@supabase/supabase-js"
 import { supabase } from "@/lib/supabase/client"
+import { isAdmin } from "./admin"
 
 interface AuthContextType {
   user: User | null
   loading: boolean
+  isAdmin: boolean
   signIn: (email: string, password: string) => Promise<{ error?: string }>
   signUp: (email: string, password: string, fullName: string) => Promise<{ error?: string }>
   signOut: () => Promise<void>
@@ -21,11 +23,14 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isAdminUser, setIsAdminUser] = useState(false)
 
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
+      const currentUser = session?.user ?? null
+      setUser(currentUser)
+      setIsAdminUser(isAdmin(currentUser))
       setLoading(false)
     })
 
@@ -33,7 +38,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
+      const currentUser = session?.user ?? null
+      setUser(currentUser)
+      setIsAdminUser(isAdmin(currentUser))
       setLoading(false)
     })
 
@@ -74,6 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     await supabase.auth.signOut()
     setUser(null)
+    setIsAdminUser(false)
   }
 
   const resetPassword = async (email: string) => {
@@ -99,6 +107,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Reset user state
       setUser(null)
+      setIsAdminUser(false)
 
       console.log("All auth data cleared")
     } catch (error) {
@@ -111,6 +120,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       value={{
         user,
         loading,
+        isAdmin: isAdminUser,
         signIn,
         signUp,
         signOut,

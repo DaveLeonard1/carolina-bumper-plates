@@ -167,30 +167,102 @@ export default function StripeProductsClient() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Stripe Product Management</h1>
-          <p className="text-muted-foreground">Sync products with Stripe using selling_price as the flat price</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={fetchProductStatus} disabled={loading}>
-            <RefreshCw className="h-4 w-4 mr-2" /> Refresh
-          </Button>
-          <Button onClick={syncProducts} disabled={syncing}>
-            {syncing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Zap className="h-4 w-4 mr-2" />}
-            Sync All Products
-          </Button>
+    <div className="bg-gray-50">
+      {/* Page Header */}
+      <div className="px-4 py-8 md:py-16 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1
+                className="text-3xl md:text-4xl lg:text-5xl font-black mb-2 md:mb-4"
+                style={{ fontFamily: "Oswald, sans-serif", color: "#1a1a1a" }}
+              >
+                STRIPE PRODUCT SYNC
+              </h1>
+              <p className="text-base md:text-xl" style={{ color: "#1a1a1a" }}>
+                Sync products with Stripe using selling_price as the flat price
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={fetchProductStatus}
+                disabled={loading}
+                className="border-2 border-black font-bold bg-transparent hover:bg-gray-100 text-black"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                REFRESH
+              </Button>
+              <Button
+                onClick={syncProducts}
+                disabled={syncing}
+                className="font-black"
+                style={{ backgroundColor: "#B9FF16", color: "#000", fontFamily: "Oswald, sans-serif" }}
+              >
+                {syncing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Zap className="h-4 w-4 mr-2" />}
+                SYNC ALL PRODUCTS
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <StatCard title="Total" icon={Package} value={stats.total} />
-        <StatCard title="Synced" icon={CheckCircle} value={stats.synced} iconClass="text-green-600" />
-        <StatCard title="Unsynced" icon={XCircle} value={stats.unsynced} iconClass="text-orange-600" />
-      </div>
+      {/* Main Content */}
+      <div className="px-4 py-6 md:py-8">
+        <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
+          {/* Stats Cards */}
+          <div className="grid gap-3 md:gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+            <div className="bg-white rounded-lg border-2 border-black overflow-hidden">
+              <div className="bg-black text-white p-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-black" style={{ fontFamily: "Oswald, sans-serif" }}>
+                    TOTAL PRODUCTS
+                  </h3>
+                  <Package className="h-5 w-5" />
+                </div>
+              </div>
+              <div className="p-4">
+                <div className="text-3xl font-black mb-1" style={{ fontFamily: "Oswald, sans-serif" }}>
+                  {stats.total}
+                </div>
+                <p className="text-xs text-gray-600">All products</p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg border-2 border-black overflow-hidden">
+              <div className="bg-black text-white p-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-black" style={{ fontFamily: "Oswald, sans-serif" }}>
+                    SYNCED
+                  </h3>
+                  <CheckCircle className="h-5 w-5" />
+                </div>
+              </div>
+              <div className="p-4">
+                <div className="text-3xl font-black mb-1" style={{ fontFamily: "Oswald, sans-serif", color: "#16a34a" }}>
+                  {stats.synced}
+                </div>
+                <p className="text-xs text-gray-600">With Stripe</p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg border-2 border-black overflow-hidden">
+              <div className="bg-black text-white p-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-black" style={{ fontFamily: "Oswald, sans-serif" }}>
+                    UNSYNCED
+                  </h3>
+                  <XCircle className="h-5 w-5" />
+                </div>
+              </div>
+              <div className="p-4">
+                <div className="text-3xl font-black mb-1" style={{ fontFamily: "Oswald, sans-serif", color: "#ea580c" }}>
+                  {stats.unsynced}
+                </div>
+                <p className="text-xs text-gray-600">Needs sync</p>
+              </div>
+            </div>
+          </div>
 
       {/* products list */}
       <Card>
@@ -244,27 +316,26 @@ export default function StripeProductsClient() {
           )}
         </CardContent>
       </Card>
+        </div>
+      </div>
     </div>
   )
 }
 
-/* ---------- tiny helpers so the main render stays readable ---------- */
-function StatCard({
-  title,
-  value,
-  icon: Icon,
-  iconClass,
-}: {
+/* --------- StatCard component --------- */
+interface StatCardProps {
   title: string
+  icon: React.ElementType
   value: number
-  icon: React.ComponentType<{ className?: string }>
   iconClass?: string
-}) {
+}
+
+function StatCard({ title, icon: Icon, value, iconClass }: StatCardProps) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <Icon className={`h-4 w-4 text-muted-foreground ${iconClass || ""}`} />
+        <Icon className={`h-4 w-4 ${iconClass || "text-muted-foreground"}`} />
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{value}</div>
