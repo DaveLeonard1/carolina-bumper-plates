@@ -825,10 +825,6 @@ export default function ModifyOrderPage() {
                     <>
                       <div className="border-t pt-4 space-y-2">
                         <div className="flex justify-between">
-                          <span>Items ({totalItems})</span>
-                          <span className="font-semibold">{totalItems}</span>
-                        </div>
-                        <div className="flex justify-between">
                           <span>Total Weight</span>
                           <span className="font-semibold">{totalWeight} lbs</span>
                         </div>
@@ -848,47 +844,91 @@ export default function ModifyOrderPage() {
                       </div>
 
                       {/* Order Comparison */}
-                      <div
-                        className="relative overflow-hidden rounded-xl p-6 mt-4"
-                        style={{
-                          background: `linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)`,
-                        }}
-                      >
-                        <div className="relative">
-                          <h4 className="text-lg font-bold mb-4" style={{ color: "#ffffff" }}>
-                            Order Comparison
+                      <div className="mt-6 border-2 rounded-lg overflow-hidden" style={{ borderColor: "#B9FF16" }}>
+                        <div
+                          className="p-4"
+                          style={{
+                            backgroundColor: "#1a1a1a",
+                          }}
+                        >
+                          <h4
+                            className="text-base font-bold mb-1"
+                            style={{ color: "#B9FF16", fontFamily: "Oswald, sans-serif", letterSpacing: "0.05em" }}
+                          >
+                            ORDER COMPARISON
                           </h4>
-                          <div className="space-y-3">
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm" style={{ color: "#B9FF16" }}>Original</span>
-                              <span className="font-semibold" style={{ color: "#ffffff" }}>
-                                ${originalSubtotal.toFixed(2)} <span className="text-sm font-normal" style={{ color: colorUsage.textMuted }}>({originalWeight} lbs)</span>
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm" style={{ color: "#B9FF16" }}>Updated</span>
-                              <span className="font-semibold" style={{ color: "#ffffff" }}>
-                                ${subtotal.toFixed(2)} <span className="text-sm font-normal" style={{ color: colorUsage.textMuted }}>({totalWeight} lbs)</span>
-                              </span>
-                            </div>
-                            <div className="border-t border-gray-700 pt-3">
-                              <div className="flex justify-between items-center">
-                                <span className="text-base font-bold" style={{ color: "#ffffff" }}>Difference</span>
-                                <span
-                                  className="text-xl font-bold"
-                                  style={{
-                                    color:
-                                      subtotal > originalSubtotal
-                                        ? "#dc2626"
-                                        : subtotal < originalSubtotal
-                                          ? "#16a34a"
-                                          : "#B9FF16",
-                                  }}
-                                >
-                                  {subtotal > originalSubtotal && `+$${(subtotal - originalSubtotal).toFixed(2)}`}
-                                  {subtotal < originalSubtotal && `-$${(originalSubtotal - subtotal).toFixed(2)}`}
-                                  {subtotal === originalSubtotal && "$0.00"}
+                          <p className="text-xs" style={{ color: colorUsage.textMuted }}>
+                            Original vs. Modified
+                          </p>
+                        </div>
+
+
+                        <div className="p-6" style={{ backgroundColor: "#2d2d2d" }}>
+                          <div className="space-y-4">
+                            {/* Original Order */}
+                            <div
+                              className="flex justify-between items-center pb-3 border-b"
+                              style={{ borderColor: "#404040" }}
+                            >
+                              <div>
+                                <span className="text-xs font-semibold" style={{ color: "#B9FF16" }}>
+                                  ORIGINAL ORDER
                                 </span>
+                              </div>
+                              <span className="text-lg font-bold" style={{ color: "#ffffff" }}>
+                                ${originalSubtotal.toFixed(2)}
+                              </span>
+                            </div>
+
+
+                            {/* Updated Order */}
+                            <div
+                              className="flex justify-between items-center pb-3 border-b"
+                              style={{ borderColor: "#404040" }}
+                            >
+                              <div>
+                                <span className="text-xs font-semibold" style={{ color: "#B9FF16" }}>
+                                  MODIFIED ORDER
+                                </span>
+                              </div>
+                              <span className="text-lg font-bold" style={{ color: "#ffffff" }}>
+                                ${subtotal.toFixed(2)}
+                              </span>
+                            </div>
+
+
+                            {/* Difference */}
+                            <div className="pt-2">
+                              <div className="flex justify-between items-start">
+                                <span
+                                  className="text-sm font-bold"
+                                  style={{ color: "#ffffff", fontFamily: "Oswald, sans-serif" }}
+                                >
+                                  DIFFERENCE
+                                </span>
+                                <div className="text-right">
+                                  <div
+                                    className="text-2xl font-black leading-none"
+                                    style={{
+                                      color:
+                                        subtotal > originalSubtotal
+                                          ? "#ef4444"
+                                          : subtotal < originalSubtotal
+                                            ? "#10b981"
+                                            : "#B9FF16",
+                                      fontFamily: "Oswald, sans-serif",
+                                    }}
+                                  >
+                                    {subtotal > originalSubtotal && `+$${(subtotal - originalSubtotal).toFixed(2)}` }
+                                    {subtotal < originalSubtotal && `-$${(originalSubtotal - subtotal).toFixed(2)}` }
+                                    {subtotal === originalSubtotal && "$0.00"}
+                                  </div>
+                                  <div className="text-xs mt-1" style={{ color: colorUsage.textMuted }}>
+                                    {totalWeight > originalWeight && `+${totalWeight - originalWeight} lbs` }
+                                    {totalWeight < originalWeight && `-${originalWeight - totalWeight} lbs` }
+                                    {totalWeight === originalWeight && "No weight change"}
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           </div>

@@ -3,6 +3,9 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
+import { useAuth } from "@/lib/auth/auth-context"
+import { LogOut } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 interface HeaderProps {
   transparent?: boolean
@@ -11,6 +14,13 @@ interface HeaderProps {
 export function Header({ transparent = false }: HeaderProps) {
   const bgColor = transparent ? "bg-transparent" : "bg-[#1a1a1a]"
   const position = transparent ? "absolute" : "relative"
+  const { user, signOut } = useAuth()
+  const router = useRouter()
+
+  const handleSignOut = async () => {
+    await signOut()
+    router.push("/")
+  }
 
   return (
     <header className={`${position} top-0 left-0 right-0 z-50 ${bgColor}`}>
@@ -43,6 +53,16 @@ export function Header({ transparent = false }: HeaderProps) {
                 Contact Us
               </Button>
             </Link>
+            {user && (
+              <Button
+                onClick={handleSignOut}
+                variant="outline"
+                className="border-white text-white hover:bg-white hover:text-black font-semibold bg-transparent"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign Out
+              </Button>
+            )}
           </div>
         </div>
       </div>

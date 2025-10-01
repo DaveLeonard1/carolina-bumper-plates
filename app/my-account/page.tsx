@@ -2,15 +2,12 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-  Dumbbell,
   Package,
   Edit,
   Eye,
-  LogOut,
   User,
   MapPin,
   Phone,
@@ -59,6 +56,11 @@ interface Order {
   payment_link_created_at?: string
   paid_at?: string
   stripe_checkout_session_id?: string
+  lockReason?: string
+  isLocked?: boolean
+  hasPaymentLink?: boolean
+  needsPayment?: boolean
+  isPaid?: boolean
 }
 
 interface Customer {
@@ -535,16 +537,6 @@ export default function MyAccountPage() {
     }
   }
 
-  const handleSignOut = async () => {
-    try {
-      console.log("Signing out user")
-      await signOut()
-      router.push("/")
-    } catch (error) {
-      console.error("Sign out error:", error)
-    }
-  }
-
   const handleRefresh = () => {
     fetchAccountData()
   }
@@ -552,16 +544,12 @@ export default function MyAccountPage() {
   // Show loading while checking authentication
   if (loading) {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{ backgroundColor: colorUsage.backgroundLight }}
-      >
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
-          <div
-            className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4"
-            style={{ borderColor: colorUsage.textOnLight }}
-          ></div>
-          <p>Loading...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
+          <p className="font-bold" style={{ fontFamily: "Oswald, sans-serif" }}>
+            LOADING...
+          </p>
         </div>
       </div>
     )
@@ -577,366 +565,357 @@ export default function MyAccountPage() {
 
   return (
     <PageLayout>
-      <div className="px-4 py-8" style={{ backgroundColor: colorUsage.backgroundLight }}>
-        <div className="max-w-6xl mx-auto">
-          {/* User Info & Sign Out */}
-          <div className="flex items-center justify-end gap-4 mb-4">
-            <span className="text-sm" style={{ color: colorUsage.textMuted }}>
-              {customer?.name || user.user_metadata?.full_name || user.email}
-            </span>
-            <Button variant="outline" onClick={handleSignOut} className="font-semibold">
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
-            </Button>
+      <div className="bg-gray-50">
+        {/* Page Header */}
+        <div className="px-4 py-16 bg-white">
+          <div className="max-w-6xl mx-auto">
+            <div>
+              <h1
+                className="text-4xl md:text-5xl font-black mb-4"
+                style={{ fontFamily: "Oswald, sans-serif", color: "#1a1a1a" }}
+              >
+                MY ACCOUNT
+              </h1>
+              <p className="text-xl" style={{ color: "#1a1a1a" }}>
+                Manage your profile and track your preorders
+              </p>
+            </div>
           </div>
-          {/* Page Header */}
-          <div className="mb-8">
-            <h1 className="text-4xl font-black mb-4" style={{ fontFamily: "Oswald, sans-serif" }}>
-              MY ACCOUNT
-            </h1>
-            <p className="text-xl" style={{ color: colorUsage.textMuted }}>
-              Manage your profile and track your preorders
-            </p>
-          </div>
+        </div>
 
-          {/* Success Message */}
-          {successMessage && (
-            <div className="mb-6">
-              <div className="flex items-start gap-3 p-4 rounded-lg bg-green-50 border border-green-200">
-                <CheckCircle className="h-5 w-5 mt-0.5 text-green-600 flex-shrink-0" />
-                <div className="flex-1">
-                  <p className="text-sm text-green-800">{successMessage}</p>
-                </div>
-                <Button
-                  size="sm"
-                  onClick={() => setSuccessMessage("")}
-                  variant="outline"
-                  className="ml-auto h-6 w-6 p-0"
+        {/* Main Content */}
+        <div className="px-4 py-8 bg-gray-50">
+          <div className="max-w-6xl mx-auto">
+            {/* Success Message */}
+            {successMessage && (
+              <div className="mb-6">
+                <div
+                  className="flex items-start gap-3 p-4 rounded-lg border-2"
+                  style={{ borderColor: colorUsage.accent, backgroundColor: "#f7fee7" }}
                 >
-                  <X className="h-3 w-3" />
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Error Message */}
-          {error && (
-            <div className="mb-6">
-              <div className="flex items-start gap-3 p-4 rounded-lg" style={{ backgroundColor: "#fef2f2" }}>
-                <AlertCircle className="h-5 w-5 mt-0.5 text-red-500 flex-shrink-0" />
-                <div className="flex-1">
-                  <p className="text-sm text-red-800">{error}</p>
-                </div>
-                <Button size="sm" onClick={handleRefresh} variant="outline" className="ml-auto">
-                  <RefreshCw className="h-4 w-4 mr-1" />
-                  Retry
-                </Button>
-              </div>
-            </div>
-          )}
-
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* Left Column - Profile & Quick Actions */}
-            <div className="lg:col-span-1 space-y-6">
-              {/* Profile Card */}
-              <Card className="p-6 rounded-lg border" style={{ backgroundColor: colorUsage.backgroundPrimary }}>
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-bold">Profile</h3>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setEditingProfile(!editingProfile)}
-                      className="font-semibold"
-                      disabled={loadingData}
-                    >
-                      <Edit className="h-4 w-4 mr-1" />
-                      {editingProfile ? "Cancel" : "Edit"}
-                    </Button>
+                  <CheckCircle className="h-5 w-5 mt-0.5 flex-shrink-0" style={{ color: colorUsage.accent }} />
+                  <div className="flex-1">
+                    <p className="font-bold" style={{ fontFamily: "Oswald, sans-serif" }}>
+                      {successMessage}
+                    </p>
                   </div>
+                  <Button
+                    size="sm"
+                    onClick={() => setSuccessMessage("")}
+                    variant="outline"
+                    className="ml-auto h-6 w-6 p-0"
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+            )}
 
-                  {loadingData ? (
-                    <div className="text-center py-4">
-                      <div
-                        className="animate-spin rounded-full h-6 w-6 border-b-2 mx-auto mb-2"
-                        style={{ borderColor: colorUsage.textOnLight }}
-                      ></div>
-                      <p className="text-sm" style={{ color: colorUsage.textMuted }}>
-                        Loading profile...
-                      </p>
-                    </div>
-                  ) : editingProfile ? (
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="name">Full Name</Label>
-                        <Input
-                          id="name"
-                          value={profileData.name}
-                          onChange={(e) => setProfileData((prev) => ({ ...prev, name: e.target.value }))}
-                          className="mt-1"
-                        />
+            {/* Error Message */}
+            {error && (
+              <div className="mb-6">
+                <div className="flex items-start gap-3 p-4 rounded-lg bg-red-50 border-2 border-red-200">
+                  <AlertCircle className="h-5 w-5 mt-0.5 text-red-500 flex-shrink-0" />
+                  <div className="flex-1">
+                    <p className="font-bold text-red-800" style={{ fontFamily: "Oswald, sans-serif" }}>
+                      {error}
+                    </p>
+                  </div>
+                  <Button size="sm" onClick={handleRefresh} variant="outline" className="ml-auto bg-transparent">
+                    <RefreshCw className="h-4 w-4 mr-1" />
+                    RETRY
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            <div className="grid lg:grid-cols-3 gap-6">
+              {/* Left Column - Profile & Quick Actions */}
+              <div className="lg:col-span-1 space-y-6">
+                {/* Profile Card */}
+                <div className="bg-white rounded-lg border-2 border-black overflow-hidden">
+                  <div className="bg-black text-white p-4">
+                    <h3 className="text-xl font-black" style={{ fontFamily: "Oswald, sans-serif" }}>
+                      PROFILE
+                    </h3>
+                  </div>
+                  <div className="p-6">
+                    {loadingData ? (
+                      <div className="text-center py-4">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-black mx-auto mb-2"></div>
+                        <p className="text-sm text-gray-600">Loading profile...</p>
                       </div>
-                      <div>
-                        <Label htmlFor="phone">Phone</Label>
+                    ) : editingProfile ? (
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="name" className="font-bold">
+                            Full Name
+                          </Label>
+                          <Input
+                            id="name"
+                            value={profileData.name}
+                            onChange={(e) => setProfileData((prev) => ({ ...prev, name: e.target.value }))}
+                            className="mt-1 border-2 border-gray-300 focus:border-black"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="phone" className="font-bold">
+                            Phone
+                          </Label>
+                          <Input
+                            id="phone"
+                            value={profileData.phone}
+                            onChange={(e) => setProfileData((prev) => ({ ...prev, phone: e.target.value }))}
+                            className="mt-1 border-2 border-gray-300 focus:border-black"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="street_address" className="font-bold">
+                            Address
+                          </Label>
+                          <Input
+                            id="street_address"
+                            value={profileData.street_address}
+                            onChange={(e) => setProfileData((prev) => ({ ...prev, street_address: e.target.value }))}
+                            className="mt-1 border-2 border-gray-300 focus:border-black"
+                            placeholder="Street Address"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <Input
+                            value={profileData.city}
+                            onChange={(e) => setProfileData((prev) => ({ ...prev, city: e.target.value }))}
+                            placeholder="City"
+                            className="border-2 border-gray-300 focus:border-black"
+                          />
+                          <Input
+                            value={profileData.state}
+                            onChange={(e) => setProfileData((prev) => ({ ...prev, state: e.target.value }))}
+                            placeholder="State"
+                            className="border-2 border-gray-300 focus:border-black"
+                          />
+                        </div>
                         <Input
-                          id="phone"
-                          value={profileData.phone}
-                          onChange={(e) => setProfileData((prev) => ({ ...prev, phone: e.target.value }))}
-                          className="mt-1"
+                          value={profileData.zip_code}
+                          onChange={(e) => setProfileData((prev) => ({ ...prev, zip_code: e.target.value }))}
+                          placeholder="ZIP Code"
+                          className="w-32 border-2 border-gray-300 focus:border-black"
                         />
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={handleProfileSave}
+                            className="flex-1 font-black"
+                            style={{
+                              backgroundColor: colorUsage.accent,
+                              color: "#000",
+                              fontFamily: "Oswald, sans-serif",
+                            }}
+                          >
+                            SAVE CHANGES
+                          </Button>
+                          <Button
+                            onClick={() => setEditingProfile(false)}
+                            variant="outline"
+                            className="border-2 border-black font-bold"
+                          >
+                            CANCEL
+                          </Button>
+                        </div>
                       </div>
-                      <div>
-                        <Label htmlFor="street_address">Address</Label>
-                        <Input
-                          id="street_address"
-                          value={profileData.street_address}
-                          onChange={(e) => setProfileData((prev) => ({ ...prev, street_address: e.target.value }))}
-                          className="mt-1"
-                          placeholder="Street Address"
-                        />
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-3 pb-3 border-b-2 border-gray-200">
+                          <User className="h-5 w-5" />
+                          <span className="font-semibold">
+                            {customer?.name || user.user_metadata?.full_name || "Not set"}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3 pb-3 border-b-2 border-gray-200">
+                          <Mail className="h-5 w-5" />
+                          <span className="text-sm">{user.email}</span>
+                        </div>
+                        {customer?.phone && (
+                          <div className="flex items-center gap-3 pb-3 border-b-2 border-gray-200">
+                            <Phone className="h-5 w-5" />
+                            <span className="text-sm">{customer.phone}</span>
+                          </div>
+                        )}
+                        {customer?.street_address && (
+                          <div className="flex items-start gap-3 pb-3 border-b-2 border-gray-200">
+                            <MapPin className="h-5 w-5 mt-0.5" />
+                            <div className="text-sm">
+                              <p>{customer.street_address}</p>
+                              <p className="text-gray-600">
+                                {customer.city}, {customer.state} {customer.zip_code}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                        <Button
+                          onClick={() => setEditingProfile(true)}
+                          className="w-full font-bold border-2 border-black"
+                          variant="outline"
+                          disabled={loadingData}
+                          style={{ fontFamily: "Oswald, sans-serif" }}
+                        >
+                          <Edit className="h-4 w-4 mr-2" />
+                          EDIT PROFILE
+                        </Button>
                       </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <Input
-                          value={profileData.city}
-                          onChange={(e) => setProfileData((prev) => ({ ...prev, city: e.target.value }))}
-                          placeholder="City"
-                        />
-                        <Input
-                          value={profileData.state}
-                          onChange={(e) => setProfileData((prev) => ({ ...prev, state: e.target.value }))}
-                          placeholder="State"
-                        />
-                      </div>
-                      <Input
-                        value={profileData.zip_code}
-                        onChange={(e) => setProfileData((prev) => ({ ...prev, zip_code: e.target.value }))}
-                        placeholder="ZIP Code"
-                        className="w-32"
-                      />
+                    )}
+                  </div>
+                </div>
+
+                {/* Quick Actions */}
+                <div className="bg-white rounded-lg border-2 border-black overflow-hidden">
+                  <div className="bg-black text-white p-4">
+                    <h3 className="text-xl font-black" style={{ fontFamily: "Oswald, sans-serif" }}>
+                      QUICK ACTIONS
+                    </h3>
+                  </div>
+                  <div className="p-6 space-y-3">
+                    <Link href="/#configurator" className="block">
                       <Button
-                        onClick={handleProfileSave}
-                        className="w-full font-semibold"
-                        style={{
-                          backgroundColor: colorUsage.buttonSecondary,
-                          color: colorUsage.textOnDark,
-                        }}
+                        className="w-full justify-start font-bold border-2 bg-transparent"
+                        variant="outline"
+                        style={{ borderColor: colorUsage.accent, color: "#000", fontFamily: "Oswald, sans-serif" }}
                       >
-                        Save Changes
+                        <Package className="h-5 w-5 mr-2" />
+                        NEW PREORDER
                       </Button>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3">
-                        <User className="h-4 w-4" style={{ color: colorUsage.textOnLight }} />
-                        <span>{customer?.name || user.user_metadata?.full_name || "Not set"}</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Mail className="h-4 w-4" style={{ color: colorUsage.textOnLight }} />
-                        <span>{user.email}</span>
-                      </div>
-                      {customer?.phone && (
-                        <div className="flex items-center gap-3">
-                          <Phone className="h-4 w-4" style={{ color: colorUsage.textOnLight }} />
-                          <span>{customer.phone}</span>
-                        </div>
-                      )}
-                      {customer?.street_address && (
-                        <div className="flex items-start gap-3">
-                          <MapPin className="h-4 w-4 mt-0.5" style={{ color: colorUsage.textOnLight }} />
-                          <div className="text-sm">
-                            <p>{customer.street_address}</p>
-                            <p>
-                              {customer.city}, {customer.state} {customer.zip_code}
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                      {customer?.last_payment_at && (
-                        <div className="flex items-center gap-3">
-                          <CheckCircle className="h-4 w-4" style={{ color: colorUsage.textOnLight }} />
-                          <div className="text-sm">
-                            <p className="font-medium">Last Payment</p>
-                            <p style={{ color: colorUsage.textMuted }}>
-                              {new Date(customer.last_payment_at).toLocaleDateString()}
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Quick Actions */}
-              <Card className="p-6 rounded-lg border" style={{ backgroundColor: colorUsage.backgroundPrimary }}>
-                <CardContent className="pt-6">
-                  <h3 className="text-lg font-bold mb-4">Quick Actions</h3>
-                  <div className="flex flex-col gap-4">
-                    <Link href="/#configurator">
+                    </Link>
+                    <Link href="/contact" className="block">
                       <Button
                         variant="outline"
-                        className="w-full justify-start"
-                        style={{ borderColor: colorUsage.textOnLight }}
+                        className="w-full justify-start font-bold border-2 border-black bg-transparent"
+                        style={{ fontFamily: "Oswald, sans-serif" }}
                       >
-                        <Package className="h-4 w-4 mr-2" />
-                        New Preorder
-                      </Button>
-                    </Link>
-                    <Link href="/contact">
-                      <Button variant="outline" className="w-full justify-start">
-                        <Mail className="h-4 w-4 mr-2" />
-                        Contact Support
+                        <Mail className="h-5 w-5 mr-2" />
+                        CONTACT SUPPORT
                       </Button>
                     </Link>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Right Column - Orders */}
-            <div className="lg:col-span-2 space-y-6">
-              {loadingData ? (
-                <div className="text-center py-8">
-                  <div
-                    className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto mb-4"
-                    style={{ borderColor: colorUsage.textOnLight }}
-                  ></div>
-                  <p>Loading your orders...</p>
                 </div>
-              ) : orders.length === 0 ? (
-                <Card className="p-8 rounded-lg border" style={{ backgroundColor: colorUsage.backgroundPrimary }}>
-                  <CardContent className="pt-8 text-center">
-                    <Package className="h-16 w-16 mx-auto mb-4" style={{ color: colorUsage.textDisabled }} />
-                    <h3 className="text-xl font-bold mb-2">No Orders Yet</h3>
-                    <p className="mb-6" style={{ color: colorUsage.textMuted }}>
-                      You haven't placed any preorders yet. Start building your custom plate set!
-                    </p>
-                    <Link href="/#configurator">
-                      <Button
-                        className="font-semibold"
-                        style={{ backgroundColor: colorUsage.buttonSecondary, color: colorUsage.textOnDark }}
-                      >
-                        <Package className="h-4 w-4 mr-2" />
-                        Place Your First Order
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-              ) : (
-                <>
-                  {/* Most Recent Order - Detailed View */}
-                  {mostRecentOrder && (
-                    <Card className="p-6 rounded-lg border" style={{ backgroundColor: colorUsage.backgroundPrimary }}>
-                      <CardContent className="pt-6">
-                        <div className="flex items-center justify-between mb-6">
-                          <div>
-                            <h3 className="text-xl font-bold">Most Recent Order</h3>
-                            <p className="text-sm" style={{ color: colorUsage.textMuted }}>
-                              Order #{mostRecentOrder.order_number} •{" "}
-                              {new Date(mostRecentOrder.created_at).toLocaleDateString()}
-                            </p>
-                          </div>
-                          {/* Action Buttons - Enhanced for Paid Orders */}
-                          <div className="flex gap-2">
-                            <Link href={`/order-confirmation?order=${mostRecentOrder.order_number}`}>
-                              <Button variant="outline" size="sm">
-                                <Eye className="h-4 w-4 mr-1" />
-                                View
-                              </Button>
-                            </Link>
+              </div>
 
-                            {mostRecentOrder.isPaid ? (
-                              // Show paid confirmation
-                              <Button size="sm" disabled className="bg-green-100 text-green-800 cursor-default">
-                                <CheckCircle className="h-4 w-4 mr-1" />
-                                Paid
-                              </Button>
-                            ) : mostRecentOrder.needsPayment ? (
-                              // Show Pay for Order button for locked orders with payment links
-                              <div className="flex gap-1">
-                                <Button
-                                  size="sm"
-                                  className="bg-green-600 hover:bg-green-700 text-white font-semibold"
-                                  onClick={() => window.open(mostRecentOrder.payment_link_url, "_blank")}
-                                  disabled={verifyingPayment === mostRecentOrder.order_number}
-                                >
-                                  <CreditCard className="h-4 w-4 mr-1" />
-                                  Pay for Order
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => verifyPaymentStatus(mostRecentOrder.order_number)}
-                                  disabled={verifyingPayment === mostRecentOrder.order_number}
-                                  title="Check if payment has been completed"
-                                >
-                                  {verifyingPayment === mostRecentOrder.order_number ? (
-                                    <RefreshCw className="h-4 w-4 animate-spin" />
-                                  ) : (
-                                    <RefreshCw className="h-4 w-4" />
-                                  )}
-                                </Button>
-                              </div>
-                            ) : mostRecentOrder.canModify ? (
-                              <Link href={`/modify-order?order=${mostRecentOrder.order_number}`}>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  style={{ borderColor: colorUsage.textOnLight, color: colorUsage.textOnLight }}
-                                >
-                                  <Edit className="h-4 w-4 mr-1" />
-                                  Edit
+              {/* Right Column - Orders */}
+              <div className="lg:col-span-2 space-y-6">
+                {loadingData ? (
+                  <div className="text-center py-12 bg-white rounded-lg border-2 border-black">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
+                    <p className="font-bold" style={{ fontFamily: "Oswald, sans-serif" }}>
+                      LOADING YOUR ORDERS...
+                    </p>
+                  </div>
+                ) : orders.length === 0 ? (
+                  <div className="bg-white rounded-lg border-2 border-black overflow-hidden">
+                    <div className="p-12 text-center">
+                      <Package className="h-20 w-20 mx-auto mb-4 text-gray-400" />
+                      <h3 className="text-2xl font-black mb-2" style={{ fontFamily: "Oswald, sans-serif" }}>
+                        NO ORDERS YET
+                      </h3>
+                      <p className="text-gray-600 mb-6">
+                        You haven't placed any preorders yet. Start building your custom plate set!
+                      </p>
+                      <Link href="/#configurator">
+                        <Button
+                          className="font-black text-lg px-8 py-6"
+                          style={{
+                            backgroundColor: colorUsage.accent,
+                            color: "#000",
+                            fontFamily: "Oswald, sans-serif",
+                          }}
+                        >
+                          <Package className="h-5 w-5 mr-2" />
+                          PLACE YOUR FIRST ORDER
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {/* Most Recent Order */}
+                    {mostRecentOrder && (
+                      <div className="bg-white rounded-lg border-2 border-black overflow-hidden">
+                        <div className="bg-black text-white p-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h3 className="text-xl font-black" style={{ fontFamily: "Oswald, sans-serif" }}>
+                                MOST RECENT ORDER
+                              </h3>
+                              <p className="text-sm text-gray-400">
+                                Order #{mostRecentOrder.order_number} •{" "}
+                                {new Date(mostRecentOrder.created_at).toLocaleDateString()}
+                              </p>
+                            </div>
+                            <div className="flex gap-2">
+                              <Link href={`/order-confirmation?order=${mostRecentOrder.order_number}`}>
+                                <Button size="sm" className="bg-white text-black hover:bg-gray-200 font-bold">
+                                  <Eye className="h-4 w-4 mr-1" />
+                                  VIEW
                                 </Button>
                               </Link>
-                            ) : mostRecentOrder.isLocked ? (
-                              <Button variant="outline" size="sm" disabled className="opacity-50">
-                                <Lock className="h-4 w-4 mr-1" />
-                                Locked
-                              </Button>
-                            ) : null}
-
-                            {mostRecentOrder.canCancel && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleCancelOrder(mostRecentOrder)}
-                                className="text-red-600 border-red-300 hover:bg-red-50"
-                              >
-                                <X className="h-4 w-4 mr-1" />
-                                Cancel
-                              </Button>
-                            )}
+                              {mostRecentOrder.canModify && (
+                                <Link href={`/modify-order?order=${mostRecentOrder.order_number}`}>
+                                  <Button
+                                    size="sm"
+                                    className="font-bold"
+                                    style={{ backgroundColor: colorUsage.accent, color: "#000" }}
+                                  >
+                                    <Edit className="h-4 w-4 mr-1" />
+                                    EDIT
+                                  </Button>
+                                </Link>
+                              )}
+                              {mostRecentOrder.canCancel && (
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleCancelOrder(mostRecentOrder)}
+                                  className="bg-red-600 text-white hover:bg-red-700 font-bold"
+                                >
+                                  <X className="h-4 w-4 mr-1" />
+                                  CANCEL
+                                </Button>
+                              )}
+                            </div>
                           </div>
                         </div>
 
-                        <div className="grid md:grid-cols-2 gap-6">
-                          {/* Order Details */}
-                          <div>
-                            <h4 className="font-semibold mb-3">Order Details</h4>
-                            <div className="space-y-2 text-sm">
-                              {Array.isArray(mostRecentOrder.order_items) &&
-                                mostRecentOrder.order_items.map((item, index) => (
-                                  <div key={index} className="flex justify-between">
-                                    <span>
-                                      {item.quantity}x {item.weight}lb Plates
-                                    </span>
-                                    <span className="font-semibold">${(item.quantity * item.price).toFixed(2)}</span>
-                                  </div>
-                                ))}
-                              <div className="border-t pt-2 mt-2 flex justify-between font-semibold">
-                                <span>Total</span>
-                                <span>${mostRecentOrder.subtotal.toFixed(2)}</span>
+                        <div className="p-6">
+                          <div className="grid md:grid-cols-2 gap-6 mb-6">
+                            {/* Order Details */}
+                            <div>
+                              <h4
+                                className="text-sm font-black mb-3 uppercase"
+                                style={{ fontFamily: "Oswald, sans-serif", color: colorUsage.accent }}
+                              >
+                                Order Details
+                              </h4>
+                              <div className="space-y-2 text-sm">
+                                {Array.isArray(mostRecentOrder.order_items) &&
+                                  mostRecentOrder.order_items.map((item, index) => (
+                                    <div key={index} className="flex justify-between py-2 border-b border-gray-200">
+                                      <span className="font-semibold">
+                                        {item.quantity}x {item.weight}lb Plates
+                                      </span>
+                                      <span className="font-bold">${(item.quantity * item.price).toFixed(2)}</span>
+                                    </div>
+                                  ))}
+                                <div className="flex justify-between pt-3 text-base font-black border-t-2 border-black">
+                                  <span style={{ fontFamily: "Oswald, sans-serif" }}>TOTAL</span>
+                                  <span style={{ fontFamily: "Oswald, sans-serif" }}>
+                                    ${mostRecentOrder.subtotal.toFixed(2)}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between text-xs text-gray-600">
+                                  <span>Weight</span>
+                                  <span className="font-bold">{mostRecentOrder.total_weight} lbs</span>
+                                </div>
                               </div>
-                              <div className="flex justify-between text-xs" style={{ color: colorUsage.textMuted }}>
-                                <span>Weight</span>
-                                <span>{mostRecentOrder.total_weight} lbs</span>
-                              </div>
-                            </div>
 
-                            <div className="mt-4">
-                              <div className="flex items-center gap-2 flex-wrap">
+                              <div className="mt-4 flex items-center gap-2 flex-wrap">
                                 <span
-                                  className={`px-2 py-1 rounded text-xs font-semibold ${
+                                  className={`px-3 py-1 rounded font-bold text-xs uppercase ${
                                     mostRecentOrder.isPaid
                                       ? "bg-green-100 text-green-800"
                                       : mostRecentOrder.status === "pending"
@@ -947,268 +926,172 @@ export default function MyAccountPage() {
                                             ? "bg-red-100 text-red-800"
                                             : "bg-gray-100 text-gray-800"
                                   }`}
+                                  style={{ fontFamily: "Oswald, sans-serif" }}
                                 >
-                                  {mostRecentOrder.isPaid
-                                    ? "Paid"
-                                    : mostRecentOrder.status.charAt(0).toUpperCase() + mostRecentOrder.status.slice(1)}
+                                  {mostRecentOrder.isPaid ? "PAID" : mostRecentOrder.status.toUpperCase()}
                                 </span>
-
-                                {mostRecentOrder.isLocked && !mostRecentOrder.isPaid && (
-                                  <span className="px-2 py-1 rounded text-xs font-semibold bg-gray-100 text-gray-800 flex items-center gap-1">
-                                    <Lock className="h-3 w-3" />
-                                    {mostRecentOrder.lockReason}
-                                  </span>
-                                )}
-
-                                {mostRecentOrder.needsPayment && (
-                                  <span className="px-2 py-1 rounded text-xs font-semibold bg-green-100 text-green-800 flex items-center gap-1">
-                                    <CreditCard className="h-3 w-3" />
-                                    Payment Required
-                                  </span>
-                                )}
-
-                                {mostRecentOrder.isPaid && (
-                                  <span className="px-2 py-1 rounded text-xs font-semibold bg-green-100 text-green-800 flex items-center gap-1">
-                                    <CheckCircle className="h-3 w-3" />
-                                    Payment Received
-                                  </span>
-                                )}
                               </div>
-
-                              {mostRecentOrder.paid_at && (
-                                <p className="text-xs mt-1" style={{ color: colorUsage.textMuted }}>
-                                  Paid {new Date(mostRecentOrder.paid_at).toLocaleDateString()}
-                                </p>
-                              )}
-                              {mostRecentOrder.invoiced_at && (
-                                <p className="text-xs mt-1" style={{ color: colorUsage.textMuted }}>
-                                  Invoiced {new Date(mostRecentOrder.invoiced_at).toLocaleDateString()}
-                                </p>
-                              )}
-                              {mostRecentOrder.cancelled_at && (
-                                <p className="text-xs mt-1" style={{ color: colorUsage.textMuted }}>
-                                  Cancelled {new Date(mostRecentOrder.cancelled_at).toLocaleDateString()}
-                                  {mostRecentOrder.cancellation_reason && (
-                                    <span className="block">Reason: {mostRecentOrder.cancellation_reason}</span>
-                                  )}
-                                </p>
-                              )}
-                              {mostRecentOrder.payment_link_created_at && !mostRecentOrder.isPaid && (
-                                <p className="text-xs mt-1" style={{ color: colorUsage.textMuted }}>
-                                  Payment link created{" "}
-                                  {new Date(mostRecentOrder.payment_link_created_at).toLocaleDateString()}
-                                </p>
-                              )}
                             </div>
-                          </div>
 
-                          {/* Delivery Info */}
-                          <div>
-                            <h4 className="font-semibold mb-3">Delivery Information</h4>
-                            <div className="space-y-2 text-sm">
-                              <div>
-                                <p className="font-medium">Address:</p>
-                                <p style={{ color: colorUsage.textMuted }}>
-                                  {mostRecentOrder.street_address}
-                                  <br />
-                                  {mostRecentOrder.city}, {mostRecentOrder.state} {mostRecentOrder.zip_code}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="font-medium">Contact:</p>
-                                <p style={{ color: colorUsage.textMuted }}>
-                                  {mostRecentOrder.customer_name}
-                                  <br />
-                                  {mostRecentOrder.customer_phone}
-                                </p>
-                              </div>
-                              {mostRecentOrder.delivery_instructions && (
-                                <div>
-                                  <p className="font-medium">Instructions:</p>
-                                  <p style={{ color: colorUsage.textMuted }}>{mostRecentOrder.delivery_instructions}</p>
+                            {/* Delivery Info */}
+                            <div>
+                              <h4
+                                className="text-sm font-black mb-3 uppercase"
+                                style={{ fontFamily: "Oswald, sans-serif", color: colorUsage.accent }}
+                              >
+                                Delivery Information
+                              </h4>
+                              <div className="space-y-3 text-sm">
+                                <div className="pb-3 border-b border-gray-200">
+                                  <p className="font-bold text-xs uppercase text-gray-600 mb-1">Address</p>
+                                  <p className="font-semibold">{mostRecentOrder.street_address}</p>
+                                  <p className="text-gray-600">
+                                    {mostRecentOrder.city}, {mostRecentOrder.state} {mostRecentOrder.zip_code}
+                                  </p>
                                 </div>
-                              )}
+                                <div className="pb-3 border-b border-gray-200">
+                                  <p className="font-bold text-xs uppercase text-gray-600 mb-1">Contact</p>
+                                  <p className="font-semibold">{mostRecentOrder.customer_name}</p>
+                                  <p className="text-gray-600">{mostRecentOrder.customer_phone}</p>
+                                </div>
+                                {mostRecentOrder.delivery_instructions && (
+                                  <div>
+                                    <p className="font-bold text-xs uppercase text-gray-600 mb-1">Instructions</p>
+                                    <p className="text-gray-600">{mostRecentOrder.delivery_instructions}</p>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
-                        </div>
 
-                        {mostRecentOrder.isPaid ? (
-                          <div className="mt-6 pt-4 border-t">
-                            <div
-                              className="flex items-center gap-3 p-4 rounded-lg"
-                              style={{ backgroundColor: "#f0fdf4" }}
-                            >
-                              <CheckCircle className="h-6 w-6 text-green-600" />
+                          {/* Status Alerts */}
+                          {mostRecentOrder.isPaid ? (
+                            <div className="flex items-center gap-4 p-4 rounded-lg bg-green-50 border-2 border-green-200">
+                              <CheckCircle className="h-6 w-6 text-green-600 flex-shrink-0" />
                               <div className="flex-1">
-                                <p className="font-semibold text-green-900">Payment Received</p>
+                                <p className="font-black text-green-900" style={{ fontFamily: "Oswald, sans-serif" }}>
+                                  PAYMENT RECEIVED
+                                </p>
                                 <p className="text-sm text-green-700">
                                   Your payment has been successfully processed. We'll begin preparing your order for
                                   delivery.
                                 </p>
-                                {mostRecentOrder.paid_at && (
-                                  <p className="text-xs text-green-600 mt-1">
-                                    Paid on {new Date(mostRecentOrder.paid_at).toLocaleDateString()}
-                                  </p>
-                                )}
                               </div>
                             </div>
-                          </div>
-                        ) : mostRecentOrder.needsPayment ? (
-                          <div className="mt-6 pt-4 border-t">
+                          ) : mostRecentOrder.needsPayment ? (
                             <div
-                              className="flex items-center gap-3 p-4 rounded-lg"
-                              style={{ backgroundColor: "#f0fdf4" }}
+                              className="flex items-center gap-4 p-4 rounded-lg border-2"
+                              style={{ backgroundColor: "#f7fee7", borderColor: colorUsage.accent }}
                             >
-                              <CreditCard className="h-6 w-6 text-green-600" />
+                              <CreditCard className="h-6 w-6 flex-shrink-0" style={{ color: colorUsage.accent }} />
                               <div className="flex-1">
-                                <p className="font-semibold text-green-900">Payment Required</p>
-                                <p className="text-sm text-green-700">
+                                <p className="font-black" style={{ fontFamily: "Oswald, sans-serif" }}>
+                                  PAYMENT REQUIRED
+                                </p>
+                                <p className="text-sm text-gray-700">
                                   A payment link has been generated for this order. Complete your payment to proceed.
                                 </p>
-                                {mostRecentOrder.lockReason && (
-                                  <p className="text-xs text-green-600 mt-1">
-                                    Order locked: {mostRecentOrder.lockReason}
-                                  </p>
-                                )}
                               </div>
                               <div className="flex gap-2">
                                 <Button
-                                  size="lg"
-                                  className="bg-green-600 hover:bg-green-700 text-white font-semibold px-6"
+                                  className="font-black px-6"
+                                  style={{
+                                    backgroundColor: colorUsage.accent,
+                                    color: "#000",
+                                    fontFamily: "Oswald, sans-serif",
+                                  }}
                                   onClick={() => window.open(mostRecentOrder.payment_link_url, "_blank")}
                                   disabled={verifyingPayment === mostRecentOrder.order_number}
                                 >
                                   <CreditCard className="h-4 w-4 mr-2" />
-                                  Pay for Order
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="lg"
-                                  onClick={() => verifyPaymentStatus(mostRecentOrder.order_number)}
-                                  disabled={verifyingPayment === mostRecentOrder.order_number}
-                                  title="Check payment status"
-                                >
-                                  {verifyingPayment === mostRecentOrder.order_number ? (
-                                    <RefreshCw className="h-4 w-4 animate-spin" />
-                                  ) : (
-                                    <RefreshCw className="h-4 w-4" />
-                                  )}
+                                  PAY NOW
                                 </Button>
                               </div>
                             </div>
-                          </div>
-                        ) : mostRecentOrder.canModify ? (
-                          <div className="mt-6 pt-4 border-t">
+                          ) : mostRecentOrder.canModify ? (
                             <div
-                              className="flex items-center gap-3 p-3 rounded-lg"
-                              style={{ backgroundColor: "#f0f9ff" }}
+                              className="flex items-center gap-4 p-4 rounded-lg border-2"
+                              style={{ backgroundColor: "#2d2d2d", borderColor: colorUsage.accent }}
                             >
-                              <Edit className="h-5 w-5 text-blue-500" />
+                              <Edit className="h-6 w-6 flex-shrink-0" style={{ color: colorUsage.accent }} />
                               <div className="flex-1">
-                                <p className="font-semibold text-blue-900">Order can be modified</p>
-                                <p className="text-sm text-blue-700">Make changes before payment processing begins</p>
+                                <p className="font-black text-white" style={{ fontFamily: "Oswald, sans-serif" }}>
+                                  ORDER CAN BE MODIFIED
+                                </p>
+                                <p className="text-sm text-gray-300">Make changes before payment processing begins</p>
                               </div>
                               <Link href={`/modify-order?order=${mostRecentOrder.order_number}`}>
-                                <Button size="sm" style={{ backgroundColor: "#3b82f6", color: "white" }}>
-                                  Edit Order
+                                <Button
+                                  className="font-black px-6"
+                                  style={{
+                                    backgroundColor: colorUsage.accent,
+                                    color: "#000",
+                                    fontFamily: "Oswald, sans-serif",
+                                  }}
+                                >
+                                  EDIT ORDER
                                 </Button>
                               </Link>
                             </div>
-                          </div>
-                        ) : mostRecentOrder.isLocked ? (
-                          <div className="mt-6 pt-4 border-t">
+                          ) : mostRecentOrder.isLocked ? (
                             <div
-                              className="flex items-center gap-3 p-3 rounded-lg"
-                              style={{ backgroundColor: "#f9fafb" }}
+                              className="flex items-center gap-4 p-4 rounded-lg border-2"
+                              style={{ backgroundColor: "#2d2d2d", borderColor: "#6b7280" }}
                             >
-                              <Lock className="h-5 w-5 text-gray-500" />
+                              <Lock className="h-6 w-6 text-gray-400 flex-shrink-0" />
                               <div className="flex-1">
-                                <p className="font-semibold text-gray-900">Order is locked</p>
-                                <p className="text-sm text-gray-700">
+                                <p className="font-black text-white" style={{ fontFamily: "Oswald, sans-serif" }}>
+                                  ORDER IS LOCKED
+                                </p>
+                                <p className="text-sm text-gray-400">
                                   {mostRecentOrder.lockReason} - modifications are no longer allowed
                                 </p>
                               </div>
                             </div>
-                          </div>
-                        ) : null}
-                      </CardContent>
-                    </Card>
-                  )}
+                          ) : null}
+                        </div>
+                      </div>
+                    )}
 
-                  {/* Order History Summary - Only show if customer has more than one order */}
-                  {orders.length > 1 && (
-                    <Card className="p-6 rounded-lg border" style={{ backgroundColor: colorUsage.backgroundPrimary }}>
-                      <CardContent className="pt-6">
-                        <div className="flex items-center justify-between mb-6">
-                          <div>
-                            <h3 className="text-xl font-bold">Order History</h3>
-                            <p className="text-sm" style={{ color: colorUsage.textMuted }}>
-                              {otherOrders.length} previous order{otherOrders.length !== 1 ? "s" : ""}
-                            </p>
-                          </div>
-                          
+                    {/* Order History */}
+                    {orders.length > 1 && (
+                      <div className="bg-white rounded-lg border-2 border-black overflow-hidden">
+                        <div className="bg-black text-white p-4">
+                          <h3 className="text-xl font-black" style={{ fontFamily: "Oswald, sans-serif" }}>
+                            ORDER HISTORY
+                          </h3>
+                          <p className="text-sm text-gray-400">
+                            {otherOrders.length} previous order{otherOrders.length !== 1 ? "s" : ""}
+                          </p>
                         </div>
 
-                        {/* Summary Stats */}
-                        
-
-                        {/* Condensed Order List */}
-                        <div className="space-y-3">
-                          <h4 className="font-semibold text-sm" style={{ color: colorUsage.textMuted }}>
-                            PREVIOUS ORDERS
-                          </h4>
+                        <div className="p-6 space-y-3">
                           {otherOrders.map((order) => (
                             <div
                               key={order.id}
-                              className="flex items-center justify-between p-3 rounded-lg border hover:shadow-sm transition-shadow"
-                              style={{ borderColor: colorUsage.border, backgroundColor: colorUsage.backgroundPrimary }}
+                              className="flex items-center gap-4 p-4 rounded-lg border-2 border-gray-200 hover:border-black transition-colors"
                             >
-                              {/* Left: Order Info */}
-                              <div className="flex items-center gap-4">
-                                <div>
-                                  <p className="font-semibold text-sm">#{order.order_number}</p>
-                                  <p className="text-xs" style={{ color: colorUsage.textMuted }}>
-                                    {new Date(order.created_at).toLocaleDateString("en-US", {
-                                      month: "short",
-                                      day: "numeric",
-                                      year: "numeric",
-                                    })}
-                                  </p>
-                                </div>
-
-                                {/* Order Items Summary */}
-                                <div className="flex flex-wrap gap-1">
-                                  {Array.isArray(order.order_items) &&
-                                    order.order_items.slice(0, 3).map((item, index) => (
-                                      <span
-                                        key={index}
-                                        className="text-xs px-2 py-1 rounded"
-                                        style={{
-                                          backgroundColor: colorUsage.backgroundLight,
-                                          color: colorUsage.textMuted,
-                                        }}
-                                      >
-                                        {item.quantity}×{item.weight}lb
-                                      </span>
-                                    ))}
-                                  {Array.isArray(order.order_items) && order.order_items.length > 3 && (
-                                    <span
-                                      className="text-xs px-2 py-1 rounded"
-                                      style={{
-                                        backgroundColor: colorUsage.backgroundLight,
-                                        color: colorUsage.textMuted,
-                                      }}
-                                    >
-                                      +{order.order_items.length - 3} more
-                                    </span>
-                                  )}
-                                </div>
+                              {/* Left: Order Number & Date */}
+                              <div className="min-w-[140px]">
+                                <p className="font-black text-lg" style={{ fontFamily: "Oswald, sans-serif" }}>
+                                  #{order.order_number}
+                                </p>
+                                <p className="text-xs text-gray-600">
+                                  {new Date(order.created_at).toLocaleDateString()}
+                                </p>
                               </div>
 
-                              {/* Center: Status & Weight */}
-                              <div className="text-center">
+                              {/* Middle: Amount, Weight & Status */}
+                              <div className="flex-1 flex items-center gap-6">
+                                <div>
+                                  <p className="font-black text-lg" style={{ fontFamily: "Oswald, sans-serif" }}>
+                                    ${order.subtotal.toFixed(2)}
+                                  </p>
+                                  <p className="text-xs text-gray-600">{order.total_weight} lbs</p>
+                                </div>
+
                                 <span
-                                  className={`px-2 py-1 rounded text-xs font-semibold ${
+                                  className={`px-4 py-2 rounded-full text-xs font-black uppercase ${
                                     order.isPaid
                                       ? "bg-green-100 text-green-800"
                                       : order.status === "pending"
@@ -1219,144 +1102,50 @@ export default function MyAccountPage() {
                                             ? "bg-red-100 text-red-800"
                                             : "bg-gray-100 text-gray-800"
                                   }`}
+                                  style={{ fontFamily: "Oswald, sans-serif" }}
                                 >
-                                  {order.isPaid ? "Paid" : order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                                  {order.isPaid ? "PAID" : order.status}
                                 </span>
-                                <p className="text-xs mt-1" style={{ color: colorUsage.textMuted }}>
-                                  {order.total_weight} lbs
-                                </p>
                               </div>
 
-                              {/* Right: Amount & Actions */}
-                              <div className="text-right flex items-center gap-3">
-                                <div>
-                                  <p className="font-bold">${order.subtotal.toFixed(2)}</p>
-                                  {order.paid_at && (
-                                    <p className="text-xs" style={{ color: colorUsage.textMuted }}>
-                                      Paid{" "}
-                                      {new Date(order.paid_at).toLocaleDateString("en-US", {
-                                        month: "short",
-                                        day: "numeric",
-                                      })}
-                                    </p>
-                                  )}
-                                  {order.invoiced_at && !order.paid_at && (
-                                    <p className="text-xs" style={{ color: colorUsage.textMuted }}>
-                                      Invoiced{" "}
-                                      {new Date(order.invoiced_at).toLocaleDateString("en-US", {
-                                        month: "short",
-                                        day: "numeric",
-                                      })}
-                                    </p>
-                                  )}
-                                  {order.cancelled_at && (
-                                    <p className="text-xs" style={{ color: colorUsage.textMuted }}>
-                                      Cancelled{" "}
-                                      {new Date(order.cancelled_at).toLocaleDateString("en-US", {
-                                        month: "short",
-                                        day: "numeric",
-                                      })}
-                                    </p>
-                                  )}
-                                  {order.payment_link_created_at && !order.paid_at && (
-                                    <p className="text-xs" style={{ color: colorUsage.textMuted }}>
-                                      Payment link created
-                                    </p>
-                                  )}
-                                </div>
-
-                                <div className="flex gap-1">
-                                  <Link href={`/order-confirmation?order=${order.order_number}`}>
-                                    <Button variant="outline" size="sm" className="h-8 w-8 p-0">
-                                      <Eye className="h-3 w-3" />
+                              {/* Right: Action Buttons */}
+                              <div className="flex gap-2">
+                                <Link href={`/order-confirmation?order=${order.order_number}`}>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="border-2 border-black font-bold bg-transparent hover:bg-gray-50"
+                                  >
+                                    <Eye className="h-4 w-4 mr-1" />
+                                    VIEW
+                                  </Button>
+                                </Link>
+                                {order.canModify && (
+                                  <Link href={`/modify-order?order=${order.order_number}`}>
+                                    <Button
+                                      size="sm"
+                                      className="font-bold"
+                                      style={{ backgroundColor: colorUsage.accent, color: "#000" }}
+                                    >
+                                      <Edit className="h-4 w-4 mr-1" />
+                                      EDIT
                                     </Button>
                                   </Link>
-
-                                  {order.isPaid ? (
-                                    <Button
-                                      size="sm"
-                                      disabled
-                                      className="h-8 px-3 bg-green-100 text-green-800 text-xs font-semibold cursor-default"
-                                    >
-                                      <CheckCircle className="h-3 w-3 mr-1" />
-                                      Paid
-                                    </Button>
-                                  ) : order.needsPayment ? (
-                                    <div className="flex gap-1">
-                                      <Button
-                                        size="sm"
-                                        className="h-8 px-3 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold"
-                                        onClick={() => window.open(order.payment_link_url, "_blank")}
-                                        disabled={verifyingPayment === order.order_number}
-                                      >
-                                        <CreditCard className="h-3 w-3 mr-1" />
-                                        Pay
-                                      </Button>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="h-8 w-8 p-0"
-                                        onClick={() => verifyPaymentStatus(order.order_number)}
-                                        disabled={verifyingPayment === order.order_number}
-                                        title="Check payment status"
-                                      >
-                                        {verifyingPayment === order.order_number ? (
-                                          <RefreshCw className="h-3 w-3 animate-spin" />
-                                        ) : (
-                                          <RefreshCw className="h-3 w-3" />
-                                        )}
-                                      </Button>
-                                    </div>
-                                  ) : order.canModify ? (
-                                    <Link href={`/modify-order?order=${order.order_number}`}>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="h-8 w-8 p-0"
-                                        style={{ borderColor: colorUsage.textOnLight, color: colorUsage.textOnLight }}
-                                      >
-                                        <Edit className="h-3 w-3" />
-                                      </Button>
-                                    </Link>
-                                  ) : order.isLocked ? (
-                                    <Button variant="outline" size="sm" className="h-8 w-8 p-0 opacity-50" disabled>
-                                      <Lock className="h-3 w-3" />
-                                    </Button>
-                                  ) : null}
-
-                                  {order.canCancel && (
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="h-8 w-8 p-0 text-red-600 border-red-300 hover:bg-red-50"
-                                      onClick={() => handleCancelOrder(order)}
-                                    >
-                                      <X className="h-3 w-3" />
-                                    </Button>
-                                  )}
-                                </div>
+                                )}
                               </div>
                             </div>
                           ))}
                         </div>
-
-                        {/* View All Orders Link */}
-                        {otherOrders.length > 5 && (
-                          <div className="mt-4 text-center">
-                            <Button variant="outline" size="sm">
-                              View All {orders.length} Orders
-                            </Button>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  )}
-                </>
-              )}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </div>
+
       {/* Cancel Order Modal */}
       <CancelOrderModal
         isOpen={cancelModalOpen}

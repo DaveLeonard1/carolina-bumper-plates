@@ -12,6 +12,7 @@ import { PageLayout } from "@/components/page-layout"
 function OrderConfirmationContent() {
   const searchParams = useSearchParams()
   const orderNumber = searchParams.get("order")
+  const isUpdated = searchParams.get("updated") === "true"
 
   const [order, setOrder] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -24,14 +25,25 @@ function OrderConfirmationContent() {
       setError("No order number provided")
       setLoading(false)
     }
-  }, [orderNumber])
+  }, [orderNumber, isUpdated])
 
   const fetchOrderDetails = async (orderNum: string) => {
     try {
-      const response = await fetch(`/api/get-order/${orderNum}`)
+      // Always add timestamp to prevent caching, especially important for updated orders
+      const timestamp = `?t=${Date.now()}`
+      const response = await fetch(`/api/get-order/${orderNum}${timestamp}`, {
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        },
+        cache: 'no-store'
+      })
       const data = await response.json()
 
       if (data.success && data.order) {
+        console.log('📦 Order details fetched:', data.order)
         setOrder(data.order)
       } else {
         setError(data.error || "Order not found")
@@ -76,7 +88,7 @@ function OrderConfirmationContent() {
               size="lg"
               className="font-bold text-lg px-8 py-4"
               style={{
-                backgroundColor: colorUsage.buttonSecondary,
+                backgroundColor: colorUsage.buttonDark,
                 color: colorUsage.textOnDark,
               }}
             >
@@ -106,10 +118,10 @@ function OrderConfirmationContent() {
             className="text-5xl md:text-6xl font-black mb-4"
             style={{ fontFamily: "Oswald, sans-serif", color: colorUsage.textOnDark }}
           >
-            ORDER CONFIRMED!
+            {isUpdated ? "ORDER UPDATED!" : "ORDER CONFIRMED!"}
           </h1>
           <p className="text-xl md:text-2xl mb-4" style={{ color: "#9ca3af" }}>
-            Your preorder has been reserved
+            {isUpdated ? "Your order has been successfully modified" : "Your preorder has been reserved"}
           </p>
           <div
             className="inline-block px-6 py-3 rounded-lg mt-2"
