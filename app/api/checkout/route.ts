@@ -1,5 +1,7 @@
 import { createSupabaseAdmin } from "@/lib/supabase"
 import type { CheckoutItem } from "@/lib/checkout-utils"
+import { sendEmail } from "@/lib/email/mailgun"
+import { generateOrderConfirmationEmail } from "@/lib/email/templates"
 
 export async function POST(request: Request) {
   console.log("🛒 Starting checkout process...")
@@ -346,6 +348,102 @@ export async function POST(request: Request) {
       customer_id: verificationOrder.customer_id,
       user_id: verificationOrder.user_id,
     })
+
+    // Add timeline event for order created
+    try {
+      await supabaseAdmin.from("order_timeline").insert({
+        order_id: order.id,
+        event_type: "order_created",
+        event_description: "Preorder submitted by customer",
+        event_data: {
+          order_number: order.order_number,
+          subtotal: order.subtotal,
+          total_weight: order.total_weight,
+          item_count: orderItems.length,
+          customer_email: orderData.customerEmail,
+          account_created: !!authUserId,
+        },
+        created_by: "customer",
+      })
+      console.log("✅ Order creation timeline event added")
+    } catch (timelineError) {
+      console.warn("Failed to add order creation timeline event:", timelineError)
+    }
+
+    // Send order confirmation email
+    console.log(`📧 Sending order confirmation email to ${orderData.customerEmail}...`)
+    try {
+      const confirmationEmail = generateOrderConfirmationEmail({
+        customerName: orderData.customerName,
+        orderNumber: order.order_number,
+        orderTotal: order.subtotal || 0,
+      })
+
+      const emailResult = await sendEmail({
+        to: orderData.customerEmail,
+        subject: confirmationEmail.subject,
+        html: confirmationEmail.html,
+      })
+
+      if (emailResult.success) {
+        console.log(`✅ Order confirmation email sent successfully`)
+        
+        // Add timeline event for email sent
+        try {
+          await supabaseAdmin.from("order_timeline").insert({
+            order_id: order.id,
+            event_type: "email_sent",
+            event_description: "Order confirmation email sent to customer",
+            event_data: {
+              email_type: "order_confirmation",
+              recipient: orderData.customerEmail,
+              message_id: emailResult.messageId,
+            },
+            created_by: "system",
+          })
+        } catch (timelineError) {
+          console.warn("Failed to add email timeline event:", timelineError)
+        }
+      } else {
+        console.error(`⚠️ Failed to send confirmation email:`, emailResult.error)
+        
+        // Add timeline event for failed email
+        try {
+          await supabaseAdmin.from("order_timeline").insert({
+            order_id: order.id,
+            event_type: "email_failed",
+            event_description: "Failed to send order confirmation email",
+            event_data: {
+              email_type: "order_confirmation",
+              recipient: orderData.customerEmail,
+              error: emailResult.error,
+            },
+            created_by: "system",
+          })
+        } catch (timelineError) {
+          console.warn("Failed to add email failure timeline event:", timelineError)
+        }
+      }
+    } catch (emailError) {
+      console.error(`⚠️ Order confirmation email error:`, emailError)
+      
+      // Add timeline event for email error
+      try {
+        await supabaseAdmin.from("order_timeline").insert({
+          order_id: order.id,
+          event_type: "email_failed",
+          event_description: "Error sending order confirmation email",
+          event_data: {
+            email_type: "order_confirmation",
+            recipient: orderData.customerEmail,
+            error: emailError instanceof Error ? emailError.message : "Unknown error",
+          },
+          created_by: "system",
+        })
+      } catch (timelineError) {
+        console.warn("Failed to add email error timeline event:", timelineError)
+      }
+    }
 
     return new Response(
       JSON.stringify({

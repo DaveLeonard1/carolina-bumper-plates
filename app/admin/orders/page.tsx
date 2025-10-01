@@ -74,12 +74,25 @@ export default function AdminOrdersPage() {
     setError("")
     try {
       console.log("Fetching orders from API...")
-      const response = await fetch("/api/admin/orders")
+      const response = await fetch("/api/admin/orders", {
+        cache: "no-store",
+        headers: {
+          "Cache-Control": "no-cache",
+        },
+      })
       const result = await response.json()
 
       console.log("Orders API response:", result)
+      console.log(`📊 Received ${result.orders?.length || 0} orders from API`)
 
       if (result.success) {
+        // Check for duplicates in the UI
+        const orderNumbers = result.orders?.map((o: Order) => o.order_number) || []
+        const uniqueOrderNumbers = new Set(orderNumbers)
+        if (orderNumbers.length !== uniqueOrderNumbers.size) {
+          console.warn(`⚠️ UI received duplicate orders! Total: ${orderNumbers.length}, Unique: ${uniqueOrderNumbers.size}`)
+        }
+        
         setOrders(result.orders || [])
       } else {
         setError(result.error || "Failed to load orders")

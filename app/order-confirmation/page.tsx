@@ -83,7 +83,7 @@ function OrderConfirmationContent() {
           <p className="text-lg mb-8" style={{ color: colorUsage.textMuted }}>
             {error || "We couldn't find your order. Please check your order number and try again."}
           </p>
-          <Link href="/order-lookup">
+          <Link href="/my-account">
             <Button
               size="lg"
               className="font-bold text-lg px-8 py-4"
@@ -92,7 +92,7 @@ function OrderConfirmationContent() {
                 color: colorUsage.textOnDark,
               }}
             >
-              Look Up Order
+              View My Orders
             </Button>
           </Link>
         </div>

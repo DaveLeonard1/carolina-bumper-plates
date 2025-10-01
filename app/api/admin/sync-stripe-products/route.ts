@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { checkSyncHealth, getAllProductsWithSyncStatus, syncAllProductsWithStripe } from "@/lib/stripe-products-fixed"
+import { checkSyncHealth, getAllProductsWithSyncStatus, syncAllProductsWithStripe } from "@/lib/stripe-products"
 
 export async function GET() {
   try {

@@ -125,7 +125,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white overflow-x-hidden">
       {/* Top Bar */}
       <TopBar />
 
@@ -146,15 +146,16 @@ export default function HomePage() {
           <div className="max-w-[1440px] mx-auto text-center text-white">
             <h1 className="text-6xl lg:text-8xl font-black mb-6 leading-tight">OFFICIAL HI-TEMP PLATES.</h1>
             <h2 className="text-3xl lg:text-4xl font-bold mb-12 opacity-90">MINOR BLEMISHES. MAJOR SAVINGS.</h2>
-            <a href="#configurator">
-              <Button
-                size="lg"
-                className="font-bold text-xl px-12 py-6 text-black hover:opacity-90 transition-opacity"
-                style={{ backgroundColor: "#cfff5e" }}
-              >
-                Build Your Set →
-              </Button>
-            </a>
+            <Button
+              size="lg"
+              onClick={() => {
+                document.getElementById('configurator')?.scrollIntoView({ behavior: 'smooth' })
+              }}
+              className="font-bold text-xl px-12 py-6 text-black hover:opacity-90 transition-opacity"
+              style={{ backgroundColor: "#B9FF16" }}
+            >
+              Build Your Set →
+            </Button>
           </div>
         </div>
       </section>
@@ -208,26 +209,25 @@ export default function HomePage() {
 
       {/* Product Configurator */}
       <section id="configurator" className="bg-white">
-        <div className="px-[27px] md:px-[52px] py-[60px] md:py-[80px]">
+        <div className="px-4 md:px-[27px] lg:px-[52px] py-8 md:py-[60px] lg:py-[80px]">
           <div className="max-w-[1440px] mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-4xl lg:text-5xl font-black mb-6 text-gray-900">BUILD YOUR PREORDER</h2>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <div className="text-center mb-8 md:mb-12">
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-black mb-4 md:mb-6 text-gray-900">BUILD YOUR PREORDER</h2>
+              <p className="text-base md:text-xl text-gray-600 max-w-3xl mx-auto px-4">
                 We sell official Hi-Temp bumper plates with visual imperfections at discounted prices. These aren't
                 knockoffs
               </p>
             </div>
 
-            <div className="grid lg:grid-cols-3 gap-12">
+            <div className="flex flex-col lg:grid lg:grid-cols-3 gap-6 lg:gap-12">
               {/* Product Table */}
-              <div className="lg:col-span-2">
-                <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                  <div className="grid grid-cols-5 gap-4 p-4 bg-gray-50 font-semibold text-sm text-gray-700">
+              <div className="lg:col-span-2 order-1">
+                <div className="bg-white border border-gray-200 rounded-lg overflow-hidden overflow-x-auto shadow-sm">
+                  <div className="grid grid-cols-4 gap-2 md:gap-4 p-3 md:p-4 bg-gray-50 font-semibold text-xs md:text-sm text-gray-700 min-w-[500px] md:min-w-[600px]">
                     <div>PRODUCT</div>
                     <div>PRICE</div>
                     <div>SAVINGS</div>
                     <div>QUANTITY</div>
-                    <div></div>
                   </div>
 
                   {dbProducts
@@ -240,40 +240,41 @@ export default function HomePage() {
                       return (
                         <div
                           key={product.id}
-                          className="grid grid-cols-5 gap-4 p-4 border-t border-gray-100 items-center"
+                          className="grid grid-cols-4 gap-2 md:gap-4 p-3 md:p-4 border-t border-gray-100 items-center min-w-[500px] md:min-w-[600px]"
                         >
                           <div>
-                            <div className="font-semibold">{product.title}</div>
-                            <div className="text-sm text-gray-500 line-through">${product.regular_price}</div>
+                            <div className="font-semibold text-sm md:text-base">{product.title}</div>
                           </div>
-                          <div className="font-bold text-lg">${product.selling_price}</div>
                           <div>
-                            <div className="font-semibold" style={{ color: "#6EBA5E" }}>
+                            <div className="font-bold text-base md:text-lg">${product.selling_price}</div>
+                            <div className="text-xs md:text-sm text-gray-500 line-through">${product.regular_price}</div>
+                          </div>
+                          <div>
+                            <div className="font-semibold text-sm md:text-base" style={{ color: "#6EBA5E" }}>
                               ${savings.toFixed(2)}
                             </div>
-                            <div className="text-sm text-gray-500">({savingsPercent}% off)</div>
+                            <div className="text-xs md:text-sm text-gray-500">({savingsPercent}% off)</div>
                           </div>
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-1 md:gap-3">
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => updateQuantity(product.id, -1)}
-                              className="w-8 h-8 p-0"
+                              className="w-8 h-8 shrink-0 flex items-center justify-center"
                               disabled={qty === 0}
                             >
                               <Minus className="h-4 w-4" />
                             </Button>
-                            <span className="w-8 text-center font-semibold">{qty}</span>
+                            <span className="w-6 md:w-8 text-center font-semibold shrink-0">{qty}</span>
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => updateQuantity(product.id, 1)}
-                              className="w-8 h-8 p-0"
+                              className="w-8 h-8 shrink-0 flex items-center justify-center"
                             >
                               <Plus className="h-4 w-4" />
                             </Button>
                           </div>
-                          <div></div>
                         </div>
                       )
                     })}
@@ -281,10 +282,10 @@ export default function HomePage() {
               </div>
 
               {/* Order Summary */}
-              <div className="lg:col-span-1">
-                <Card className="bg-gray-50 border border-gray-200 sticky top-4">
-                  <CardContent className="p-6">
-                    <h3 className="text-xl font-bold mb-6">Your Custom Set</h3>
+              <div className="lg:col-span-1 order-2">
+                <Card className="bg-gray-50 border border-gray-200 lg:sticky lg:top-4 shadow-sm">
+                  <CardContent className="p-4 md:p-6">
+                    <h3 className="text-lg md:text-xl font-bold mb-4 md:mb-6">Your Custom Set</h3>
 
                     {customSet.length > 0 ? (
                       <div className="space-y-3 mb-6">

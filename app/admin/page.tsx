@@ -70,7 +70,7 @@ export default function AdminDashboard() {
             Admin Dashboard
           </h1>
           <div className="flex items-center gap-4">
-            <p style={{ color: colorUsage.textMuted }}>Welcome to The Plate Yard admin panel</p>
+            <p style={{ color: colorUsage.textMuted }}>Manage orders, customers, and products</p>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
               <span className="text-sm" style={{ color: colorUsage.textMuted }}>
@@ -79,17 +79,10 @@ export default function AdminDashboard() {
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button onClick={refresh} variant="outline" disabled={loading}>
-            {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
-            Refresh
-          </Button>
-          {data?.debug && (
-            <div className="text-xs" style={{ color: colorUsage.textMuted }}>
-              Debug: {data.debug.ordersCount} orders, {data.debug.paidOrdersCount} paid
-            </div>
-          )}
-        </div>
+        <Button onClick={refresh} variant="outline" disabled={loading}>
+          {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+          Refresh
+        </Button>
       </div>
 
       {/* Stats Cards */}
@@ -97,11 +90,11 @@ export default function AdminDashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
-            <ShoppingCart className="h-4 w-4" style={{ color: colorUsage.textMuted }} />
+            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{metrics.totalOrders}</div>
-            <p className="text-xs" style={{ color: colorUsage.textMuted }}>
+            <p className="text-xs text-muted-foreground">
               {metrics.recentOrders} in last 7 days
             </p>
           </CardContent>
@@ -110,11 +103,11 @@ export default function AdminDashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Customers</CardTitle>
-            <Users className="h-4 w-4" style={{ color: colorUsage.textMuted }} />
+            <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{metrics.totalCustomers}</div>
-            <p className="text-xs" style={{ color: colorUsage.textMuted }}>
+            <p className="text-xs text-muted-foreground">
               {metrics.recentCustomers} new this week
             </p>
           </CardContent>
@@ -123,11 +116,11 @@ export default function AdminDashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Pending Orders</CardTitle>
-            <Clock className="h-4 w-4" style={{ color: colorUsage.textMuted }} />
+            <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{metrics.pendingOrders}</div>
-            <p className="text-xs" style={{ color: colorUsage.textMuted }}>
+            <p className="text-xs text-muted-foreground">
               Awaiting payment
             </p>
           </CardContent>
@@ -136,11 +129,11 @@ export default function AdminDashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4" style={{ color: colorUsage.textMuted }} />
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(metrics.totalRevenue)}</div>
-            <p className="text-xs" style={{ color: colorUsage.textMuted }}>
+            <p className="text-xs text-muted-foreground">
               From {metrics.paidOrders} paid orders
             </p>
           </CardContent>
@@ -178,53 +171,80 @@ export default function AdminDashboard() {
 
       {/* Quick Actions */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+        <Card className="border-2 border-black">
+          <CardHeader className="bg-white">
+            <CardTitle className="flex items-center gap-2 font-bold" style={{ fontFamily: "Oswald, sans-serif" }}>
               <ShoppingCart className="h-5 w-5" />
-              Manage Orders
+              MANAGE ORDERS
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-sm mb-4" style={{ color: colorUsage.textMuted }}>
+          <CardContent className="bg-white">
+            <p className="text-sm mb-4 text-gray-600">
               View, process, and manage customer orders
             </p>
             <Link href="/admin/orders">
-              <Button className="w-full">View Orders</Button>
+              <Button 
+                className="w-full font-bold border-2 border-black"
+                style={{ 
+                  fontFamily: "Oswald, sans-serif",
+                  backgroundColor: colorUsage.accent,
+                  color: colorUsage.textOnAccent
+                }}
+              >
+                VIEW ORDERS
+              </Button>
             </Link>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+        <Card className="border-2 border-black">
+          <CardHeader className="bg-white">
+            <CardTitle className="flex items-center gap-2 font-bold" style={{ fontFamily: "Oswald, sans-serif" }}>
               <Users className="h-5 w-5" />
-              Manage Customers
+              MANAGE CUSTOMERS
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-sm mb-4" style={{ color: colorUsage.textMuted }}>
+          <CardContent className="bg-white">
+            <p className="text-sm mb-4 text-gray-600">
               View customer profiles and account information
             </p>
             <Link href="/admin/customers">
-              <Button className="w-full">View Customers</Button>
+              <Button 
+                className="w-full font-bold border-2 border-black"
+                style={{ 
+                  fontFamily: "Oswald, sans-serif",
+                  backgroundColor: colorUsage.accent,
+                  color: colorUsage.textOnAccent
+                }}
+              >
+                VIEW CUSTOMERS
+              </Button>
             </Link>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+        <Card className="border-2 border-black">
+          <CardHeader className="bg-white">
+            <CardTitle className="flex items-center gap-2 font-bold" style={{ fontFamily: "Oswald, sans-serif" }}>
               <Package className="h-5 w-5" />
-              Manage Products
+              MANAGE PRODUCTS
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-sm mb-4" style={{ color: colorUsage.textMuted }}>
+          <CardContent className="bg-white">
+            <p className="text-sm mb-4 text-gray-600">
               Configure bumper plate inventory and pricing
             </p>
             <Link href="/admin/products">
-              <Button className="w-full">View Products</Button>
+              <Button 
+                className="w-full font-bold border-2 border-black"
+                style={{ 
+                  fontFamily: "Oswald, sans-serif",
+                  backgroundColor: colorUsage.accent,
+                  color: colorUsage.textOnAccent
+                }}
+              >
+                VIEW PRODUCTS
+              </Button>
             </Link>
           </CardContent>
         </Card>

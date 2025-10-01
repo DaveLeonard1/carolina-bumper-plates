@@ -111,6 +111,24 @@ export async function PUT(request: Request, { params }: { params: { orderNumber:
       return NextResponse.json({ success: false, error: "Failed to update order" }, { status: 500 })
     }
 
+    // Add timeline event for order modification
+    try {
+      await supabase.from("order_timeline").insert({
+        order_id: existingOrder.id,
+        event_type: "order_modified",
+        event_description: "Order details modified by customer",
+        event_data: {
+          modified_fields: Object.keys(updateData),
+          subtotal: updateData.subtotal,
+          total_weight: updateData.totalWeight,
+        },
+        created_by: "customer",
+      })
+      console.log("✅ Order modification timeline event added")
+    } catch (timelineError) {
+      console.warn("Failed to add order modification timeline event:", timelineError)
+    }
+
     return NextResponse.json({
       success: true,
       order: data,

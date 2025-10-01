@@ -2,7 +2,8 @@ import { type NextRequest, NextResponse } from "next/server"
 import { headers } from "next/headers"
 import { getStripe } from "@/lib/stripe"
 import { createSupabaseAdmin } from "@/lib/supabase"
-import { zapierWebhook } from "@/lib/zapier-webhook-core"
+import { sendEmail } from "@/lib/email/mailgun"
+import { generatePaymentReceiptEmail } from "@/lib/email/payment-receipt-template"
 import type Stripe from "stripe"
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
@@ -300,31 +301,84 @@ export async function POST(request: NextRequest) {
             }
           }
 
-          // Trigger Zapier webhook for order completion
-          console.log(`🎉 Triggering order completed webhook for order ${order.order_number}`)
+          // Send payment receipt email
+          console.log(`📧 Sending payment receipt email to ${order.customer_email}...`)
           try {
-            const webhookResult = await zapierWebhook.triggerOrderCompletedWebhook(
-              order.id,
-              {
-                method: "stripe_checkout",
-                amount_paid: session.amount_total || 0,
-                paid_at: new Date().toISOString(),
-                stripe_payment_intent_id: session.payment_intent as string,
-              },
-              {
-                source: "stripe_webhook",
-                trigger: "checkout_session_completed",
-              },
-            )
+            const receiptEmail = generatePaymentReceiptEmail({
+              customerName: order.customer_name || 'Customer',
+              orderNumber: order.order_number,
+              orderTotal: (session.amount_total || 0) / 100, // Convert from cents
+              paidAt: new Date().toISOString(),
+            })
 
-            if (!webhookResult.success) {
-              console.error("WARNING: Order completed webhook failed:", webhookResult.error)
+            const emailResult = await sendEmail({
+              to: order.customer_email,
+              subject: receiptEmail.subject,
+              html: receiptEmail.html,
+            })
+
+            if (emailResult.success) {
+              console.log(`✅ Payment receipt email sent successfully`)
+              
+              // Add timeline event for email sent
+              try {
+                await supabaseAdmin.from("order_timeline").insert({
+                  order_id: order.id,
+                  event_type: "email_sent",
+                  event_description: "Payment receipt email sent to customer",
+                  event_data: {
+                    email_type: "payment_receipt",
+                    recipient: order.customer_email,
+                    message_id: emailResult.messageId,
+                    amount_paid: session.amount_total,
+                  },
+                  created_by: "stripe_webhook",
+                })
+              } catch (timelineError) {
+                console.warn(`⚠️ Failed to add email timeline event:`, timelineError)
+              }
             } else {
-              console.log("✅ Order completed webhook triggered successfully")
+              console.error(`⚠️ Failed to send payment receipt:`, emailResult.error)
+              
+              // Add timeline event for failed email
+              try {
+                await supabaseAdmin.from("order_timeline").insert({
+                  order_id: order.id,
+                  event_type: "email_failed",
+                  event_description: "Failed to send payment receipt email",
+                  event_data: {
+                    email_type: "payment_receipt",
+                    recipient: order.customer_email,
+                    error: emailResult.error,
+                  },
+                  created_by: "stripe_webhook",
+                })
+              } catch (timelineError) {
+                console.warn(`⚠️ Failed to add email failure timeline event:`, timelineError)
+              }
             }
-          } catch (webhookError) {
-            console.error("WARNING: Failed to trigger order completed webhook:", webhookError)
+          } catch (emailError) {
+            console.error(`⚠️ Payment receipt email error:`, emailError)
+            
+            // Add timeline event for email error
+            try {
+              await supabaseAdmin.from("order_timeline").insert({
+                order_id: order.id,
+                event_type: "email_failed",
+                event_description: "Error sending payment receipt email",
+                event_data: {
+                  email_type: "payment_receipt",
+                  recipient: order.customer_email,
+                  error: emailError instanceof Error ? emailError.message : "Unknown error",
+                },
+                created_by: "stripe_webhook",
+              })
+            } catch (timelineError) {
+              console.warn(`⚠️ Failed to add email error timeline event:`, timelineError)
+            }
           }
+
+          console.log(`✅ Order ${order.order_number} marked as paid via Stripe checkout`)
 
           await logWebhookEvent(
             supabaseAdmin,
@@ -490,31 +544,8 @@ export async function POST(request: NextRequest) {
           console.warn(`⚠️ Failed to add timeline event:`, error)
         }
 
-        // Trigger Zapier webhook for order completion
-        console.log(`🎉 Triggering order completed webhook for order ${order.order_number}`)
-        try {
-          const webhookResult = await zapierWebhook.triggerOrderCompletedWebhook(
-            order.id,
-            {
-              method: "stripe_invoice",
-              amount_paid: invoice.amount_paid || 0,
-              paid_at: new Date().toISOString(),
-              stripe_invoice_id: invoice.id,
-            },
-            {
-              source: "stripe_webhook",
-              trigger: "invoice_payment_succeeded",
-            },
-          )
-
-          if (!webhookResult.success) {
-            console.error("WARNING: Order completed webhook failed:", webhookResult.error)
-          } else {
-            console.log("✅ Order completed webhook triggered successfully")
-          }
-        } catch (webhookError) {
-          console.error("WARNING: Failed to trigger order completed webhook:", webhookError)
-        }
+        // Webhook removed - add email notification service here if needed
+        console.log(`✅ Order ${order.order_number} marked as paid via Stripe invoice`)
 
         await logWebhookEvent(
           supabaseAdmin,

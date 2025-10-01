@@ -38,8 +38,8 @@ export default function ContactPage() {
                 <p className="text-gray-600 mb-4">
                   Need help with your order? Check your order status or make changes:
                 </p>
-                <a href="/order-lookup" className="text-lg font-semibold hover:underline" style={{ color: "#6EBA5E" }}>
-                  Manage Your Order →
+                <a href="/my-account" className="text-lg font-semibold hover:underline" style={{ color: "#6EBA5E" }}>
+                  Manage Your Orders →
                 </a>
               </CardContent>
             </Card>

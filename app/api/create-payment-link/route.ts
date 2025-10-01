@@ -1,7 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createSupabaseAdmin } from "@/lib/supabase"
 import { getStripe } from "@/lib/stripe"
-import { zapierWebhook } from "@/lib/zapier-webhook-core"
+import { sendEmail } from "@/lib/email/mailgun"
+import { generatePaymentLinkEmail } from "@/lib/email/templates"
 
 export async function POST(request: NextRequest) {
   console.log("=== PAYMENT LINK CREATION START ===")
@@ -367,23 +368,86 @@ export async function POST(request: NextRequest) {
         console.error("WARNING: Failed to add timeline event:", timelineError)
       }
 
-      // 12. Trigger Zapier webhook for payment link creation
-      console.log("15. Triggering Zapier webhook...")
+      // 11. Send payment link email to customer
+      console.log("15. Sending payment link email to customer...")
       try {
-        const webhookResult = await zapierWebhook.triggerPaymentLinkWebhook(orderId, {
-          source: "payment_link_creation",
-          created_via: "individual",
+        const emailTemplate = generatePaymentLinkEmail({
+          customerName: `${customerData.first_name} ${customerData.last_name}`,
+          orderNumber: order.order_number,
+          paymentUrl: session.url,
+          orderTotal: order.subtotal || 0,
+          orderItems: orderItems.map((item: any) => ({
+            weight: item.weight,
+            quantity: item.quantity,
+            price: item.price,
+          })),
         })
 
-        if (!webhookResult.success) {
-          console.error("WARNING: Payment link webhook failed:", webhookResult.error)
-          // Log webhook failure but don't fail payment link creation
+        const emailResult = await sendEmail({
+          to: customerData.email,
+          subject: emailTemplate.subject,
+          html: emailTemplate.html,
+        })
+
+        if (emailResult.success) {
+          console.log("✅ Payment link email sent successfully to:", customerData.email)
+          
+          // Add timeline event for email sent
+          try {
+            await supabase.from("order_timeline").insert({
+              order_id: orderId,
+              event_type: "email_sent",
+              event_description: "Payment link email sent to customer",
+              event_data: {
+                email_type: "payment_link",
+                recipient: customerData.email,
+                message_id: emailResult.messageId,
+                payment_url: session.url,
+              },
+              created_by: "admin",
+            })
+          } catch (timelineError) {
+            console.warn("Failed to add email timeline event:", timelineError)
+          }
         } else {
-          console.log("✅ Payment link webhook triggered successfully")
+          console.error("⚠️ Failed to send payment link email:", emailResult.error)
+          
+          // Add timeline event for failed email
+          try {
+            await supabase.from("order_timeline").insert({
+              order_id: orderId,
+              event_type: "email_failed",
+              event_description: "Failed to send payment link email",
+              event_data: {
+                email_type: "payment_link",
+                recipient: customerData.email,
+                error: emailResult.error,
+              },
+              created_by: "admin",
+            })
+          } catch (timelineError) {
+            console.warn("Failed to add email failure timeline event:", timelineError)
+          }
         }
-      } catch (webhookError) {
-        console.error("WARNING: Failed to trigger payment link webhook:", webhookError)
-        // Don't fail the payment link creation if webhook fails
+      } catch (emailError) {
+        console.error("⚠️ Email sending error:", emailError)
+        
+        // Add timeline event for email error
+        try {
+          await supabase.from("order_timeline").insert({
+            order_id: orderId,
+            event_type: "email_failed",
+            event_description: "Error sending payment link email",
+            event_data: {
+              email_type: "payment_link",
+              recipient: customerData.email,
+              error: emailError instanceof Error ? emailError.message : "Unknown error",
+            },
+            created_by: "admin",
+          })
+        } catch (timelineError) {
+          console.warn("Failed to add email error timeline event:", timelineError)
+        }
       }
 
       console.log("=== PAYMENT LINK CREATION SUCCESS ===")
@@ -391,7 +455,7 @@ export async function POST(request: NextRequest) {
         success: true,
         paymentUrl: session.url,
         sessionId: session.id,
-        message: "Payment link created successfully",
+        message: "Payment link created and emailed successfully",
         orderLocked: true,
         createdAt: now,
         debug: {

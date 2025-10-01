@@ -1,8 +1,5 @@
-import { zapierWebhook } from "@/lib/zapier-webhook"
-
-// This file would contain functions for managing order status transitions,
+// This file contains functions for managing order status transitions,
 // creating payment links, and other order-related operations.
-// Since there's no existing code, I'll create a basic structure with a placeholder function.
 
 import { createClient } from "@supabase/supabase-js"
 
@@ -64,17 +61,7 @@ async function createPaymentLinkCore(
     console.error("WARNING: Failed to add timeline event:", timelineError)
   }
 
-  // 12. Trigger Zapier webhook
-  try {
-    await zapierWebhook.triggerPaymentLinkWebhook(orderId, {
-      source: "payment_link_creation",
-      created_via: options.createdVia || "individual",
-      batch_id: options.batchId,
-    })
-  } catch (webhookError) {
-    console.error("WARNING: Failed to trigger Zapier webhook:", webhookError)
-    // Don't fail the payment link creation if webhook fails
-  }
+  // Webhook removed - add email notification here if needed
 
   return {
     paymentUrl: session.url,

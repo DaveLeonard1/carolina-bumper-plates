@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts"
+import { colorUsage } from "@/lib/colors"
 
 interface ChartData {
   dailyRevenue: Array<{
@@ -28,11 +29,13 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
   return (
     <div className="grid gap-4 md:grid-cols-2">
       {/* Revenue Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Daily Revenue (30 Days)</CardTitle>
+      <Card className="bg-black text-white border-0">
+        <CardHeader style={{ backgroundColor: colorUsage.accent }}>
+          <CardTitle className="font-bold" style={{ fontFamily: "Oswald, sans-serif", color: colorUsage.textOnAccent }}>
+            DAILY REVENUE (30 DAYS)
+          </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={data.dailyRevenue}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -45,9 +48,9 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
               <Line
                 type="monotone"
                 dataKey="revenue"
-                stroke="#2563eb"
+                stroke={colorUsage.accent}
                 strokeWidth={2}
-                dot={{ fill: "#2563eb", strokeWidth: 2, r: 4 }}
+                dot={{ fill: colorUsage.accent, strokeWidth: 2, r: 4 }}
                 activeDot={{ r: 6 }}
               />
             </LineChart>
@@ -56,18 +59,20 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
       </Card>
 
       {/* Orders Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Daily Orders (30 Days)</CardTitle>
+      <Card className="bg-black text-white border-0">
+        <CardHeader style={{ backgroundColor: colorUsage.accent }}>
+          <CardTitle className="font-bold" style={{ fontFamily: "Oswald, sans-serif", color: colorUsage.textOnAccent }}>
+            DAILY ORDERS (30 DAYS)
+          </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={data.dailyRevenue}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" tickFormatter={formatDate} tick={{ fontSize: 12 }} />
-              <YAxis tick={{ fontSize: 12 }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+              <XAxis dataKey="date" tickFormatter={formatDate} tick={{ fontSize: 12, fill: "#999" }} />
+              <YAxis tick={{ fontSize: 12, fill: "#999" }} />
               <Tooltip labelFormatter={(label) => formatDate(label)} formatter={(value: number) => [value, "Orders"]} />
-              <Bar dataKey="orders" fill="#16a34a" radius={[2, 2, 0, 0]} />
+              <Bar dataKey="orders" fill={colorUsage.accent} radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>

@@ -161,9 +161,9 @@ export default function OrderSuccessPage() {
                     </Link>
                   </Button>
                   <Button asChild>
-                    <Link href={`/order-lookup`}>
+                    <Link href="/my-account">
                       <Package className="h-4 w-4 mr-2" />
-                      Track Order
+                      View My Orders
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Link>
                   </Button>

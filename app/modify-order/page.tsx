@@ -454,8 +454,8 @@ export default function ModifyOrderPage() {
             <AlertCircle className="h-12 w-12 mx-auto mb-4 text-red-500" />
             <h1 className="text-2xl font-bold mb-4">Order Not Found</h1>
             <p className="mb-6">{error}</p>
-            <Link href="/order-lookup">
-              <Button>Try Again</Button>
+            <Link href="/my-account">
+              <Button>View My Orders</Button>
             </Link>
           </CardContent>
         </Card>

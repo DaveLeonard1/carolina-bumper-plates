@@ -565,7 +565,7 @@ export default function MyAccountPage() {
 
   return (
     <PageLayout>
-      <div className="bg-gray-50">
+      <div className="bg-gray-50 overflow-x-hidden">
         {/* Page Header */}
         <div className="px-4 py-16 bg-white">
           <div className="max-w-6xl mx-auto">
@@ -838,7 +838,7 @@ export default function MyAccountPage() {
                     {mostRecentOrder && (
                       <div className="bg-white rounded-lg border-2 border-black overflow-hidden">
                         <div className="bg-black text-white p-4">
-                          <div className="flex items-center justify-between">
+                          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                             <div>
                               <h3 className="text-xl font-black" style={{ fontFamily: "Oswald, sans-serif" }}>
                                 MOST RECENT ORDER
@@ -848,7 +848,7 @@ export default function MyAccountPage() {
                                 {new Date(mostRecentOrder.created_at).toLocaleDateString()}
                               </p>
                             </div>
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 flex-wrap">
                               <Link href={`/order-confirmation?order=${mostRecentOrder.order_number}`}>
                                 <Button size="sm" className="bg-white text-black hover:bg-gray-200 font-bold">
                                   <Eye className="h-4 w-4 mr-1" />
@@ -881,13 +881,13 @@ export default function MyAccountPage() {
                           </div>
                         </div>
 
-                        <div className="p-6">
+                        <div className="p-4 md:p-6">
                           <div className="grid md:grid-cols-2 gap-6 mb-6">
                             {/* Order Details */}
                             <div>
                               <h4
                                 className="text-sm font-black mb-3 uppercase"
-                                style={{ fontFamily: "Oswald, sans-serif", color: colorUsage.accent }}
+                                style={{ fontFamily: "Oswald, sans-serif", color: "#1a1a1a" }}
                               >
                                 Order Details
                               </h4>
@@ -937,7 +937,7 @@ export default function MyAccountPage() {
                             <div>
                               <h4
                                 className="text-sm font-black mb-3 uppercase"
-                                style={{ fontFamily: "Oswald, sans-serif", color: colorUsage.accent }}
+                                style={{ fontFamily: "Oswald, sans-serif", color: "#1a1a1a" }}
                               >
                                 Delivery Information
                               </h4>
@@ -1065,14 +1065,14 @@ export default function MyAccountPage() {
                           </p>
                         </div>
 
-                        <div className="p-6 space-y-3">
+                        <div className="p-4 md:p-6 space-y-3">
                           {otherOrders.map((order) => (
                             <div
                               key={order.id}
-                              className="flex items-center gap-4 p-4 rounded-lg border-2 border-gray-200 hover:border-black transition-colors"
+                              className="flex flex-col md:flex-row md:items-center gap-4 p-4 rounded-lg border-2 border-gray-200 hover:border-black transition-colors"
                             >
                               {/* Left: Order Number & Date */}
-                              <div className="min-w-[140px]">
+                              <div className="md:min-w-[140px]">
                                 <p className="font-black text-lg" style={{ fontFamily: "Oswald, sans-serif" }}>
                                   #{order.order_number}
                                 </p>
@@ -1082,7 +1082,7 @@ export default function MyAccountPage() {
                               </div>
 
                               {/* Middle: Amount, Weight & Status */}
-                              <div className="flex-1 flex items-center gap-6">
+                              <div className="flex-1 flex flex-wrap items-center gap-3 md:gap-6">
                                 <div>
                                   <p className="font-black text-lg" style={{ fontFamily: "Oswald, sans-serif" }}>
                                     ${order.subtotal.toFixed(2)}
@@ -1109,7 +1109,7 @@ export default function MyAccountPage() {
                               </div>
 
                               {/* Right: Action Buttons */}
-                              <div className="flex gap-2">
+                              <div className="flex gap-2 flex-wrap w-full md:w-auto">
                                 <Link href={`/order-confirmation?order=${order.order_number}`}>
                                   <Button
                                     size="sm"

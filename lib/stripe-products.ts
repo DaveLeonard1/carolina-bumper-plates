@@ -141,7 +141,19 @@ export const createOrUpdateStripeProduct = async (productData: StripeProductData
   }
 }
 
-export const syncAllProductsWithStripe = async () => {
+export const syncAllProductsWithStripe = async (forceUpdate = false) => {
+  const result = {
+    success: true,
+    processed: 0,
+    succeeded: 0,
+    failed: 0,
+    created: 0,
+    updated: 0,
+    reused: 0,
+    skipped: 0,
+    errors: [] as Array<{ productId: string; error: string }>,
+  }
+
   try {
     const supabaseAdmin = createSupabaseAdmin()
 
@@ -160,7 +172,9 @@ export const syncAllProductsWithStripe = async () => {
 
       if (error) {
         console.error("Error fetching products for sync:", error)
-        return
+        result.success = false
+        result.errors.push({ productId: "system", error: error.message })
+        return result
       }
       products = data
     } else {
@@ -173,58 +187,68 @@ export const syncAllProductsWithStripe = async () => {
 
       if (error) {
         console.error("Error fetching products for sync:", error)
-        return
+        result.success = false
+        result.errors.push({ productId: "system", error: error.message })
+        return result
       }
       products = data
     }
 
     if (!products || products.length === 0) {
       console.log("No valid products found to sync")
-      return
+      return result
     }
 
     console.log(`Found ${products.length} valid products to sync with Stripe...`)
-
-    // Log product data for debugging
-    products.forEach((product, index) => {
-      console.log(`Product ${index + 1}:`, {
-        id: product.id,
-        name: product.name,
-        weight: product.weight,
-        price_per_lb: product.price_per_lb,
-        hasStripeId: !!product.stripe_product_id,
-      })
-    })
+    result.processed = products.length
 
     for (const product of products) {
       try {
-        // Double-check validation (should be filtered by query but just in case)
-        if (!product.id) {
-          console.error(`❌ Skipping product with missing ID:`, product)
-          continue
-        }
-        if (!product.weight || typeof product.weight !== "number") {
-          console.error(`❌ Skipping product ${product.id} with invalid weight:`, product.weight)
-          continue
-        }
-        if (!product.price_per_lb || typeof product.price_per_lb !== "number") {
-          console.error(`❌ Skipping product ${product.id} with invalid price_per_lb:`, product.price_per_lb)
+        // Double-check validation
+        if (!product.id || !product.weight || !product.price_per_lb) {
+          console.error(`❌ Skipping product with invalid data:`, product)
+          result.skipped++
           continue
         }
 
         console.log(`Processing product: ${product.weight}lb plate (ID: ${product.id})...`)
-        await createOrUpdateStripeProduct(product)
-        console.log(`✅ Successfully synced product: ${product.weight}lb`)
+        
+        const stripeData = await createOrUpdateStripeProduct(product)
+        
+        if (stripeData) {
+          result.succeeded++
+          // Check if it was created or updated
+          if (!product.stripe_product_id) {
+            result.created++
+          } else {
+            result.updated++
+          }
+          console.log(`✅ Successfully synced product: ${product.weight}lb`)
+        } else {
+          result.failed++
+          result.errors.push({ productId: product.id, error: "Sync returned no data" })
+        }
       } catch (error) {
         console.error(`❌ Failed to sync product ${product.id} (${product.weight}lb):`, error)
-        // Continue with other products even if one fails
+        result.failed++
+        result.errors.push({ 
+          productId: product.id, 
+          error: error instanceof Error ? error.message : "Unknown error" 
+        })
       }
     }
 
-    console.log("Product sync completed")
+    result.success = result.failed === 0
+    console.log("Product sync completed:", result)
+    return result
   } catch (error) {
     console.error("Error in syncAllProductsWithStripe:", error)
-    throw error
+    result.success = false
+    result.errors.push({ 
+      productId: "system", 
+      error: error instanceof Error ? error.message : "Unknown error" 
+    })
+    return result
   }
 }
 
@@ -272,4 +296,41 @@ export const getStripeProductForWeight = async (weight: number) => {
     console.error("Error getting Stripe product for weight:", error)
     return null
   }
+}
+
+// Additional helper functions for admin sync page
+export const checkSyncHealth = async () => {
+  const supabaseAdmin = createSupabaseAdmin()
+  const config = await getStripeConfig()
+  
+  const issues: string[] = []
+  const databaseReady = await checkStripeColumnsExist()
+  
+  if (!databaseReady) {
+    issues.push("Stripe columns missing from products table")
+  }
+  
+  // Check if Stripe is configured (has keys)
+  const stripeConfigured = !!(config.secretKey && config.publishableKey)
+  if (!stripeConfigured) {
+    issues.push("Stripe keys not configured")
+  }
+  
+  return {
+    databaseReady,
+    stripeConfigured,
+    taxCode: "txcd_99999999", // Default tax code for physical goods
+    issues,
+    columnInfo: databaseReady ? "Stripe columns exist" : "Stripe columns missing",
+  }
+}
+
+export const getAllProductsWithSyncStatus = async () => {
+  const supabaseAdmin = createSupabaseAdmin()
+  const { data: products } = await supabaseAdmin
+    .from("products")
+    .select("*")
+    .order("weight", { ascending: true })
+  
+  return products || []
 }

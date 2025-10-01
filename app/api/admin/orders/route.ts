@@ -25,6 +25,15 @@ export async function GET() {
       )
     }
 
+    console.log(`📊 Found ${orders?.length || 0} orders in database`)
+    
+    // Check for duplicate order_numbers
+    const orderNumbers = orders?.map(o => o.order_number) || []
+    const duplicates = orderNumbers.filter((item, index) => orderNumbers.indexOf(item) !== index)
+    if (duplicates.length > 0) {
+      console.warn(`⚠️ Found duplicate order numbers:`, duplicates)
+    }
+
     // Process orders to ensure proper data format
     const processedOrders = (orders || []).map((order) => {
       // Parse order_items if it's a JSON string
@@ -62,7 +71,12 @@ export async function GET() {
       }),
       {
         status: 200,
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+        },
       },
     )
   } catch (error) {
