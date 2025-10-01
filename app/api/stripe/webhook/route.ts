@@ -214,14 +214,49 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ received: true, duplicate: true })
           }
 
+          // Get payment method details before updating
+          const stripe = await getStripe()
+          let paymentMethodDetails = null
+          if (session.payment_intent) {
+            try {
+              const paymentIntent = await stripe.paymentIntents.retrieve(
+                session.payment_intent as string,
+                { expand: ['charges.data.payment_method_details'] }
+              )
+              const charges = (paymentIntent as any).charges
+              if (charges?.data?.[0]?.payment_method_details?.card) {
+                const card = charges.data[0].payment_method_details.card
+                paymentMethodDetails = {
+                  type: 'card',
+                  brand: card.brand,
+                  last4: card.last4,
+                  exp_month: card.exp_month,
+                  exp_year: card.exp_year,
+                }
+              }
+            } catch (error) {
+              console.warn('Could not retrieve payment method details for storage:', error)
+            }
+          }
+
           // Update order status with retry mechanism
-          const updateData = {
+          const updateData: any = {
             payment_status: "paid",
             status: "paid",
             paid_at: new Date().toISOString(),
             stripe_payment_intent_id: session.payment_intent as string,
             stripe_checkout_session_id: session.id,
             updated_at: new Date().toISOString(),
+          }
+          
+          // Store payment method details
+          if (paymentMethodDetails) {
+            updateData.payment_method_details = paymentMethodDetails
+          }
+          
+          // Store total amount from Stripe if not already set
+          if (!order.total_amount || order.total_amount === 0) {
+            updateData.total_amount = (session.amount_total || 0) / 100
           }
 
           const updateResult = await updateOrderWithRetry(supabaseAdmin, order.id, updateData)
@@ -304,11 +339,39 @@ export async function POST(request: NextRequest) {
           // Send payment receipt email
           console.log(`📧 Sending payment receipt email to ${order.customer_email}...`)
           try {
+            // Parse order data for email
+            const orderItems = typeof order.order_items === 'string' 
+              ? JSON.parse(order.order_items) 
+              : order.order_items || []
+            
+            const shippingAddress = typeof order.shipping_address === 'string'
+              ? JSON.parse(order.shipping_address)
+              : order.shipping_address
+              
+            const billingAddress = typeof order.billing_address === 'string'
+              ? JSON.parse(order.billing_address)
+              : order.billing_address
+
+            // Use payment method details we just stored
+            let paymentMethod = paymentMethodDetails ? {
+              last4: paymentMethodDetails.last4,
+              brand: paymentMethodDetails.brand,
+            } : undefined
+
             const receiptEmail = generatePaymentReceiptEmail({
               customerName: order.customer_name || 'Customer',
               orderNumber: order.order_number,
               orderTotal: (session.amount_total || 0) / 100, // Convert from cents
               paidAt: new Date().toISOString(),
+              orderItems: orderItems.map((item: any) => ({
+                weight: item.weight,
+                quantity: item.quantity,
+                price: item.price || item.selling_price || 0,
+                title: item.title,
+              })),
+              shippingAddress,
+              billingAddress,
+              paymentMethod,
             })
 
             const emailResult = await sendEmail({
@@ -480,12 +543,48 @@ export async function POST(request: NextRequest) {
           })
         }
 
+        // Get payment method details before updating
+        const stripe = await getStripe()
+        let paymentMethodDetails = null
+        const invoicePaymentIntent = (invoice as any).payment_intent
+        if (invoicePaymentIntent) {
+          try {
+            const paymentIntent = await stripe.paymentIntents.retrieve(
+              invoicePaymentIntent as string,
+              { expand: ['charges.data.payment_method_details'] }
+            )
+            const charges = (paymentIntent as any).charges
+            if (charges?.data?.[0]?.payment_method_details?.card) {
+              const card = charges.data[0].payment_method_details.card
+              paymentMethodDetails = {
+                type: 'card',
+                brand: card.brand,
+                last4: card.last4,
+                exp_month: card.exp_month,
+                exp_year: card.exp_year,
+              }
+            }
+          } catch (error) {
+            console.warn('Could not retrieve payment method details for storage:', error)
+          }
+        }
+
         // Update order status with retry mechanism
-        const updateData = {
+        const updateData: any = {
           status: "paid",
           payment_status: "paid",
           paid_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
+        }
+        
+        // Store payment method details
+        if (paymentMethodDetails) {
+          updateData.payment_method_details = paymentMethodDetails
+        }
+        
+        // Store total amount from Stripe if not already set
+        if (!order.total_amount || order.total_amount === 0) {
+          updateData.total_amount = invoice.amount_paid / 100
         }
 
         const updateResult = await updateOrderWithRetry(supabaseAdmin, order.id, updateData)
@@ -544,7 +643,111 @@ export async function POST(request: NextRequest) {
           console.warn(`⚠️ Failed to add timeline event:`, error)
         }
 
-        // Webhook removed - add email notification service here if needed
+        // Send payment receipt email
+        console.log(`📧 Sending payment receipt email to ${order.customer_email}...`)
+        try {
+          // Parse order data for email
+          const orderItems = typeof order.order_items === 'string' 
+            ? JSON.parse(order.order_items) 
+            : order.order_items || []
+          
+          const shippingAddress = typeof order.shipping_address === 'string'
+            ? JSON.parse(order.shipping_address)
+            : order.shipping_address
+            
+          const billingAddress = typeof order.billing_address === 'string'
+            ? JSON.parse(order.billing_address)
+            : order.billing_address
+
+          // Use payment method details we just stored
+          let paymentMethod = paymentMethodDetails ? {
+            last4: paymentMethodDetails.last4,
+            brand: paymentMethodDetails.brand,
+          } : undefined
+
+          const receiptEmail = generatePaymentReceiptEmail({
+            customerName: order.customer_name || 'Customer',
+            orderNumber: order.order_number,
+            orderTotal: invoice.amount_paid / 100, // Convert from cents
+            paidAt: new Date().toISOString(),
+            orderItems: orderItems.map((item: any) => ({
+              weight: item.weight,
+              quantity: item.quantity,
+              price: item.price || item.selling_price || 0,
+              title: item.title,
+            })),
+            shippingAddress,
+            billingAddress,
+            paymentMethod,
+          })
+
+          const emailResult = await sendEmail({
+            to: order.customer_email,
+            subject: receiptEmail.subject,
+            html: receiptEmail.html,
+          })
+
+          if (emailResult.success) {
+            console.log(`✅ Payment receipt email sent successfully`)
+            
+            // Add timeline event for email sent
+            try {
+              await supabaseAdmin.from("order_timeline").insert({
+                order_id: order.id,
+                event_type: "email_sent",
+                event_description: "Payment receipt email sent to customer",
+                event_data: {
+                  email_type: "payment_receipt",
+                  recipient: order.customer_email,
+                  message_id: emailResult.messageId,
+                  amount_paid: invoice.amount_paid,
+                },
+                created_by: "stripe_webhook",
+              })
+            } catch (timelineError) {
+              console.warn(`⚠️ Failed to add email timeline event:`, timelineError)
+            }
+          } else {
+            console.error(`⚠️ Failed to send payment receipt:`, emailResult.error)
+            
+            // Add timeline event for failed email
+            try {
+              await supabaseAdmin.from("order_timeline").insert({
+                order_id: order.id,
+                event_type: "email_failed",
+                event_description: "Failed to send payment receipt email",
+                event_data: {
+                  email_type: "payment_receipt",
+                  recipient: order.customer_email,
+                  error: emailResult.error,
+                },
+                created_by: "stripe_webhook",
+              })
+            } catch (timelineError) {
+              console.warn(`⚠️ Failed to add email failure timeline event:`, timelineError)
+            }
+          }
+        } catch (emailError) {
+          console.error(`⚠️ Payment receipt email error:`, emailError)
+          
+          // Add timeline event for email error
+          try {
+            await supabaseAdmin.from("order_timeline").insert({
+              order_id: order.id,
+              event_type: "email_failed",
+              event_description: "Error sending payment receipt email",
+              event_data: {
+                email_type: "payment_receipt",
+                recipient: order.customer_email,
+                error: emailError instanceof Error ? emailError.message : "Unknown error",
+              },
+              created_by: "stripe_webhook",
+            })
+          } catch (timelineError) {
+            console.warn(`⚠️ Failed to add email error timeline event:`, timelineError)
+          }
+        }
+
         console.log(`✅ Order ${order.order_number} marked as paid via Stripe invoice`)
 
         await logWebhookEvent(

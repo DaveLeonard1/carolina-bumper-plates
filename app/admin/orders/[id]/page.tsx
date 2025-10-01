@@ -200,72 +200,96 @@ export default function AdminOrderDetailPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/admin/orders">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Orders
-            </Link>
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold" style={{ fontFamily: "Oswald, sans-serif" }}>
-              Order #{order.order_number}
-            </h1>
-            <div className="flex items-center gap-4 mt-1">
-              <Badge className={`${getStatusColor(order.status, order.payment_status)} border font-medium`}>
-                {order.payment_status === "paid"
-                  ? "PAID"
-                  : order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-              </Badge>
-              {order.payment_status === "paid" && (
-                <Badge className="bg-green-100 text-green-800 border-green-200">Payment Confirmed</Badge>
-              )}
-              <span className="text-sm" style={{ color: colorUsage.textMuted }}>
-                Created {formatDate(order.created_at)}
-              </span>
+    <div className="bg-gray-50 min-h-screen">
+      {/* Page Header */}
+      <div className="px-4 py-6 md:py-12 bg-white border-b-2 border-black">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col gap-4">
+            <Button
+              variant="outline"
+              size="sm"
+              asChild
+              className="border-2 border-black font-bold hover:bg-gray-100 w-fit"
+            >
+              <Link href="/admin/orders">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                BACK TO ORDERS
+              </Link>
+            </Button>
+            
+            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+              <div>
+                <h1
+                  className="text-3xl md:text-4xl lg:text-5xl font-black mb-3"
+                  style={{ fontFamily: "Oswald, sans-serif", color: "#1a1a1a" }}
+                >
+                  ORDER #{order.order_number}
+                </h1>
+                <div className="flex flex-wrap items-center gap-2 md:gap-3">
+                  <Badge 
+                    className={`${getStatusColor(order.status, order.payment_status)} border-2 font-black text-xs md:text-sm px-3 py-1`}
+                    style={{ fontFamily: "Oswald, sans-serif" }}
+                  >
+                    {order.payment_status === "paid" && order.status === "paid"
+                      ? "PAID"
+                      : order.status
+                          .replace(/_/g, " ")
+                          .toUpperCase()}
+                  </Badge>
+                  <span className="text-sm md:text-base text-gray-600">
+                    Created {formatDate(order.created_at)}
+                  </span>
+                </div>
+              </div>
+              
+              <Button
+                onClick={fetchOrderDetails}
+                className="border-2 border-black font-black bg-transparent hover:bg-gray-100 text-black w-full md:w-auto"
+                style={{ fontFamily: "Oswald, sans-serif" }}
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                REFRESH
+              </Button>
             </div>
           </div>
         </div>
-        <Button onClick={fetchOrderDetails} variant="outline">
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Refresh
-        </Button>
       </div>
 
-      {/* Payment Confirmation Alert - Add this after the header div */}
-      {order.payment_status === "paid" && (
-        <Card className="border-green-200 bg-green-50">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                <CheckCircle className="h-5 w-5 text-green-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-green-800">Payment Received</h3>
-                <p className="text-sm text-green-700">
-                  This order has been paid in full{order.paid_at && ` on ${formatDate(order.paid_at)}`}
-                </p>
+      {/* Main Content */}
+      <div className="px-4 py-6 md:py-8">
+        <div className="max-w-7xl mx-auto">
+          {/* Payment Confirmation Alert */}
+          {order.payment_status === "paid" && (
+            <div className="mb-4 md:mb-6 bg-black border-2 border-black rounded-lg overflow-hidden">
+              <div className="p-4 md:p-6 flex items-center gap-3 md:gap-4" style={{ backgroundColor: "#B9FF16" }}>
+                <div className="flex-shrink-0">
+                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-black flex items-center justify-center">
+                    <CheckCircle className="h-5 w-5 md:h-6 md:w-6" style={{ color: "#B9FF16" }} />
+                  </div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-black text-base md:text-lg mb-1" style={{ fontFamily: "Oswald, sans-serif", color: "#000" }}>
+                    PAYMENT RECEIVED
+                  </h3>
+                  <p className="text-sm md:text-base font-medium" style={{ color: "#000" }}>
+                    This order has been paid in full{order.paid_at && ` on ${formatDate(order.paid_at)}`}
+                  </p>
+                </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Main Content - Left Column */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Customer Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Customer Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          )}
+          <div className="grid gap-4 md:gap-6 lg:grid-cols-3">
+            {/* Main Content - Left Column */}
+            <div className="lg:col-span-2 space-y-4 md:space-y-6">
+              {/* Customer Information */}
+              <div className="bg-white rounded-lg border-2 border-black overflow-hidden">
+                <div className="bg-black text-white p-4">
+                  <h3 className="text-sm md:text-base font-black flex items-center gap-2" style={{ fontFamily: "Oswald, sans-serif" }}>
+                    <User className="h-4 w-4 md:h-5 md:w-5" />
+                    CUSTOMER INFORMATION
+                  </h3>
+                </div>
+                <div className="p-4 md:p-6 space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
                   <h4 className="font-medium mb-2">Contact Details</h4>
@@ -327,18 +351,18 @@ export default function AdminOrderDetailPage() {
                   </div>
                 </>
               )}
-            </CardContent>
-          </Card>
+                </div>
+              </div>
 
-          {/* Order Items */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Package className="h-5 w-5" />
-                Order Items
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+              {/* Order Items */}
+              <div className="bg-white rounded-lg border-2 border-black overflow-hidden">
+                <div className="bg-black text-white p-4">
+                  <h3 className="text-sm md:text-base font-black flex items-center gap-2" style={{ fontFamily: "Oswald, sans-serif" }}>
+                    <Package className="h-4 w-4 md:h-5 md:w-5" />
+                    ORDER ITEMS
+                  </h3>
+                </div>
+                <div className="p-4 md:p-6">
               {Array.isArray(order.order_items) && order.order_items.length > 0 ? (
                 <div className="space-y-4">
                   {order.order_items.map((item, index) => (
@@ -396,21 +420,23 @@ export default function AdminOrderDetailPage() {
                   <p style={{ color: colorUsage.textMuted }}>No items found for this order</p>
                 </div>
               )}
-            </CardContent>
-          </Card>
+                </div>
+              </div>
 
-          {/* Order Timeline */}
-          <OrderTimeline timeline={order.timeline} />
-        </div>
+              {/* Order Timeline */}
+              <OrderTimeline timeline={order.timeline} />
+            </div>
 
-        {/* Sidebar - Right Column */}
-        <div className="space-y-6">
-          {/* Order Summary */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Order Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+            {/* Sidebar - Right Column */}
+            <div className="space-y-4 md:space-y-6">
+              {/* Order Summary */}
+              <div className="bg-white rounded-lg border-2 border-black overflow-hidden">
+                <div className="bg-black text-white p-4">
+                  <h3 className="text-sm md:text-base font-black" style={{ fontFamily: "Oswald, sans-serif" }}>
+                    ORDER SUMMARY
+                  </h3>
+                </div>
+                <div className="p-4 md:p-6 space-y-4">
               <div className="grid gap-3">
                 <div className="flex items-center gap-3">
                   <Calendar className="h-4 w-4" style={{ color: colorUsage.textMuted }} />
@@ -529,11 +555,13 @@ export default function AdminOrderDetailPage() {
                   </div>
                 </>
               )}
-            </CardContent>
-          </Card>
+                </div>
+              </div>
 
-          {/* Order Actions */}
-          <EnhancedOrderActions order={order} onOrderUpdate={fetchOrderDetails} />
+              {/* Order Actions */}
+              <EnhancedOrderActions order={order} onOrderUpdate={fetchOrderDetails} />
+            </div>
+          </div>
         </div>
       </div>
     </div>

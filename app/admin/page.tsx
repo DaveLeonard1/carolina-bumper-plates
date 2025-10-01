@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { ShoppingCart, Users, Package, DollarSign, Clock, RefreshCw, Loader2, AlertTriangle } from "lucide-react"
+import { Package, ShoppingCart, TrendingUp, Users, Eye, Truck, Loader2, RefreshCw, AlertTriangle, Clock, DollarSign } from "lucide-react"
 import { colorUsage } from "@/lib/colors"
 import Link from "next/link"
 import { useDashboardMetrics } from "@/hooks/use-dashboard-metrics"
@@ -266,6 +266,30 @@ export default function AdminDashboard() {
                     style={{ backgroundColor: "#B9FF16", color: "#000", fontFamily: "Oswald, sans-serif" }}
                   >
                     VIEW PRODUCTS
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg border-2 border-black overflow-hidden">
+              <div className="bg-black text-white p-4">
+                <h3 className="text-xl font-black" style={{ fontFamily: "Oswald, sans-serif" }}>
+                  DELIVERY MANAGEMENT
+                </h3>
+              </div>
+              <div className="p-6">
+                <div className="flex items-start gap-3 mb-4">
+                  <Truck className="h-6 w-6 flex-shrink-0" style={{ color: "#B9FF16" }} />
+                  <div>
+                    <p className="text-sm text-gray-600">Vendor orders and delivery coordination</p>
+                  </div>
+                </div>
+                <Link href="/admin/delivery-management">
+                  <Button
+                    className="w-full font-black"
+                    style={{ backgroundColor: "#B9FF16", color: "#000", fontFamily: "Oswald, sans-serif" }}
+                  >
+                    MANAGE DELIVERIES
                   </Button>
                 </Link>
               </div>

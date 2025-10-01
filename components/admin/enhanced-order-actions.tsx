@@ -17,6 +17,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
+import {
   CreditCard,
   XCircle,
   MessageSquare,
@@ -28,6 +33,13 @@ import {
   CheckCircle,
   Bug,
   Search,
+  Mail,
+  Package,
+  Truck,
+  MapPin,
+  CheckCheck,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react"
 import { colorUsage } from "@/lib/colors"
 import { ReinvoiceModal } from "./reinvoice-modal"
@@ -67,6 +79,7 @@ export function EnhancedOrderActions({ order, onOrderUpdate }: OrderActionsProps
   const [paymentLinkUrl, setPaymentLinkUrl] = useState(order.payment_link_url || "")
   const [paymentLinkCreatedAt, setPaymentLinkCreatedAt] = useState(order.payment_link_created_at || "")
   const [copySuccess, setCopySuccess] = useState(false)
+  const [isPaymentSectionOpen, setIsPaymentSectionOpen] = useState(order.payment_status !== "paid")
 
   const handleCreatePaymentLink = async () => {
     setLoading("create_payment_link")
@@ -119,6 +132,65 @@ export function EnhancedOrderActions({ order, onOrderUpdate }: OrderActionsProps
   const handleViewPaymentLink = () => {
     if (paymentLinkUrl) {
       window.open(paymentLinkUrl, "_blank")
+    }
+  }
+
+  const handleResendReceipt = async () => {
+    setLoading("resend_receipt")
+    try {
+      const response = await fetch("/api/admin/resend-receipt", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ orderId: order.id }),
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        alert(`Payment receipt sent successfully to ${result.recipient}`)
+        onOrderUpdate()
+      } else {
+        console.error("Resend receipt failed:", result.error)
+        alert(`Failed to send receipt: ${result.error}`)
+      }
+    } catch (error) {
+      console.error("Resend receipt error:", error)
+      alert("Failed to send receipt")
+    } finally {
+      setLoading(null)
+    }
+  }
+
+  const handleStatusUpdate = async (newStatus: string) => {
+    setLoading(`status_${newStatus}`)
+    try {
+      const response = await fetch("/api/admin/update-order-status", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ 
+          orderId: order.id,
+          status: newStatus,
+        }),
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        alert(`Order status updated to ${newStatus.replace(/_/g, " ")}`)
+        onOrderUpdate()
+      } else {
+        console.error("Status update failed:", result.error)
+        alert(`Failed to update status: ${result.error}`)
+      }
+    } catch (error) {
+      console.error("Status update error:", error)
+      alert("Failed to update status")
+    } finally {
+      setLoading(null)
     }
   }
 
@@ -184,16 +256,6 @@ export function EnhancedOrderActions({ order, onOrderUpdate }: OrderActionsProps
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {order.payment_status === "paid" && (
-            <Alert className="mb-4 border-green-200 bg-green-50">
-              <CheckCircle className="h-4 w-4 text-green-600" />
-              <AlertDescription className="text-green-800">
-                <strong>Order Paid:</strong> This order has been paid in full. Most modification actions are now
-                restricted.
-              </AlertDescription>
-            </Alert>
-          )}
-
           {/* Order Lock Status Alert */}
           {order.order_locked && (
             <Alert>
@@ -205,35 +267,53 @@ export function EnhancedOrderActions({ order, onOrderUpdate }: OrderActionsProps
           )}
 
           {/* Payment Link Section */}
-          <div className="space-y-3">
-            <h4 className="font-medium flex items-center gap-2">
-              <CreditCard className="h-4 w-4" />
-              {order.payment_status === "paid" ? "Payment Confirmed" : "Payment Link"}
-            </h4>
-
-            {order.payment_status === "paid" ? (
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-sm text-green-600">
-                  <CheckCircle className="h-4 w-4" />
-                  <span className="font-medium">Payment received successfully</span>
-                  {order.paid_at && <span className="text-gray-500">on {formatDate(order.paid_at)}</span>}
-                </div>
-
-                <div className="p-3 bg-green-50 border border-green-200 rounded text-sm">
-                  <div className="flex items-center gap-2 text-green-800">
-                    <CheckCircle className="h-4 w-4" />
-                    <span className="font-medium">Order fully paid - no further payment required</span>
-                  </div>
-                </div>
-
-                {hasPaymentLink && (
-                  <div className="text-xs text-gray-500">
-                    <span>Payment link: </span>
-                    <span className="font-mono break-all">{paymentLinkUrl}</span>
-                  </div>
+          <Collapsible open={isPaymentSectionOpen} onOpenChange={setIsPaymentSectionOpen}>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" className="w-full justify-between p-0 h-auto hover:bg-transparent">
+                <h4 className="font-medium flex items-center gap-2">
+                  <CreditCard className="h-4 w-4" />
+                  {order.payment_status === "paid" ? "Payment Details" : "Payment Link"}
+                </h4>
+                {isPaymentSectionOpen ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
                 )}
-              </div>
-            ) : (
+              </Button>
+            </CollapsibleTrigger>
+
+            <CollapsibleContent className="space-y-3 pt-3">
+              {order.payment_status === "paid" ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-sm text-green-600">
+                    <CheckCircle className="h-4 w-4" />
+                    <span className="font-medium">Payment received successfully</span>
+                    {order.paid_at && <span className="text-gray-500">on {formatDate(order.paid_at)}</span>}
+                  </div>
+
+                  {hasPaymentLink && (
+                    <div className="text-xs text-gray-500">
+                      <span>Payment link: </span>
+                      <span className="font-mono break-all">{paymentLinkUrl}</span>
+                    </div>
+                  )}
+
+                  {/* Resend Receipt Button */}
+                  <Button
+                    onClick={handleResendReceipt}
+                    disabled={loading !== null}
+                    className="w-full"
+                    variant="outline"
+                  >
+                    {loading === "resend_receipt" ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Mail className="h-4 w-4 mr-2" />
+                    )}
+                    Resend Payment Receipt
+                  </Button>
+                </div>
+              ) : (
               <>
                 {!hasPaymentLink ? (
                   <Button
@@ -286,7 +366,8 @@ export function EnhancedOrderActions({ order, onOrderUpdate }: OrderActionsProps
                 )}
               </>
             )}
-          </div>
+            </CollapsibleContent>
+          </Collapsible>
 
           {/* Webhook Diagnostics */}
           
@@ -363,6 +444,72 @@ export function EnhancedOrderActions({ order, onOrderUpdate }: OrderActionsProps
               </Dialog>
             </div>
           </div>
+
+          {/* Order Status Management */}
+          {order.payment_status === "paid" && (
+            <div className="border-t pt-4">
+              <h4 className="font-medium mb-3 flex items-center gap-2">
+                <Package className="h-4 w-4" />
+                Order Status
+              </h4>
+              <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    onClick={() => handleStatusUpdate("confirmed")}
+                    disabled={loading !== null || order.status === "confirmed"}
+                    variant={order.status === "confirmed" ? "default" : "outline"}
+                    className="w-full text-sm"
+                  >
+                    {loading === "status_confirmed" ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                    )}
+                    Confirmed
+                  </Button>
+                  <Button
+                    onClick={() => handleStatusUpdate("en_route")}
+                    disabled={loading !== null || order.status === "en_route"}
+                    variant={order.status === "en_route" ? "default" : "outline"}
+                    className="w-full text-sm"
+                  >
+                    {loading === "status_en_route" ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Truck className="h-4 w-4 mr-2" />
+                    )}
+                    En Route
+                  </Button>
+                  <Button
+                    onClick={() => handleStatusUpdate("out_for_delivery")}
+                    disabled={loading !== null || order.status === "out_for_delivery"}
+                    variant={order.status === "out_for_delivery" ? "default" : "outline"}
+                    className="w-full text-sm"
+                  >
+                    {loading === "status_out_for_delivery" ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <MapPin className="h-4 w-4 mr-2" />
+                    )}
+                    Out For Delivery
+                  </Button>
+                  <Button
+                    onClick={() => handleStatusUpdate("delivered")}
+                    disabled={loading !== null || order.status === "delivered"}
+                    variant={order.status === "delivered" ? "default" : "outline"}
+                    className="w-full text-sm"
+                  >
+                    {loading === "status_delivered" ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <CheckCheck className="h-4 w-4 mr-2" />
+                    )}
+                    Delivered
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Tracking Information */}
 

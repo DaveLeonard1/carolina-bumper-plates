@@ -170,8 +170,19 @@ export default function AdminOrdersPage() {
       case "invoiced":
         return "bg-blue-100 text-blue-800 border-blue-200"
       case "paid":
-      case "completed":
         return "bg-green-100 text-green-800 border-green-200"
+      case "confirmed":
+        return "bg-emerald-100 text-emerald-800 border-emerald-200"
+      case "en_route":
+      case "en route":
+        return "bg-cyan-100 text-cyan-800 border-cyan-200"
+      case "out_for_delivery":
+      case "out for delivery":
+        return "bg-purple-100 text-purple-800 border-purple-200"
+      case "delivered":
+        return "bg-green-600 text-white border-green-700"
+      case "completed":
+        return "bg-gray-600 text-white border-gray-700"
       case "cancelled":
         return "bg-red-100 text-red-800 border-red-200"
       default:
@@ -390,9 +401,13 @@ export default function AdminOrdersPage() {
                       <TableCell>
                         {/* Update the status badge in the table to show payment status priority */}
                         <Badge className={getStatusColor(order.status, order.payment_status)}>
-                          {order.payment_status === "paid"
+                          {order.payment_status === "paid" && order.status === "paid"
                             ? "PAID"
-                            : order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                            : order.status
+                                .replace(/_/g, " ")
+                                .split(" ")
+                                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                                .join(" ")}
                         </Badge>
                       </TableCell>
                       <TableCell>{order.total_weight || 0} lbs</TableCell>
@@ -431,8 +446,7 @@ export default function AdminOrdersPage() {
               Create Payment Links for Unpaid Orders
             </DialogTitle>
             <DialogDescription>
-              This will create payment links for all orders with pending or unpaid status. Orders that already have
-              payment links will be skipped.
+              This will create payment links for all orders with pending or unpaid status and send payment link emails to customers. Orders that already have payment links will be skipped.
             </DialogDescription>
           </DialogHeader>
 

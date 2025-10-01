@@ -20,7 +20,17 @@ export interface SendEmailParams {
 
 export async function sendEmail({ to, subject, html, text }: SendEmailParams) {
   try {
-    console.log('📧 Sending email via Mailgun:', { to, subject, domain: MAILGUN_DOMAIN })
+    console.log('📧 Sending email via Mailgun:', { 
+      to, 
+      subject, 
+      domain: MAILGUN_DOMAIN,
+      from: FROM_EMAIL,
+      hasApiKey: !!process.env.MAILGUN_API_KEY
+    })
+
+    if (!process.env.MAILGUN_API_KEY) {
+      throw new Error('MAILGUN_API_KEY is not configured')
+    }
 
     const result = await mg.messages.create(MAILGUN_DOMAIN, {
       from: FROM_EMAIL,
@@ -33,7 +43,13 @@ export async function sendEmail({ to, subject, html, text }: SendEmailParams) {
     console.log('✅ Email sent successfully:', result)
     return { success: true, messageId: result.id }
   } catch (error) {
-    console.error('❌ Failed to send email:', error)
+    console.error('❌ Failed to send email:', {
+      error,
+      errorMessage: error instanceof Error ? error.message : 'Unknown error',
+      errorStack: error instanceof Error ? error.stack : undefined,
+      recipient: to,
+      domain: MAILGUN_DOMAIN
+    })
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',

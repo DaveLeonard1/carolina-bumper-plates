@@ -5,7 +5,25 @@ interface PaymentReceiptEmailParams {
   orderNumber: string
   orderTotal: number
   paidAt: string
-  orderItems?: Array<{ weight: number; quantity: number; price: number }>
+  orderItems?: Array<{ weight: number; quantity: number; price: number; title?: string }>
+  shippingAddress?: {
+    line1: string
+    line2?: string
+    city: string
+    state: string
+    postal_code: string
+  }
+  billingAddress?: {
+    line1: string
+    line2?: string
+    city: string
+    state: string
+    postal_code: string
+  }
+  paymentMethod?: {
+    last4?: string
+    brand?: string
+  }
 }
 
 export function generatePaymentReceiptEmail({
@@ -14,9 +32,17 @@ export function generatePaymentReceiptEmail({
   orderTotal,
   paidAt,
   orderItems = [],
+  shippingAddress,
+  billingAddress,
+  paymentMethod,
 }: PaymentReceiptEmailParams): { subject: string; html: string } {
   const subject = `Payment Received - Order ${orderNumber} | The Plate Yard`
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+  
+  const formatAddress = (addr?: any) => {
+    if (!addr) return 'N/A'
+    return `${addr.line1}${addr.line2 ? `, ${addr.line2}` : ''}<br>${addr.city}, ${addr.state} ${addr.postal_code}`
+  }
 
   const html = `
 <!DOCTYPE html>
@@ -55,19 +81,89 @@ export function generatePaymentReceiptEmail({
                 We've received your payment and your order is confirmed! Your bumper plates will be delivered within 2-3 weeks.
               </p>
 
+              <!-- Order Number Box -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin: 20px 0;">
+                <tr>
+                  <td style="background-color: #f8f8f8; padding: 20px; border-left: 4px solid ${colorUsage.accent}; border-radius: 4px;">
+                    <p style="margin: 0 0 5px 0; color: #999; font-size: 12px; text-transform: uppercase;">Order Number</p>
+                    <p style="margin: 0; color: #333; font-size: 24px; font-weight: bold; font-family: 'Oswald', Arial, sans-serif;">
+                      ${orderNumber}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              ${orderItems.length > 0 ? `
+              <!-- Order Items -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin: 20px 0;">
+                <tr>
+                  <td>
+                    <h3 style="margin: 0 0 15px 0; color: #333; font-size: 18px;">Order Summary</h3>
+                  </td>
+                </tr>
+                ${orderItems.map(item => `
+                <tr>
+                  <td style="padding: 10px 0; border-bottom: 1px solid #eee;">
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="color: #333; font-size: 16px;">
+                          ${item.title || `${item.weight}lb Bumper Plate`} × ${item.quantity}
+                        </td>
+                        <td align="right" style="color: #333; font-size: 16px; font-weight: bold;">
+                          $${(item.price * item.quantity).toFixed(2)}
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                `).join('')}
+                <tr>
+                  <td style="padding: 15px 0;">
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="color: #333; font-size: 18px; font-weight: bold;">
+                          Total Paid
+                        </td>
+                        <td align="right" style="color: ${colorUsage.accent}; font-size: 24px; font-weight: bold;">
+                          $${orderTotal.toFixed(2)}
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              ` : `
               <!-- Payment Confirmed Badge -->
               <table width="100%" cellpadding="0" cellspacing="0" style="margin: 20px 0;">
                 <tr>
                   <td style="background-color: #e8f5e9; padding: 20px; border-radius: 4px; border-left: 4px solid #4caf50;">
                     <table width="100%" cellpadding="0" cellspacing="0">
                       <tr>
-                        <td style="color: #333; font-size: 16px;">Order ${orderNumber}</td>
+                        <td style="color: #333; font-size: 16px;">Total Paid</td>
                         <td align="right" style="color: #4caf50; font-size: 24px; font-weight: bold;">
                           $${orderTotal.toFixed(2)}
                         </td>
                       </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              `}
+
+              <!-- Payment Details -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin: 20px 0;">
+                <tr>
+                  <td style="background-color: #e8f5e9; padding: 20px; border-radius: 4px; border-left: 4px solid #4caf50;">
+                    <table width="100%" cellpadding="0" cellspacing="0">
                       <tr>
-                        <td colspan="2" style="color: #666; font-size: 14px; padding-top: 10px;">
+                        <td style="color: #333; font-size: 16px;">
+                          ${paymentMethod?.brand && paymentMethod?.last4 
+                            ? `${paymentMethod.brand.charAt(0).toUpperCase() + paymentMethod.brand.slice(1)} ending in ${paymentMethod.last4}` 
+                            : 'Payment Received'}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="color: #666; font-size: 14px; padding-top: 10px;">
                           Paid on ${new Date(paidAt).toLocaleDateString('en-US', { 
                             year: 'numeric', 
                             month: 'long', 
@@ -79,6 +175,47 @@ export function generatePaymentReceiptEmail({
                   </td>
                 </tr>
               </table>
+
+              ${shippingAddress || billingAddress ? `
+              <!-- Addresses -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin: 20px 0;">
+                <tr>
+                  <td>
+                    <h3 style="margin: 0 0 15px 0; color: #333; font-size: 18px;">Delivery Information</h3>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                      ${shippingAddress ? `
+                      <tr>
+                        <td style="padding: 10px 0; vertical-align: top; width: 50%;">
+                          <p style="margin: 0 0 5px 0; color: #999; font-size: 12px; text-transform: uppercase; font-weight: bold;">
+                            Shipping Address
+                          </p>
+                          <p style="margin: 0; color: #666; font-size: 14px; line-height: 1.6;">
+                            ${formatAddress(shippingAddress)}
+                          </p>
+                        </td>
+                      </tr>
+                      ` : ''}
+                      ${billingAddress ? `
+                      <tr>
+                        <td style="padding: 10px 0; vertical-align: top; width: 50%;">
+                          <p style="margin: 0 0 5px 0; color: #999; font-size: 12px; text-transform: uppercase; font-weight: bold;">
+                            Billing Address
+                          </p>
+                          <p style="margin: 0; color: #666; font-size: 14px; line-height: 1.6;">
+                            ${formatAddress(billingAddress)}
+                          </p>
+                        </td>
+                      </tr>
+                      ` : ''}
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              ` : ''}
 
               <!-- CTA Button -->
               <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">

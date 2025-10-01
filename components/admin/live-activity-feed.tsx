@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { ShoppingCart, User, Clock } from "lucide-react"
+import { ShoppingCart, User, Clock, Package, DollarSign, Activity, Bell } from "lucide-react"
 
 interface ActivityItem {
   id: string
@@ -35,19 +35,38 @@ export function LiveActivityFeed({ activities, lastUpdated }: LiveActivityFeedPr
     switch (status) {
       case "paid":
         return "bg-green-100 text-green-800"
+      case "confirmed":
+        return "bg-emerald-100 text-emerald-800"
+      case "en_route":
+      case "en route":
+        return "bg-cyan-100 text-cyan-800"
+      case "out_for_delivery":
+      case "out for delivery":
+        return "bg-purple-100 text-purple-800"
+      case "delivered":
+        return "bg-green-600 text-white"
+      case "completed":
+        return "bg-gray-600 text-white"
       case "pending":
         return "bg-yellow-100 text-yellow-800"
-      case "invoiced":
-        return "bg-blue-100 text-blue-800"
-      case "active":
-        return "bg-green-100 text-green-800"
+      case "cancelled":
+        return "bg-red-100 text-red-800"
       default:
         return "bg-gray-100 text-gray-800"
     }
   }
 
   const getIcon = (type: string) => {
-    return type === "order" ? ShoppingCart : User
+    switch (type) {
+      case "order":
+        return Package
+      case "payment":
+        return DollarSign
+      case "status":
+        return Activity
+      default:
+        return Bell
+    }
   }
 
   return (

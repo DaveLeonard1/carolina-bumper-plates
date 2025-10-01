@@ -1,6 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createSupabaseAdmin } from "@/lib/supabase"
 import { getStripe } from "@/lib/stripe"
+import { sendEmail } from "@/lib/email/mailgun"
+import { generatePaymentLinkEmail } from "@/lib/email/templates"
 
 interface BulkPaymentLinkResult {
   orderId: string
@@ -388,6 +390,68 @@ async function createPaymentLinkForOrder(orderId: string, supabase: any, stripe:
       })
     } catch (timelineError) {
       console.error("WARNING: Failed to add timeline event:", timelineError)
+    }
+
+    // Send payment link email to customer
+    try {
+      const emailTemplate = generatePaymentLinkEmail({
+        customerName: `${customerData.first_name} ${customerData.last_name}`,
+        orderNumber: order.order_number,
+        paymentUrl: session.url,
+        orderTotal: order.subtotal || 0,
+        orderItems: orderItems.map((item: any) => ({
+          weight: item.weight,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+      })
+
+      const emailResult = await sendEmail({
+        to: customerData.email,
+        subject: emailTemplate.subject,
+        html: emailTemplate.html,
+      })
+
+      if (emailResult.success) {
+        // Add timeline event for email sent
+        try {
+          await supabase.from("order_timeline").insert({
+            order_id: orderId,
+            event_type: "email_sent",
+            event_description: "Payment link email sent to customer (bulk)",
+            event_data: {
+              email_type: "payment_link",
+              recipient: customerData.email,
+              message_id: emailResult.messageId,
+              bulk_operation: true,
+            },
+            created_by: "admin",
+          })
+        } catch (timelineError) {
+          console.warn("Failed to add email timeline event:", timelineError)
+        }
+      } else {
+        console.error("Failed to send payment link email:", emailResult.error)
+        // Add timeline event for failed email
+        try {
+          await supabase.from("order_timeline").insert({
+            order_id: orderId,
+            event_type: "email_failed",
+            event_description: "Failed to send payment link email (bulk)",
+            event_data: {
+              email_type: "payment_link",
+              recipient: customerData.email,
+              error: emailResult.error,
+              bulk_operation: true,
+            },
+            created_by: "admin",
+          })
+        } catch (timelineError) {
+          console.warn("Failed to add email failure timeline event:", timelineError)
+        }
+      }
+    } catch (emailError) {
+      console.error("Email sending error:", emailError)
     }
 
     return {
