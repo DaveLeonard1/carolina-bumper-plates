@@ -62,83 +62,114 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Welcome Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold mb-2" style={{ fontFamily: "Oswald, sans-serif" }}>
-            Admin Dashboard
-          </h1>
-          <div className="flex items-center gap-4">
-            <p style={{ color: colorUsage.textMuted }}>Manage orders, customers, and products</p>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm" style={{ color: colorUsage.textMuted }}>
-                Live data • Auto-refresh every 30s
-              </span>
+    <div className="bg-gray-50">
+      {/* Page Header */}
+      <div className="px-4 py-16 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1
+                className="text-4xl md:text-5xl font-black mb-4"
+                style={{ fontFamily: "Oswald, sans-serif", color: "#1a1a1a" }}
+              >
+                ADMIN DASHBOARD
+              </h1>
+              <div className="flex items-center gap-4">
+                <p className="text-xl" style={{ color: "#1a1a1a" }}>
+                  Manage orders, customers, and products
+                </p>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-[#B9FF16] rounded-full animate-pulse"></div>
+                  <span className="text-sm text-gray-600">Live data • Auto-refresh every 30s</span>
+                </div>
+              </div>
             </div>
+            <Button
+              onClick={refresh}
+              className="border-2 border-black font-bold bg-transparent hover:bg-gray-100 text-black"
+              variant="outline"
+              disabled={loading}
+            >
+              {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+              REFRESH
+            </Button>
           </div>
         </div>
-        <Button onClick={refresh} variant="outline" disabled={loading}>
-          {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
-          Refresh
-        </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics.totalOrders}</div>
-            <p className="text-xs text-muted-foreground">
-              {metrics.recentOrders} in last 7 days
-            </p>
-          </CardContent>
-        </Card>
+      {/* Main Content */}
+      <div className="px-4 py-8">
+        <div className="max-w-6xl mx-auto space-y-6">
+          {/* Stats Cards */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="bg-white rounded-lg border-2 border-black overflow-hidden">
+              <div className="bg-black text-white p-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-black" style={{ fontFamily: "Oswald, sans-serif" }}>
+                    TOTAL ORDERS
+                  </h3>
+                  <ShoppingCart className="h-5 w-5" />
+                </div>
+              </div>
+              <div className="p-4">
+                <div className="text-3xl font-black mb-1" style={{ fontFamily: "Oswald, sans-serif" }}>
+                  {metrics.totalOrders}
+                </div>
+                <p className="text-xs text-gray-600">{metrics.recentOrders} in last 7 days</p>
+              </div>
+            </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Customers</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics.totalCustomers}</div>
-            <p className="text-xs text-muted-foreground">
-              {metrics.recentCustomers} new this week
-            </p>
-          </CardContent>
-        </Card>
+            <div className="bg-white rounded-lg border-2 border-black overflow-hidden">
+              <div className="bg-black text-white p-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-black" style={{ fontFamily: "Oswald, sans-serif" }}>
+                    TOTAL CUSTOMERS
+                  </h3>
+                  <Users className="h-5 w-5" />
+                </div>
+              </div>
+              <div className="p-4">
+                <div className="text-3xl font-black mb-1" style={{ fontFamily: "Oswald, sans-serif" }}>
+                  {metrics.totalCustomers}
+                </div>
+                <p className="text-xs text-gray-600">{metrics.recentCustomers} new this week</p>
+              </div>
+            </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Orders</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics.pendingOrders}</div>
-            <p className="text-xs text-muted-foreground">
-              Awaiting payment
-            </p>
-          </CardContent>
-        </Card>
+            <div className="bg-white rounded-lg border-2 border-black overflow-hidden">
+              <div className="bg-black text-white p-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-black" style={{ fontFamily: "Oswald, sans-serif" }}>
+                    PENDING ORDERS
+                  </h3>
+                  <Clock className="h-5 w-5" />
+                </div>
+              </div>
+              <div className="p-4">
+                <div className="text-3xl font-black mb-1" style={{ fontFamily: "Oswald, sans-serif" }}>
+                  {metrics.pendingOrders}
+                </div>
+                <p className="text-xs text-gray-600">Awaiting payment</p>
+              </div>
+            </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(metrics.totalRevenue)}</div>
-            <p className="text-xs text-muted-foreground">
-              From {metrics.paidOrders} paid orders
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+            <div className="bg-white rounded-lg border-2 border-black overflow-hidden">
+              <div className="bg-black text-white p-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-black" style={{ fontFamily: "Oswald, sans-serif" }}>
+                    TOTAL REVENUE
+                  </h3>
+                  <DollarSign className="h-5 w-5" />
+                </div>
+              </div>
+              <div className="p-4">
+                <div className="text-3xl font-black mb-1" style={{ fontFamily: "Oswald, sans-serif" }}>
+                  {formatCurrency(metrics.totalRevenue)}
+                </div>
+                <p className="text-xs text-gray-600">From {metrics.paidOrders} paid orders</p>
+              </div>
+            </div>
+          </div>
 
       {/* Debug Info */}
       {data?.debug && (
@@ -169,89 +200,85 @@ export default function AdminDashboard() {
       {/* Charts */}
       {data?.charts && <DashboardCharts data={data.charts} />}
 
-      {/* Quick Actions */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="border-2 border-black">
-          <CardHeader className="bg-white">
-            <CardTitle className="flex items-center gap-2 font-bold" style={{ fontFamily: "Oswald, sans-serif" }}>
-              <ShoppingCart className="h-5 w-5" />
-              MANAGE ORDERS
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="bg-white">
-            <p className="text-sm mb-4 text-gray-600">
-              View, process, and manage customer orders
-            </p>
-            <Link href="/admin/orders">
-              <Button 
-                className="w-full font-bold border-2 border-black"
-                style={{ 
-                  fontFamily: "Oswald, sans-serif",
-                  backgroundColor: colorUsage.accent,
-                  color: colorUsage.textOnAccent
-                }}
-              >
-                VIEW ORDERS
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+          {/* Quick Actions */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="bg-white rounded-lg border-2 border-black overflow-hidden">
+              <div className="bg-black text-white p-4">
+                <h3 className="text-xl font-black" style={{ fontFamily: "Oswald, sans-serif" }}>
+                  MANAGE ORDERS
+                </h3>
+              </div>
+              <div className="p-6">
+                <div className="flex items-start gap-3 mb-4">
+                  <ShoppingCart className="h-6 w-6 flex-shrink-0" style={{ color: "#B9FF16" }} />
+                  <div>
+                    <p className="text-sm text-gray-600">View, process, and manage customer orders</p>
+                  </div>
+                </div>
+                <Link href="/admin/orders">
+                  <Button
+                    className="w-full font-black"
+                    style={{ backgroundColor: "#B9FF16", color: "#000", fontFamily: "Oswald, sans-serif" }}
+                  >
+                    VIEW ORDERS
+                  </Button>
+                </Link>
+              </div>
+            </div>
 
-        <Card className="border-2 border-black">
-          <CardHeader className="bg-white">
-            <CardTitle className="flex items-center gap-2 font-bold" style={{ fontFamily: "Oswald, sans-serif" }}>
-              <Users className="h-5 w-5" />
-              MANAGE CUSTOMERS
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="bg-white">
-            <p className="text-sm mb-4 text-gray-600">
-              View customer profiles and account information
-            </p>
-            <Link href="/admin/customers">
-              <Button 
-                className="w-full font-bold border-2 border-black"
-                style={{ 
-                  fontFamily: "Oswald, sans-serif",
-                  backgroundColor: colorUsage.accent,
-                  color: colorUsage.textOnAccent
-                }}
-              >
-                VIEW CUSTOMERS
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+            <div className="bg-white rounded-lg border-2 border-black overflow-hidden">
+              <div className="bg-black text-white p-4">
+                <h3 className="text-xl font-black" style={{ fontFamily: "Oswald, sans-serif" }}>
+                  MANAGE CUSTOMERS
+                </h3>
+              </div>
+              <div className="p-6">
+                <div className="flex items-start gap-3 mb-4">
+                  <Users className="h-6 w-6 flex-shrink-0" style={{ color: "#B9FF16" }} />
+                  <div>
+                    <p className="text-sm text-gray-600">View customer profiles and account information</p>
+                  </div>
+                </div>
+                <Link href="/admin/customers">
+                  <Button
+                    className="w-full font-black"
+                    style={{ backgroundColor: "#B9FF16", color: "#000", fontFamily: "Oswald, sans-serif" }}
+                  >
+                    VIEW CUSTOMERS
+                  </Button>
+                </Link>
+              </div>
+            </div>
 
-        <Card className="border-2 border-black">
-          <CardHeader className="bg-white">
-            <CardTitle className="flex items-center gap-2 font-bold" style={{ fontFamily: "Oswald, sans-serif" }}>
-              <Package className="h-5 w-5" />
-              MANAGE PRODUCTS
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="bg-white">
-            <p className="text-sm mb-4 text-gray-600">
-              Configure bumper plate inventory and pricing
-            </p>
-            <Link href="/admin/products">
-              <Button 
-                className="w-full font-bold border-2 border-black"
-                style={{ 
-                  fontFamily: "Oswald, sans-serif",
-                  backgroundColor: colorUsage.accent,
-                  color: colorUsage.textOnAccent
-                }}
-              >
-                VIEW PRODUCTS
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+            <div className="bg-white rounded-lg border-2 border-black overflow-hidden">
+              <div className="bg-black text-white p-4">
+                <h3 className="text-xl font-black" style={{ fontFamily: "Oswald, sans-serif" }}>
+                  MANAGE PRODUCTS
+                </h3>
+              </div>
+              <div className="p-6">
+                <div className="flex items-start gap-3 mb-4">
+                  <Package className="h-6 w-6 flex-shrink-0" style={{ color: "#B9FF16" }} />
+                  <div>
+                    <p className="text-sm text-gray-600">Configure bumper plate inventory and pricing</p>
+                  </div>
+                </div>
+                <Link href="/admin/products">
+                  <Button
+                    className="w-full font-black"
+                    style={{ backgroundColor: "#B9FF16", color: "#000", fontFamily: "Oswald, sans-serif" }}
+                  >
+                    VIEW PRODUCTS
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Recent Activity */}
+          {data?.recentActivity && <LiveActivityFeed activities={data.recentActivity} lastUpdated={data.lastUpdated} />}
+        </div>
       </div>
-
-      {/* Recent Activity */}
-      {data?.recentActivity && <LiveActivityFeed activities={data.recentActivity} lastUpdated={data.lastUpdated} />}
     </div>
   )
 }

@@ -1,9 +1,5 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts"
-import { colorUsage } from "@/lib/colors"
-
 interface ChartData {
   dailyRevenue: Array<{
     date: string
@@ -17,66 +13,73 @@ interface DashboardChartsProps {
 }
 
 export function DashboardCharts({ data }: DashboardChartsProps) {
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr)
-    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
-  }
-
-  const formatCurrency = (value: number) => {
-    return `$${value.toFixed(2)}`
-  }
-
   return (
     <div className="grid gap-4 md:grid-cols-2">
       {/* Revenue Chart */}
-      <Card className="bg-black text-white border-0">
-        <CardHeader style={{ backgroundColor: colorUsage.accent }}>
-          <CardTitle className="font-bold" style={{ fontFamily: "Oswald, sans-serif", color: colorUsage.textOnAccent }}>
-            DAILY REVENUE (30 DAYS)
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-6">
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={data.dailyRevenue}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" tickFormatter={formatDate} tick={{ fontSize: 12 }} />
-              <YAxis tickFormatter={formatCurrency} tick={{ fontSize: 12 }} />
-              <Tooltip
-                labelFormatter={(label) => formatDate(label)}
-                formatter={(value: number) => [formatCurrency(value), "Revenue"]}
-              />
-              <Line
-                type="monotone"
-                dataKey="revenue"
-                stroke={colorUsage.accent}
-                strokeWidth={2}
-                dot={{ fill: colorUsage.accent, strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+      <div className="bg-white rounded-lg border-2 border-black overflow-hidden">
+        <div className="bg-black text-white p-4">
+          <h3 className="text-xl font-black" style={{ fontFamily: "Oswald, sans-serif" }}>
+            DAILY REVENUE ({data.dailyRevenue.length} DAYS)
+          </h3>
+        </div>
+        <div className="p-6">
+          <div className="h-64 flex items-end justify-between gap-2">
+            {data.dailyRevenue.map((day, index) => {
+              const maxRevenue = Math.max(...data.dailyRevenue.map((d) => d.revenue))
+              const height = maxRevenue > 0 ? (day.revenue / maxRevenue) * 100 : 0
+              return (
+                <div key={index} className="flex-1 flex flex-col items-center gap-2">
+                  <div
+                    className="w-full rounded-t transition-all hover:opacity-80 cursor-pointer"
+                    style={{
+                      backgroundColor: "#B9FF16",
+                      height: `${height}%`,
+                      minHeight: "4px",
+                    }}
+                    title={`$${day.revenue.toFixed(2)}`}
+                  />
+                  <span className="text-xs text-gray-500 rotate-45 origin-top-left mt-4">
+                    {new Date(day.date).getDate()}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
 
       {/* Orders Chart */}
-      <Card className="bg-black text-white border-0">
-        <CardHeader style={{ backgroundColor: colorUsage.accent }}>
-          <CardTitle className="font-bold" style={{ fontFamily: "Oswald, sans-serif", color: colorUsage.textOnAccent }}>
-            DAILY ORDERS (30 DAYS)
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-6">
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={data.dailyRevenue}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-              <XAxis dataKey="date" tickFormatter={formatDate} tick={{ fontSize: 12, fill: "#999" }} />
-              <YAxis tick={{ fontSize: 12, fill: "#999" }} />
-              <Tooltip labelFormatter={(label) => formatDate(label)} formatter={(value: number) => [value, "Orders"]} />
-              <Bar dataKey="orders" fill={colorUsage.accent} radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+      <div className="bg-white rounded-lg border-2 border-black overflow-hidden">
+        <div className="bg-black text-white p-4">
+          <h3 className="text-xl font-black" style={{ fontFamily: "Oswald, sans-serif" }}>
+            DAILY ORDERS ({data.dailyRevenue.length} DAYS)
+          </h3>
+        </div>
+        <div className="p-6">
+          <div className="h-64 flex items-end justify-between gap-2">
+            {data.dailyRevenue.map((day, index) => {
+              const maxOrders = Math.max(...data.dailyRevenue.map((d) => d.orders))
+              const height = maxOrders > 0 ? (day.orders / maxOrders) * 100 : 0
+              return (
+                <div key={index} className="flex-1 flex flex-col items-center gap-2">
+                  <div
+                    className="w-full rounded-t transition-all hover:opacity-80 cursor-pointer"
+                    style={{
+                      backgroundColor: "#B9FF16",
+                      height: `${height}%`,
+                      minHeight: "4px",
+                    }}
+                    title={`${day.orders} orders`}
+                  />
+                  <span className="text-xs text-gray-500 rotate-45 origin-top-left mt-4">
+                    {new Date(day.date).getDate()}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
