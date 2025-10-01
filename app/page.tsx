@@ -51,7 +51,7 @@ export default function HomePage() {
       if (qty > 0) {
         subtotal += product.selling_price * qty
         totalSavings += (product.regular_price - product.selling_price) * qty
-        totalWeight += product.weight * qty * 2 // pairs
+        totalWeight += product.weight * qty
         customSet.push({
           id: product.id,
           weight: product.weight,

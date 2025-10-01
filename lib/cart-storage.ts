@@ -1,4 +1,4 @@
-import type { Product } from "@/hooks/use-products"
+import type { Product } from "@/lib/supabase"
 
 const CART_STORAGE_KEY = "carolina-bumper-plates-cart"
 
@@ -31,18 +31,18 @@ export function saveCartToStorage(products: Product[], quantities: Record<number
 
     products.forEach((product) => {
       const quantity = quantities[product.id] || 0
-      console.log(`🔍 Product ${product.id} (${product.name}): quantity=${quantity}, hasQuantity=${quantity > 0}`)
+      console.log(`🔍 Product ${product.id} (${product.title}): quantity=${quantity}, hasQuantity=${quantity > 0}`)
 
       if (quantity > 0) {
-        const productWeight = Number.parseFloat(product.name.split("lb")[0])
-        const pricePerUnit = product.price / 100
+        const productWeight = product.weight
+        const pricePerUnit = product.selling_price
         const totalPrice = quantity * pricePerUnit
-        const totalWeight = quantity * productWeight * 2
+        const totalWeight = quantity * productWeight
         const yourContribution = quantity * 12.5
 
         console.log(`✅ Created cart item:`, {
           productId: product.id,
-          name: product.name,
+          name: product.title,
           weight: productWeight,
           quantity,
           pricePerUnit,
@@ -53,7 +53,7 @@ export function saveCartToStorage(products: Product[], quantities: Record<number
 
         items.push({
           productId: product.id,
-          name: product.name,
+          name: product.title,
           weight: productWeight,
           quantity,
           pricePerUnit,
