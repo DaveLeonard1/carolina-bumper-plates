@@ -6,9 +6,9 @@ import { colorUsage } from "@/lib/colors"
 import { PageLayout } from "@/components/page-layout"
 
 export default function OrderConfirmationPreviewPage() {
-  const orderNumber = "CBP-2024-001"
+  const orderNumber = "PY-1001"
   const order = {
-    order_number: "CBP-2024-001",
+    order_number: "PY-1001",
     customer_name: "John Smith",
     customer_email: "john.smith@example.com",
     customer_phone: "(555) 123-4567",

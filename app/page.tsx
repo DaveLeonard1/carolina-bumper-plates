@@ -326,8 +326,8 @@ export default function HomePage() {
 
                         <Button
                           onClick={handleReservePreorder}
-                          className="w-full mt-6 py-3 font-bold hover:opacity-90 transition-opacity"
-                          style={{ backgroundColor: "#B9FF16", color: "#1a1a1a" }}
+                          className="w-full mt-6 py-3 font-bold hover:opacity-90 transition-opacity border-2"
+                          style={{ backgroundColor: "#B9FF16", color: "#1a1a1a", borderColor: "#B9FF16" }}
                         >
                           Reserve Your Preorder
                         </Button>

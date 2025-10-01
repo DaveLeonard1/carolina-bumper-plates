@@ -28,6 +28,7 @@ import { useAuth } from "@/lib/auth/auth-context"
 import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase/client"
 import { CancelOrderModal } from "@/components/cancel-order-modal"
+import { PageLayout } from "@/components/page-layout"
 
 interface Order {
   id: string
@@ -575,18 +576,11 @@ export default function MyAccountPage() {
   const otherOrders = orders.slice(1)
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: colorUsage.backgroundLight }}>
-      {/* Header */}
-      <header
-        className="border-b px-4 py-4"
-        style={{ backgroundColor: colorUsage.backgroundPrimary, borderColor: colorUsage.border }}
-      >
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <Dumbbell className="h-8 w-8" style={{ color: colorUsage.textPrimary }} />
-            <span className="text-xl font-bold">CAROLINA BUMPER PLATES</span>
-          </Link>
-          <div className="flex items-center gap-4">
+    <PageLayout>
+      <div className="px-4 py-8" style={{ backgroundColor: colorUsage.backgroundLight }}>
+        <div className="max-w-6xl mx-auto">
+          {/* User Info & Sign Out */}
+          <div className="flex items-center justify-end gap-4 mb-4">
             <span className="text-sm" style={{ color: colorUsage.textMuted }}>
               {customer?.name || user.user_metadata?.full_name || user.email}
             </span>
@@ -595,11 +589,6 @@ export default function MyAccountPage() {
               Sign Out
             </Button>
           </div>
-        </div>
-      </header>
-
-      <div className="px-4 py-8">
-        <div className="max-w-6xl mx-auto">
           {/* Page Header */}
           <div className="mb-8">
             <h1 className="text-4xl font-black mb-4" style={{ fontFamily: "Oswald, sans-serif" }}>
@@ -782,7 +771,7 @@ export default function MyAccountPage() {
               <Card className="p-6 rounded-lg border" style={{ backgroundColor: colorUsage.backgroundPrimary }}>
                 <CardContent className="pt-6">
                   <h3 className="text-lg font-bold mb-4">Quick Actions</h3>
-                  <div className="space-y-3">
+                  <div className="flex flex-col gap-4">
                     <Link href="/#configurator">
                       <Button
                         variant="outline"
@@ -1368,7 +1357,6 @@ export default function MyAccountPage() {
           </div>
         </div>
       </div>
-
       {/* Cancel Order Modal */}
       <CancelOrderModal
         isOpen={cancelModalOpen}
@@ -1381,6 +1369,6 @@ export default function MyAccountPage() {
         onCancel={handleConfirmCancellation}
         isLoading={cancellingOrder}
       />
-    </div>
+    </PageLayout>
   )
 }

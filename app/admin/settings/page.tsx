@@ -13,7 +13,7 @@ import { colorUsage } from "@/lib/colors"
 export default function AdminSettingsPage() {
   const [settings, setSettings] = useState({
     // Business Information
-    businessName: "Carolina Bumper Plates",
+    businessName: "The Plate Yard",
     businessEmail: "info@carolinabumperplates.com",
     businessPhone: "(555) 123-4567",
     businessAddress: "123 Fitness St, Charlotte, NC 28202",

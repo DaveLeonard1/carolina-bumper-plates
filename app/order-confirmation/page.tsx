@@ -354,31 +354,6 @@ function OrderConfirmationContent() {
             </CardContent>
           </Card>
 
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/">
-              <Button
-                size="lg"
-                className="font-bold text-lg px-8 py-4 w-full sm:w-auto"
-                style={{
-                  backgroundColor: colorUsage.buttonSecondary,
-                  color: colorUsage.textOnDark,
-                }}
-              >
-                Return to Home
-              </Button>
-            </Link>
-            <Link href={`/order-lookup?order=${orderNumber}`}>
-              <Button
-                variant="outline"
-                size="lg"
-                className="font-bold text-lg px-8 py-4 w-full sm:w-auto bg-transparent"
-              >
-                View Order Status
-              </Button>
-            </Link>
-          </div>
-
           {/* Contact CTA */}
           <div className="text-center p-8 rounded-lg" style={{ backgroundColor: colorUsage.backgroundDark }}>
             <p className="font-bold text-xl mb-3" style={{ color: colorUsage.textOnDark }}>

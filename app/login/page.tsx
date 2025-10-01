@@ -12,6 +12,7 @@ import { colorUsage } from "@/lib/colors"
 import Link from "next/link"
 import { useAuth } from "@/lib/auth/auth-context"
 import { useRouter } from "next/navigation"
+import { PageLayout } from "@/components/page-layout"
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -54,27 +55,8 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: colorUsage.backgroundLight }}>
-      {/* Header */}
-      <header
-        className="border-b px-4 py-4"
-        style={{ backgroundColor: colorUsage.backgroundPrimary, borderColor: colorUsage.border }}
-      >
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Dumbbell className="h-8 w-8" style={{ color: colorUsage.textPrimary }} />
-            <span className="text-xl font-bold">CAROLINA BUMPER PLATES</span>
-          </div>
-          <Link href="/">
-            <Button variant="outline" className="font-semibold">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Home
-            </Button>
-          </Link>
-        </div>
-      </header>
-
-      <div className="px-4 py-8">
+    <PageLayout>
+      <div className="px-4 py-8" style={{ backgroundColor: colorUsage.backgroundLight }}>
         <div className="max-w-md mx-auto">
           <Card className="p-6 rounded-lg border" style={{ backgroundColor: colorUsage.backgroundPrimary }}>
             <CardContent className="pt-6">
@@ -179,6 +161,6 @@ export default function LoginPage() {
           </Card>
         </div>
       </div>
-    </div>
+    </PageLayout>
   )
 }

@@ -4,7 +4,6 @@
   "private": true,
   "scripts": {
     "build": "next build",
-    "predev": "node scripts/pull-env.cjs",
     "dev": "next dev",
     "lint": "next lint",
     "start": "next start"

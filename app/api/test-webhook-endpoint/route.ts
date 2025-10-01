@@ -27,7 +27,7 @@ export async function POST() {
       event_type: "endpoint_test",
       timestamp: new Date().toISOString(),
       test: true,
-      message: "This is a test webhook from Carolina Bumper Plates",
+      message: "This is a test webhook from The Plate Yard",
       order: {
         order_number: "TEST-" + Date.now(),
         customer_email: "test@example.com",

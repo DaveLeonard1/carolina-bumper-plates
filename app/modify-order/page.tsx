@@ -9,10 +9,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Minus, Plus, Dumbbell, AlertCircle, Edit, RefreshCw, Lock } from "lucide-react"
+import { Minus, Plus, Dumbbell, AlertCircle, Edit, RefreshCw, Lock, ArrowLeft } from "lucide-react"
 import { colorUsage } from "@/lib/colors"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
+import { PageLayout } from "@/components/page-layout"
 
 interface Product {
   id: string
@@ -520,57 +521,38 @@ export default function ModifyOrderPage() {
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: colorUsage.backgroundLight }}>
-      {/* Header */}
-      <header
-        className="border-b px-4 py-4"
-        style={{ backgroundColor: colorUsage.backgroundPrimary, borderColor: colorUsage.border }}
-      >
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Dumbbell className="h-8 w-8" style={{ color: colorUsage.textPrimary }} />
-            <span className="text-xl font-bold">CAROLINA BUMPER PLATES</span>
-          </div>
-          <Link href="/">
-            <Button variant="outline" className="font-semibold">
-              Back to Home
-            </Button>
-          </Link>
-        </div>
-      </header>
-
-      <div className="px-4 py-8">
+    <PageLayout>
+      <div className="px-4 py-8" style={{ backgroundColor: colorUsage.backgroundLight }}>
         <div className="max-w-6xl mx-auto">
-          {/* Header */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-4">
-              <Edit className="h-8 w-8" style={{ color: colorUsage.textOnLight }} />
-              <div>
-                <h1 className="text-3xl font-black" style={{ fontFamily: "Oswald, sans-serif" }}>
-                  MODIFY YOUR ORDER
-                </h1>
-                <p style={{ color: colorUsage.textMuted }}>
-                  Order #{orderData.order_number} • Status: {orderData.status}
-                </p>
-              </div>
-            </div>
+          <div className="mb-6">
+            <Link href="/my-account">
+              <Button variant="outline" className="font-semibold bg-transparent">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to My Account
+              </Button>
+            </Link>
           </div>
 
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Left Side - Modification Form */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-2">
               {/* Plate Selection */}
-              <Card className="p-6 rounded-lg border" style={{ backgroundColor: colorUsage.backgroundPrimary }}>
+              <Card className="p-6 rounded-lg border mb-6" style={{ backgroundColor: colorUsage.backgroundPrimary }}>
                 <CardContent className="pt-6">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Edit className="h-6 w-6" style={{ color: colorUsage.textOnLight }} />
+                    <h1 className="text-3xl font-black" style={{ fontFamily: "Oswald, sans-serif" }}>
+                      MODIFY YOUR ORDER
+                    </h1>
+                  </div>
+                  <p className="mb-8" style={{ color: colorUsage.textMuted }}>
+                    Order #{orderData.order_number} • Status: {orderData.status}
+                  </p>
                   <div className="flex items-center justify-between mb-6">
                     <div>
                       <h2 className="text-xl font-bold">Update Your Plate Selection</h2>
                       <p className="text-sm mt-1" style={{ color: colorUsage.textMuted }}>
-                        Products loaded from:{" "}
-                        <strong className={productsSource === "database" ? "text-green-600" : "text-orange-600"}>
-                          {productsSource === "database" ? "Database" : "Fallback"}
-                        </strong>{" "}
-                        • Subtotal: ${isNaN(subtotal) ? "0.00" : subtotal.toFixed(2)}
+                        Adjust quantities below to update your order
                       </p>
                     </div>
                     <Button
@@ -647,10 +629,13 @@ export default function ModifyOrderPage() {
                 </CardContent>
               </Card>
 
-              {/* Contact & Delivery Information - Same as before */}
-              <Card className="p-6 rounded-lg border" style={{ backgroundColor: colorUsage.backgroundPrimary }}>
+              {/* Contact & Delivery Information */}
+              <Card className="p-6 rounded-lg border mb-6" style={{ backgroundColor: colorUsage.backgroundPrimary }}>
                 <CardContent className="pt-6">
-                  <h2 className="text-xl font-bold mb-6">Update Contact & Delivery Information</h2>
+                  <h2 className="text-xl font-bold mb-4">Update Contact & Delivery Information</h2>
+                  <p className="mb-6" style={{ color: colorUsage.textMuted }}>
+                    Update your contact details and delivery address
+                  </p>
 
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid md:grid-cols-2 gap-4">
@@ -793,14 +778,18 @@ export default function ModifyOrderPage() {
                     <Button
                       type="submit"
                       size="lg"
-                      className="w-full font-bold text-lg py-4"
+                      className="w-full font-bold text-lg py-4 mt-6 border-2"
                       disabled={isSubmitting || totalItems === 0 || isNaN(subtotal)}
                       style={{
                         backgroundColor:
                           !isSubmitting && totalItems > 0 && !isNaN(subtotal)
-                            ? colorUsage.buttonSecondary
+                            ? "#B9FF16"
                             : colorUsage.textDisabled,
-                        color: colorUsage.textOnDark,
+                        color: "#1a1a1a",
+                        borderColor:
+                          !isSubmitting && totalItems > 0 && !isNaN(subtotal)
+                            ? "#B9FF16"
+                            : colorUsage.textDisabled,
                       }}
                     >
                       {isSubmitting ? "Saving Changes..." : "Save Order Changes"}
@@ -812,43 +801,43 @@ export default function ModifyOrderPage() {
 
             {/* Right Side - Order Summary */}
             <div className="lg:col-span-1">
-              <Card
-                className="p-6 sticky top-4 rounded-lg border"
-                style={{ backgroundColor: colorUsage.backgroundPrimary }}
-              >
-                <CardContent className="pt-6">
-                  <h3 className="text-xl font-bold mb-6">Order Summary</h3>
+              <div className="space-y-6">
+                <Card className="p-6 rounded-lg border" style={{ backgroundColor: colorUsage.backgroundPrimary }}>
+                  <CardContent className="pt-6">
+                    <h3 className="text-xl font-bold mb-6">Order Summary</h3>
 
-                  {/* Selected Items */}
-                  <div className="space-y-4 mb-6">
-                    {plates
-                      .filter((plate) => plate.quantity > 0)
-                      .map((plate) => {
-                        const platePrice = typeof plate.price === "number" && !isNaN(plate.price) ? plate.price : 0
-                        const plateQuantity =
-                          typeof plate.quantity === "number" && !isNaN(plate.quantity) ? plate.quantity : 0
-                        const itemTotal = platePrice * plateQuantity
+                    {/* Selected Items */}
+                    <div className="space-y-4 mb-6">
+                      {plates
+                        .filter((plate) => plate.quantity > 0)
+                        .map((plate) => {
+                          const platePrice = typeof plate.price === "number" && !isNaN(plate.price) ? plate.price : 0
+                          const plateQuantity =
+                            typeof plate.quantity === "number" && !isNaN(plate.quantity) ? plate.quantity : 0
+                          const itemTotal = platePrice * plateQuantity
 
-                        return (
-                          <div key={plate.id} className="flex justify-between items-start">
-                            <div>
-                              <span className="font-semibold">
-                                {plateQuantity}x {plate.name}
-                              </span>
-                              <div className="text-sm" style={{ color: colorUsage.textMuted }}>
-                                ${platePrice.toFixed(2)} each
+                          return (
+                            <div key={plate.id} className="border-b pb-4 last:border-b-0">
+                              <div className="flex justify-between items-start mb-2">
+                                <div className="flex-1">
+                                  <span className="font-semibold">{plate.name}</span>
+                                  <div className="text-sm mt-1" style={{ color: colorUsage.textMuted }}>
+                                    Quantity: {plateQuantity}
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <span className="font-semibold">${itemTotal.toFixed(2)}</span>
+                                </div>
                               </div>
                             </div>
-                            <span className="font-semibold">${itemTotal.toFixed(2)}</span>
-                          </div>
-                        )
-                      })}
-                    {totalItems === 0 && (
-                      <div className="text-center py-8" style={{ color: colorUsage.textDisabled }}>
-                        No plates selected
-                      </div>
-                    )}
-                  </div>
+                          )
+                        })}
+                      {totalItems === 0 && (
+                        <div className="text-center py-8" style={{ color: colorUsage.textDisabled }}>
+                          No plates selected
+                        </div>
+                      )}
+                    </div>
 
                   {/* Totals */}
                   {totalItems > 0 && !isNaN(subtotal) && (
@@ -878,38 +867,48 @@ export default function ModifyOrderPage() {
                       </div>
 
                       {/* Order Comparison */}
-                      <div className="rounded-lg p-4 mt-4" style={{ backgroundColor: colorUsage.backgroundLight }}>
-                        <div className="text-center">
-                          <p className="font-semibold">Order Comparison</p>
-                          <div className="text-sm mt-2" style={{ color: colorUsage.textMuted }}>
-                            <div className="flex justify-between">
-                              <span>Original:</span>
-                              <span>
-                                ${originalSubtotal.toFixed(2)} ({originalWeight} lbs)
+                      <div
+                        className="relative overflow-hidden rounded-xl p-6 mt-4"
+                        style={{
+                          background: `linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)`,
+                        }}
+                      >
+                        <div className="relative">
+                          <h4 className="text-lg font-bold mb-4" style={{ color: "#ffffff" }}>
+                            Order Comparison
+                          </h4>
+                          <div className="space-y-3">
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm" style={{ color: "#B9FF16" }}>Original</span>
+                              <span className="font-semibold" style={{ color: "#ffffff" }}>
+                                ${originalSubtotal.toFixed(2)} <span className="text-sm font-normal" style={{ color: colorUsage.textMuted }}>({originalWeight} lbs)</span>
                               </span>
                             </div>
-                            <div className="flex justify-between">
-                              <span>Updated:</span>
-                              <span>
-                                ${subtotal.toFixed(2)} ({totalWeight} lbs)
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm" style={{ color: "#B9FF16" }}>Updated</span>
+                              <span className="font-semibold" style={{ color: "#ffffff" }}>
+                                ${subtotal.toFixed(2)} <span className="text-sm font-normal" style={{ color: colorUsage.textMuted }}>({totalWeight} lbs)</span>
                               </span>
                             </div>
-                            <div className="flex justify-between font-semibold mt-2 pt-2 border-t">
-                              <span>Difference:</span>
-                              <span
-                                style={{
-                                  color:
-                                    subtotal > originalSubtotal
-                                      ? "#dc2626"
-                                      : subtotal < originalSubtotal
-                                        ? "#16a34a"
-                                        : colorUsage.textMuted,
-                                }}
-                              >
-                                {subtotal > originalSubtotal && `+$${(subtotal - originalSubtotal).toFixed(2)}`}
-                                {subtotal < originalSubtotal && `-$${(originalSubtotal - subtotal).toFixed(2)}`}
-                                {subtotal === originalSubtotal && "$0.00"}
-                              </span>
+                            <div className="border-t border-gray-700 pt-3">
+                              <div className="flex justify-between items-center">
+                                <span className="text-base font-bold" style={{ color: "#ffffff" }}>Difference</span>
+                                <span
+                                  className="text-xl font-bold"
+                                  style={{
+                                    color:
+                                      subtotal > originalSubtotal
+                                        ? "#dc2626"
+                                        : subtotal < originalSubtotal
+                                          ? "#16a34a"
+                                          : "#B9FF16",
+                                  }}
+                                >
+                                  {subtotal > originalSubtotal && `+$${(subtotal - originalSubtotal).toFixed(2)}`}
+                                  {subtotal < originalSubtotal && `-$${(originalSubtotal - subtotal).toFixed(2)}`}
+                                  {subtotal === originalSubtotal && "$0.00"}
+                                </span>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -918,10 +917,11 @@ export default function ModifyOrderPage() {
                   )}
                 </CardContent>
               </Card>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </PageLayout>
   )
 }

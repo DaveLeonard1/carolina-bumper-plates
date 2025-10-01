@@ -134,7 +134,7 @@ export const createStripeInvoice = async (
         mode: config.mode,
         ...metadata,
       },
-      description: `Invoice for Order #${orderNumber} - Carolina Bumper Plates ${config.mode === "sandbox" ? "(TEST)" : ""}`,
+      description: `Invoice for Order #${orderNumber} - The Plate Yard ${config.mode === "sandbox" ? "(TEST)" : ""}`,
       footer: `Thank you for your business! Questions? Contact us at support@carolinabumperplates.com ${config.mode === "sandbox" ? "(TEST MODE)" : ""}`,
     }
 

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import { CheckCircle, Dumbbell, Package, Calendar, Mail } from "lucide-react"
 import { colorUsage } from "@/lib/colors"
 import Link from "next/link"
+import { PageLayout } from "@/components/page-layout"
 
 interface OrderConfirmationFallbackPageProps {
   searchParams: {
@@ -37,26 +38,8 @@ export default function OrderConfirmationFallbackPage({ searchParams }: OrderCon
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: colorUsage.backgroundLight }}>
-      {/* Header */}
-      <header
-        className="border-b px-4 py-4"
-        style={{ backgroundColor: colorUsage.backgroundPrimary, borderColor: colorUsage.border }}
-      >
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Dumbbell className="h-8 w-8" style={{ color: colorUsage.textPrimary }} />
-            <span className="text-xl font-bold">CAROLINA BUMPER PLATES</span>
-          </div>
-          <Link href="/">
-            <Button variant="outline" className="font-semibold">
-              Return Home
-            </Button>
-          </Link>
-        </div>
-      </header>
-
-      <div className="px-4 py-8">
+    <PageLayout>
+      <div className="px-4 py-8" style={{ backgroundColor: colorUsage.backgroundLight }}>
         <div className="max-w-4xl mx-auto">
           {/* Success Header */}
           <div className="text-center mb-8">
@@ -199,6 +182,6 @@ export default function OrderConfirmationFallbackPage({ searchParams }: OrderCon
           </div>
         </div>
       </div>
-    </div>
+    </PageLayout>
   )
 }

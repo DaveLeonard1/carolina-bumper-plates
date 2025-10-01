@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
         timestamp: new Date().toISOString(),
         order: {
           id: "test-order-id",
-          order_number: "CBP-TEST-001",
+          order_number: "PY-TEST-001",
           status: "pending",
           payment_link_url: "https://checkout.stripe.com/test",
           total_amount: 299.99,
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
         timestamp: new Date().toISOString(),
         order: {
           id: "test-order-id",
-          order_number: "CBP-TEST-001",
+          order_number: "PY-TEST-001",
           status: "paid",
           payment_status: "paid",
           paid_at: new Date().toISOString(),

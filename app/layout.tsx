@@ -7,7 +7,7 @@ import { AuthProvider } from "@/lib/auth/auth-context"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Carolina Bumper Plates - Official Hi-Temp Factory Seconds",
+  title: "The Plate Yard - Official Hi-Temp Factory Seconds",
   description:
     "USA-made Hi-Temp bumper plates with minor cosmetic blemishes at wholesale prices. Pre-order now, pay when ready.",
   generator: "v0.dev",

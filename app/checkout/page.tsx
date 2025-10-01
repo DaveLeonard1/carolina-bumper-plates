@@ -756,11 +756,12 @@ export default function CheckoutPage() {
                       <Button
                         type="submit"
                         size="lg"
-                        className="w-full font-bold text-lg py-4 mt-6"
+                        className="w-full font-bold text-lg py-4 mt-6 border-2"
                         disabled={!isFormValid || isSubmitting}
                         style={{
                           backgroundColor: buttonBackgroundColor,
                           color: "#1a1a1a",
+                          borderColor: isFormValid && !isSubmitting ? "#B9FF16" : colorUsage.textDisabled,
                         }}
                       >
                         {isSubmitting ? "Processing..." : "Complete Preorder Reservation"}
@@ -861,7 +862,7 @@ export default function CheckoutPage() {
                           </div>
                         </div>
                         <p className="text-sm" style={{ color: "#a0a0a0" }}>
-                          Bringing us closer to the 10,000 lb goal
+                          Bringing us closer to our goal
                         </p>
                       </div>
                     </div>

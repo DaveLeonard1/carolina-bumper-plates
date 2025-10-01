@@ -70,7 +70,7 @@ export default function AdminDashboard() {
             Admin Dashboard
           </h1>
           <div className="flex items-center gap-4">
-            <p style={{ color: colorUsage.textMuted }}>Welcome to the Carolina Bumper Plates admin panel</p>
+            <p style={{ color: colorUsage.textMuted }}>Welcome to The Plate Yard admin panel</p>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
               <span className="text-sm" style={{ color: colorUsage.textMuted }}>

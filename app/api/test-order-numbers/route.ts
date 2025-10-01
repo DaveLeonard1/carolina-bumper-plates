@@ -81,10 +81,10 @@ export async function GET() {
       testResults: results,
       recentOrders: recentOrders || [],
       orderNumberFormat: {
-        prefix: "CBP-",
+        prefix: "PY-",
         digits: 4,
-        examples: ["CBP-1000", "CBP-1001", "CBP-1234"],
-        description: "Carolina Bumper Plates + 4-digit sequential number",
+        examples: ["PY-1000", "PY-1001", "PY-1234"],
+        description: "The Plate Yard + 4-digit sequential number",
       },
     })
   } catch (error) {

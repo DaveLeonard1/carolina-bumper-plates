@@ -436,7 +436,7 @@ export class StripeInvoiceDebugger {
         auto_advance: false, // Don't auto-finalize for debugging
         collection_method: "send_invoice",
         days_until_due: 30,
-        description: `Invoice for Order ${order.order_number} - Carolina Bumper Plates`,
+        description: `Invoice for Order ${order.order_number} - The Plate Yard`,
         metadata: {
           order_id: order.id.toString(),
           order_number: order.order_number,

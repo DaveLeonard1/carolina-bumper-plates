@@ -186,7 +186,7 @@ export async function createStripeInvoiceForOrder(
         is_reinvoice: isReinvoice.toString(),
         total_weight: order.total_weight.toString(),
       },
-      description: `${isReinvoice ? "Re-invoice for" : "Invoice for"} Order #${order.order_number} - Carolina Bumper Plates`,
+      description: `${isReinvoice ? "Re-invoice for" : "Invoice for"} Order #${order.order_number} - The Plate Yard`,
       footer: `Thank you for your business! Questions? Contact us at support@carolinabumperplates.com`,
     }
 
