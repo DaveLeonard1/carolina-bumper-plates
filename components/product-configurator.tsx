@@ -7,6 +7,7 @@ import { Minus, Plus, RefreshCw, ChevronDown, ChevronUp, ShoppingCart } from "lu
 import { colorUsage } from "@/lib/colors"
 import { useProducts } from "@/hooks/use-products"
 import { saveCartToStorage } from "@/lib/cart-storage"
+import { ProductCard } from "@/components/ui/product-card"
 
 export default function ProductConfigurator() {
   const { products, loading, error, refresh, lastFetch } = useProducts()
@@ -228,73 +229,17 @@ export default function ProductConfigurator() {
                   return (
                     <div key={product.id}>
                       {/* Mobile Card Layout */}
-                      <div className="md:hidden">
-                        <div className="rounded-xl overflow-hidden border border-gray-200 shadow-sm bg-white">
-                          {/* Product name header - spans full width */}
-                          <div className="bg-black text-white px-4 py-3">
-                            <h3 className="font-bold text-base uppercase tracking-wide">{product.title}</h3>
-                          </div>
-
-                          <div className="flex">
-                            {/* Product image - edge-to-edge on left */}
-                            <div className="w-24 flex-shrink-0 bg-gray-50">
-                              {product.image_url ? (
-                                <img 
-                                  src={product.image_url} 
-                                  alt={product.title} 
-                                  className="w-full h-full object-cover" 
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
-                                  <span className="text-2xl">🏋️</span>
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Content on the right with padding */}
-                            <div className="flex-1 flex flex-col min-w-0 p-3">
-                              <div className="flex items-center justify-between mb-2">
-                                <div>
-                                  <div>
-                                    <span className="text-2xl font-bold">${product.selling_price}</span>
-                                    <span className="text-sm text-muted-foreground line-through ml-2">
-                                      ${product.regular_price}
-                                    </span>
-                                  </div>
-                                </div>
-
-                                {/* Quantity controls */}
-                                <div className="flex items-center gap-2">
-                                  <Button
-                                    variant="outline"
-                                    size="icon"
-                                    className="h-9 w-9 rounded border-gray-300 hover:border-gray-400 hover:bg-gray-50 bg-white"
-                                    onClick={() => updateQuantity(product.id, -1)}
-                                    disabled={itemQuantity === 0}
-                                  >
-                                    <Minus className="h-3.5 w-3.5" />
-                                  </Button>
-                                  <span className="text-lg font-bold w-8 text-center tabular-nums">
-                                    {itemQuantity}
-                                  </span>
-                                  <Button
-                                    size="icon"
-                                    className="h-9 w-9 rounded bg-white hover:bg-[#B9FF16] text-black border border-gray-300 hover:border-[#B9FF16]"
-                                    onClick={() => updateQuantity(product.id, 1)}
-                                  >
-                                    <Plus className="h-3.5 w-3.5" />
-                                  </Button>
-                                </div>
-                              </div>
-                              
-                              {/* Savings info below price and quantity */}
-                              <div className="text-sm text-gray-400">
-                                Save ${savings.toFixed(2)} ({savingsPercent}% off)
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                      <ProductCard
+                        title={product.title}
+                        price={product.selling_price}
+                        regularPrice={product.regular_price}
+                        quantity={itemQuantity}
+                        onDecrease={() => updateQuantity(product.id, -1)}
+                        onIncrease={() => updateQuantity(product.id, 1)}
+                        decreaseDisabled={itemQuantity === 0}
+                        imageUrl={product.image_url}
+                        metadata={`Save $${savings.toFixed(2)} (${savingsPercent}% off)`}
+                      />
 
                       {/* Desktop Table Row */}
                       <div className="hidden md:grid md:grid-cols-[2fr_1fr_1fr_1.5fr] gap-4 md:items-center pb-3 border-b last:border-b-0">

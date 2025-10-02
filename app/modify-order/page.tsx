@@ -14,6 +14,7 @@ import { colorUsage } from "@/lib/colors"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { PageLayout } from "@/components/page-layout"
+import { ProductCard } from "@/components/ui/product-card"
 
 interface Product {
   id: string
@@ -606,67 +607,18 @@ export default function ModifyOrderPage() {
                               <span className="font-semibold">${itemSubtotal.toFixed(2)}</span>
                             </div>
 
-                            {/* Mobile Layout - Homepage Style */}
-                            <div className="md:hidden">
-                              <div className="rounded-xl overflow-hidden border border-gray-200 shadow-sm bg-white mb-4">
-                                {/* Product name header - spans full width */}
-                                <div className="bg-black text-white px-4 py-3">
-                                  <h3 className="font-bold text-base uppercase tracking-wide">{plate.name}</h3>
-                                </div>
-
-                                <div className="flex">
-                                  {/* Product image placeholder - edge-to-edge on left */}
-                                  <div className="w-24 flex-shrink-0 bg-gray-50">
-                                    <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
-                                      <span className="text-2xl">🏋️</span>
-                                    </div>
-                                  </div>
-
-                                  {/* Content on the right with padding */}
-                                  <div className="flex-1 flex flex-col min-w-0 p-3">
-                                    <div className="flex items-center justify-between mb-2">
-                                      <div>
-                                        <div>
-                                          <span className="text-2xl font-bold">${platePrice.toFixed(2)}</span>
-                                          <span className="text-sm text-muted-foreground ml-2">
-                                            {plate.weight} lbs (pair)
-                                          </span>
-                                        </div>
-                                      </div>
-
-                                      {/* Quantity controls */}
-                                      <div className="flex items-center gap-2">
-                                        <Button
-                                          variant="outline"
-                                          size="icon"
-                                          className="h-9 w-9 rounded border-gray-300 hover:border-gray-400 hover:bg-gray-50 bg-white"
-                                          onClick={() => updateQuantity(index, -1)}
-                                          disabled={plateQuantity === 0 || !plate.available}
-                                        >
-                                          <Minus className="h-3.5 w-3.5" />
-                                        </Button>
-                                        <span className="text-lg font-bold w-8 text-center tabular-nums">
-                                          {plateQuantity}
-                                        </span>
-                                        <Button
-                                          size="icon"
-                                          className="h-9 w-9 rounded bg-white hover:bg-[#B9FF16] text-black border border-gray-300 hover:border-[#B9FF16]"
-                                          onClick={() => updateQuantity(index, 1)}
-                                          disabled={!plate.available}
-                                        >
-                                          <Plus className="h-3.5 w-3.5" />
-                                        </Button>
-                                      </div>
-                                    </div>
-                                    
-                                    {/* Subtotal below price and quantity */}
-                                    <div className="text-sm text-gray-400">
-                                      Subtotal: ${itemSubtotal.toFixed(2)}
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
+                            {/* Mobile Layout - Using ProductCard */}
+                            <ProductCard
+                              title={plate.name}
+                              price={platePrice}
+                              quantity={plateQuantity}
+                              onDecrease={() => updateQuantity(index, -1)}
+                              onIncrease={() => updateQuantity(index, 1)}
+                              decreaseDisabled={plateQuantity === 0 || !plate.available}
+                              disabled={!plate.available}
+                              metadata={`${plate.weight} lbs (pair)`}
+                              subtotalText={`Subtotal: $${itemSubtotal.toFixed(2)}`}
+                            />
                           </div>
                         )
                       })}
