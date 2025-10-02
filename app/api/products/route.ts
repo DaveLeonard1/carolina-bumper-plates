@@ -81,6 +81,7 @@ export async function GET() {
       available: Boolean(product.available),
       created_at: product.created_at || "",
       updated_at: product.updated_at || "",
+      image_url: product.image_url || null,
       // Add fields for modify-order compatibility
       name: product.title || `${product.weight} lb Bumper Plates`,
       price: Number(product.selling_price) || 0,

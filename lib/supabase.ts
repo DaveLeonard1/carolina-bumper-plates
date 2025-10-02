@@ -43,6 +43,7 @@ export interface Product {
   available: boolean
   created_at: string
   updated_at: string
+  image_url?: string
 }
 
 export interface Order {

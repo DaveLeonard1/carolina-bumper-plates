@@ -238,11 +238,17 @@ export default function ProductConfigurator() {
                           <div className="flex">
                             {/* Product image - edge-to-edge on left */}
                             <div className="w-24 flex-shrink-0 bg-gray-50">
-                              <img 
-                                src={product.image_url || "/placeholder-plate.jpg"} 
-                                alt={product.title} 
-                                className="w-full h-full object-cover" 
-                              />
+                              {product.image_url ? (
+                                <img 
+                                  src={product.image_url} 
+                                  alt={product.title} 
+                                  className="w-full h-full object-cover" 
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
+                                  <span className="text-2xl">🏋️</span>
+                                </div>
+                              )}
                             </div>
 
                             {/* Content on the right with padding */}
