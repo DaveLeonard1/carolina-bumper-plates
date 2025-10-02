@@ -591,12 +591,12 @@ export default function CheckoutPage() {
                                 <LogIn className="h-5 w-5" />
                                 Sign In to Your Account
                               </h3>
-                              <p className="mb-4" style={{ color: colorUsage.textMuted }}>
+                              <p className="mb-4 break-words" style={{ color: colorUsage.textMuted }}>
                                 Enter your password to sign in and link this order to your account
                               </p>
-                              <div className="max-w-md">
+                              <div className="w-full max-w-sm">
                                 <Label htmlFor="password">Password *</Label>
-                                <div className="flex gap-2 mt-1">
+                                <div className="flex gap-2 mt-1 min-w-0">
                                   <div className="relative flex-1">
                                     <Input
                                       id="password"
@@ -623,7 +623,7 @@ export default function CheckoutPage() {
                                     type="button"
                                     onClick={handleSignIn}
                                     disabled={!formData.password || isSigningIn}
-                                    className="font-semibold px-6"
+                                    className="font-semibold px-3 sm:px-6 flex-shrink-0"
                                     style={{
                                       backgroundColor:
                                         formData.password && !isSigningIn ? "#B9FF16" : colorUsage.textDisabled,
@@ -658,12 +658,12 @@ export default function CheckoutPage() {
                                 <UserPlus className="h-5 w-5" />
                                 Create Your Account
                               </h3>
-                              <p className="mb-4" style={{ color: colorUsage.textMuted }}>
+                              <p className="mb-4 break-words" style={{ color: colorUsage.textMuted }}>
                                 We'll create an account for you to track your order and manage future purchases.
                               </p>
-                              <div className="max-w-md">
+                              <div className="w-full max-w-sm">
                                 <Label htmlFor="password">Create Password *</Label>
-                                <div className="relative mt-1">
+                                <div className="relative mt-1 min-w-0">
                                   <Input
                                     id="password"
                                     type={showPassword ? "text" : "password"}
@@ -685,7 +685,7 @@ export default function CheckoutPage() {
                                     )}
                                   </button>
                                 </div>
-                                <p className="text-xs mt-1" style={{ color: colorUsage.textMuted }}>
+                                <p className="text-xs mt-1 break-words" style={{ color: colorUsage.textMuted }}>
                                   Your account will be created automatically when you complete your order.
                                 </p>
                               </div>
