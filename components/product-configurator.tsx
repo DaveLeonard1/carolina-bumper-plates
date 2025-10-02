@@ -143,7 +143,7 @@ export default function ProductConfigurator() {
 
         {/* Mobile Cart - Sticky at top when items selected */}
         {selectedProducts.length > 0 && (
-          <div className="lg:hidden sticky top-0 z-10 mb-4">
+          <div className="lg:hidden fixed top-0 left-0 right-0 z-50 mb-4">
             <Card className="p-0 overflow-hidden shadow-lg">
               <button
                 onClick={() => setIsCartExpanded(!isCartExpanded)}
@@ -206,7 +206,7 @@ export default function ProductConfigurator() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 lg:gap-8">
+        <div className={`grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 lg:gap-8 ${selectedProducts.length > 0 ? 'lg:mt-0 mt-16' : ''}`}>
           <div className="md:p-6 md:border md:rounded-lg md:bg-card">
             {/* Desktop Table Header */}
             <div className="hidden md:grid md:grid-cols-[2fr_1fr_1fr_1.5fr] gap-4 pb-4 border-b mb-4">
@@ -282,7 +282,7 @@ export default function ProductConfigurator() {
                                   </span>
                                   <Button
                                     size="icon"
-                                    className="h-9 w-9 rounded bg-[#B9FF16] hover:bg-[#A3E600] text-black border-0"
+                                    className="h-9 w-9 rounded bg-white hover:bg-[#B9FF16] text-black border border-gray-300 hover:border-[#B9FF16]"
                                     onClick={() => updateQuantity(product.id, 1)}
                                   >
                                     <Plus className="h-3.5 w-3.5" />
