@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     const supabaseAdmin = createSupabaseAdmin()
 
     const body = await request.json()
-    const { title, weight, selling_price, regular_price, description, available } = body
+    const { title, weight, selling_price, regular_price, cost, description, available } = body
 
     // Validate required fields
     if (!title || !weight || selling_price === undefined || regular_price === undefined) {
@@ -73,6 +73,7 @@ export async function POST(request: Request) {
       weight: Number.parseInt(String(weight)),
       selling_price: Number.parseFloat(String(selling_price)),
       regular_price: Number.parseFloat(String(regular_price)),
+      cost: cost ? Number.parseFloat(String(cost)) : null,
       description: description ? String(description).trim() : null,
       available: Boolean(available),
     }

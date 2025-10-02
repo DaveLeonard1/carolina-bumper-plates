@@ -5,7 +5,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   try {
     const supabaseAdmin = createSupabaseAdmin()
     const body = await request.json()
-    const { weight, title, selling_price, regular_price, available, description } = body
+    const { weight, title, selling_price, regular_price, cost, available, description } = body
     const productId = params.id
 
     if (!weight || !title || selling_price === undefined || regular_price === undefined) {
@@ -25,6 +25,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         title: String(title).trim(),
         selling_price: Number(selling_price),
         regular_price: Number(regular_price),
+        cost: cost ? Number(cost) : null,
         available: Boolean(available),
         description: description ? String(description).trim() : null,
       })

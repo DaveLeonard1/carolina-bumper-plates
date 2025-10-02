@@ -18,9 +18,18 @@ interface Product {
   weight: number
   selling_price: number
   regular_price: number
+  cost?: number
   description: string | null
   available: boolean
   image_url?: string
+}
+
+// Helper function to calculate profit
+const calculateProfit = (sellingPrice: number, cost?: number) => {
+  if (!cost || cost === 0) return null
+  const profit = sellingPrice - cost
+  const profitMargin = (profit / sellingPrice) * 100
+  return { profit, profitMargin }
 }
 
 export default function AdminProductsPage() {
@@ -37,6 +46,7 @@ export default function AdminProductsPage() {
     weight: "",
     selling_price: "",
     regular_price: "",
+    cost: "",
     description: "",
     available: true,
   })
@@ -81,6 +91,7 @@ export default function AdminProductsPage() {
       weight: product.weight.toString(),
       selling_price: product.selling_price.toString(),
       regular_price: product.regular_price.toString(),
+      cost: product.cost?.toString() || "",
       description: product.description || "",
       available: product.available,
     })
@@ -141,6 +152,7 @@ export default function AdminProductsPage() {
           weight: "",
           selling_price: "",
           regular_price: "",
+          cost: "",
           description: "",
           available: true,
         })
@@ -396,6 +408,19 @@ export default function AdminProductsPage() {
                   </div>
 
                   <div className="space-y-2">
+                    <Label htmlFor="cost">Cost ($)</Label>
+                    <Input
+                      id="cost"
+                      type="number"
+                      step="0.01"
+                      value={formData.cost}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, cost: e.target.value }))}
+                      placeholder="50.00"
+                    />
+                    <p className="text-xs text-gray-500">Your cost per plate (admin only - not visible to customers)</p>
+                  </div>
+
+                  <div className="space-y-2">
                     <Label htmlFor="description">Description</Label>
                     <Textarea
                       id="description"
@@ -465,6 +490,7 @@ export default function AdminProductsPage() {
                       weight: "",
                       selling_price: "",
                       regular_price: "",
+                      cost: "",
                       description: "",
                       available: true,
                     })
@@ -502,6 +528,7 @@ export default function AdminProductsPage() {
                     <th className="text-left p-2">Your Price</th>
                     <th className="text-left p-2">Regular Price</th>
                     <th className="text-left p-2">Savings</th>
+                    <th className="text-left p-2">Profit</th>
                     <th className="text-left p-2">Status</th>
                     <th className="text-left p-2">Actions</th>
                   </tr>
@@ -509,6 +536,7 @@ export default function AdminProductsPage() {
                 <tbody>
                   {products.map((product) => {
                     const savings = calculateSavings(product.selling_price, product.regular_price)
+                    const profitInfo = calculateProfit(product.selling_price, product.cost)
                     return (
                       <tr key={product.id} className="border-b hover:bg-gray-50">
                         <td className="p-2">
@@ -544,6 +572,16 @@ export default function AdminProductsPage() {
                         <td className="p-2">
                           <div className="text-green-600 font-medium">${savings.amount.toFixed(2)}</div>
                           <div className="text-xs text-green-600">{savings.percentage}% off</div>
+                        </td>
+                        <td className="p-2">
+                          {profitInfo ? (
+                            <>
+                              <div className="text-blue-600 font-medium">${profitInfo.profit.toFixed(2)}</div>
+                              <div className="text-xs text-blue-600">{profitInfo.profitMargin.toFixed(1)}% margin</div>
+                            </>
+                          ) : (
+                            <span className="text-gray-400 text-sm">No cost data</span>
+                          )}
                         </td>
                         <td className="p-2">
                           <span
