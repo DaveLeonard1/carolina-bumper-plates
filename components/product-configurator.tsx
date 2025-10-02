@@ -147,7 +147,7 @@ export default function ProductConfigurator() {
             <Card className="p-0 overflow-hidden shadow-lg rounded-none border-0">
               <button
                 onClick={() => setIsCartExpanded(!isCartExpanded)}
-                className="w-full bg-black text-white px-4 py-3 flex items-center justify-between"
+                className="w-full bg-[#B9FF16] text-black px-4 py-3 flex items-center justify-between"
               >
                 <div className="flex items-center gap-3">
                   <ShoppingCart className="h-4 w-4" />
