@@ -100,7 +100,7 @@ export function ProductCard({
             
             {/* Metadata or subtotal below price and quantity */}
             <div className="text-sm text-gray-400">
-              {metadata && regularPrice && (
+              {metadata && (
                 <div>{metadata}</div>
               )}
               {subtotalText && (
