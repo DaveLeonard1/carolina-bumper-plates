@@ -626,8 +626,8 @@ export default function CheckoutPage() {
                                     className="font-semibold px-6"
                                     style={{
                                       backgroundColor:
-                                        formData.password && !isSigningIn ? "#6EBA5E" : colorUsage.textDisabled,
-                                      color: colorUsage.textOnDark,
+                                        formData.password && !isSigningIn ? "#B9FF16" : colorUsage.textDisabled,
+                                      color: formData.password && !isSigningIn ? "#000000" : colorUsage.textOnDark,
                                     }}
                                   >
                                     {isSigningIn ? "Signing In..." : "Sign In"}
