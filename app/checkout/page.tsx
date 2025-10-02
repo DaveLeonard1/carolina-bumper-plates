@@ -853,11 +853,11 @@ export default function CheckoutPage() {
                           </span>
                         </div>
                         <div className="mb-2">
-                          <div className="flex items-baseline gap-2">
-                            <span className="text-4xl font-black" style={{ color: "#ffffff", fontFamily: "Oswald" }}>
+                          <div className="flex items-baseline gap-2 flex-wrap">
+                            <span className="text-3xl sm:text-4xl font-black break-all" style={{ color: "#ffffff", fontFamily: "Oswald" }}>
                               {cartTotals.totalWeight}
                             </span>
-                            <span className="text-2xl font-bold" style={{ color: "#B9FF16" }}>
+                            <span className="text-xl sm:text-2xl font-bold" style={{ color: "#B9FF16" }}>
                               lbs
                             </span>
                           </div>
