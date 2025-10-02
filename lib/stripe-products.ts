@@ -6,7 +6,7 @@ export interface StripeProductData {
   id: string
   name: string
   description?: string
-  price_per_lb: number
+  selling_price: number
   weight: number
   stripe_product_id?: string
   stripe_price_id?: string
@@ -43,12 +43,12 @@ export const createOrUpdateStripeProduct = async (productData: StripeProductData
     if (!productData.weight || typeof productData.weight !== "number") {
       throw new Error("Product weight is required and must be a number")
     }
-    if (!productData.price_per_lb || typeof productData.price_per_lb !== "number") {
-      throw new Error("Product price_per_lb is required and must be a number")
+    if (!productData.selling_price || typeof productData.selling_price !== "number") {
+      throw new Error("Product selling_price is required and must be a number")
     }
 
     console.log(
-      `Processing product: ID=${productData.id}, Weight=${productData.weight}lb, Price=$${productData.price_per_lb}/lb`,
+      `Processing product: ID=${productData.id}, Weight=${productData.weight}lb, Price=$${productData.selling_price} total`,
     )
 
     let stripeProduct
@@ -87,11 +87,11 @@ export const createOrUpdateStripeProduct = async (productData: StripeProductData
       stripeProduct = await stripe.products.create(productCreateData)
     } else {
       console.log(`Updating existing Stripe product for ${productData.weight}lb plate...`)
-      stripeProduct = await stripe.products.update(productData.stripe_product_id, productCreateData)
+      stripeProduct = await stripe.products.update(productData.stripe_product_id!, productCreateData)
     }
 
-    // Create price for the product (price per unit, not per lb)
-    const unitPrice = Math.round(productData.price_per_lb * productData.weight * 100) // Convert to cents
+    // Create price for the product (use selling_price directly)
+    const unitPrice = Math.round(productData.selling_price * 100) // Convert to cents
 
     console.log(`Creating Stripe price: $${(unitPrice / 100).toFixed(2)} for ${productData.weight}lb plate`)
 
@@ -101,7 +101,7 @@ export const createOrUpdateStripeProduct = async (productData: StripeProductData
       currency: "usd",
       metadata: {
         weight: productData.weight.toString(),
-        price_per_lb: productData.price_per_lb.toString(),
+        selling_price: productData.selling_price.toString(),
         product_id: productData.id.toString(),
         mode: config.mode || "sandbox",
       },
@@ -167,7 +167,7 @@ export const syncAllProductsWithStripe = async (forceUpdate = false) => {
         .from("products")
         .select("*")
         .not("weight", "is", null)
-        .not("price_per_lb", "is", null)
+        .not("selling_price", "is", null)
         .or("stripe_product_id.is.null,stripe_synced_at.is.null")
 
       if (error) {
@@ -183,7 +183,7 @@ export const syncAllProductsWithStripe = async (forceUpdate = false) => {
         .from("products")
         .select("*")
         .not("weight", "is", null)
-        .not("price_per_lb", "is", null)
+        .not("selling_price", "is", null)
 
       if (error) {
         console.error("Error fetching products for sync:", error)
@@ -205,7 +205,7 @@ export const syncAllProductsWithStripe = async (forceUpdate = false) => {
     for (const product of products) {
       try {
         // Double-check validation
-        if (!product.id || !product.weight || !product.price_per_lb) {
+        if (!product.id || !product.weight || !product.selling_price) {
           console.error(`❌ Skipping product with invalid data:`, product)
           result.skipped++
           continue
@@ -264,7 +264,7 @@ export const getStripeProductForWeight = async (weight: number) => {
     }
 
     // Validate product data
-    if (!product.id || !product.weight || !product.price_per_lb) {
+    if (!product.id || !product.weight || !product.selling_price) {
       console.error("Invalid product data:", product)
       return null
     }
