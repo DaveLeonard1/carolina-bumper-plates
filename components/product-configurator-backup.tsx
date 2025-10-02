@@ -101,10 +101,10 @@ export default function ProductConfigurator() {
             BUILD YOUR PREORDER
           </h2>
           <div className="text-center py-8">
-            <p style={{ color: colorUsage.textMuted }}>Failed to load products. Please try again.</p>
-            <Button onClick={refresh} variant="outline" className="mt-4 bg-transparent">
+            <p className="text-red-600 mb-4">Error loading products: {error}</p>
+            <Button onClick={refresh} variant="outline">
               <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh
+              Try Again
             </Button>
           </div>
         </div>
@@ -205,7 +205,6 @@ export default function ProductConfigurator() {
             </Card>
           </div>
         )}
-
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 lg:gap-8">
           <div className="md:p-6 md:border md:rounded-lg md:bg-card">
             {/* Desktop Table Header */}
@@ -218,190 +217,197 @@ export default function ProductConfigurator() {
               </div>
             </div>
 
-            <div className="space-y-4 md:space-y-3 md:px-0">
-              {products
-                .filter((product) => product.available)
-                .map((product) => {
-                  const savings = product.regular_price - product.selling_price
-                  const savingsPercent = Math.round((savings / product.regular_price) * 100)
-                  const itemQuantity = quantities[product.id] || 0
-                  return (
-                    <div key={product.id}>
-                      {/* Mobile Card Layout */}
-                      <div className="md:hidden">
-                        <div className="rounded-xl overflow-hidden border border-gray-200 shadow-sm bg-white">
-                          {/* Product name header - spans full width */}
-                          <div className="bg-black text-white px-4 py-3">
-                            <h3 className="font-bold text-base uppercase tracking-wide">{product.title}</h3>
+                <div className="space-y-4">
+                  {/* Desktop Header */}
+                  <div
+                    className="hidden md:grid grid-cols-4 gap-4 font-semibold text-sm border-b pb-2"
+                    style={{ color: colorUsage.textMuted }}
+                  >
+                    <span>PRODUCT</span>
+                    <span>PRICE</span>
+                    <span>SAVINGS</span>
+                    <span>QUANTITY</span>
+                  </div>
+                  
+                  {products
+                    .filter((product) => product.available)
+                    .map((product) => {
+                      const savings = product.regular_price - product.selling_price
+                      const savingsPercent = Math.round((savings / product.regular_price) * 100)
+                      const itemQuantity = quantities[product.id] || 0
+                      return (
+                        <div key={product.id}>
+                          {/* Desktop Layout */}
+                          <div className="hidden md:grid grid-cols-4 gap-4 items-center py-2">
+                            <div>
+                              <span className="font-semibold">{product.title}</span>
+                            </div>
+                            <div>
+                              <span className="font-semibold" style={{ color: colorUsage.textOnLight }}>
+                                ${product.selling_price}
+                              </span>
+                              <div className="text-sm line-through" style={{ color: colorUsage.textDisabled }}>
+                                ${product.regular_price}
+                              </div>
+                            </div>
+                            <div>
+                              <span className="font-semibold text-green-600">${savings.toFixed(2)}</span>
+                              <div className="text-sm text-green-600">({savingsPercent}% off)</div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => updateQuantity(product.id, -1)}
+                                disabled={itemQuantity === 0}
+                              >
+                                <Minus className="h-4 w-4" />
+                              </Button>
+                              <span className="w-8 text-center font-semibold">{itemQuantity}</span>
+                              <Button variant="outline" size="sm" onClick={() => updateQuantity(product.id, 1)}>
+                                <Plus className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </div>
 
-                          <div className="flex">
-                            {/* Product image - edge-to-edge on left */}
-                            <div className="w-24 flex-shrink-0 bg-gray-50">
-                              <img 
-                                src={product.image_url || "/placeholder-plate.jpg"} 
-                                alt={product.title} 
-                                className="w-full h-full object-cover" 
-                              />
-                            </div>
-
-                            {/* Content on the right with padding */}
-                            <div className="flex-1 flex flex-col justify-between min-w-0 p-3">
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <div>
-                                    <span className="text-2xl font-bold">${product.selling_price}</span>
-                                    <span className="text-sm text-muted-foreground line-through ml-2">
-                                      ${product.regular_price}
-                                    </span>
-                                  </div>
-                                  <div className="text-sm text-gray-400 mt-1">
-                                    Save ${savings.toFixed(2)} ({savingsPercent}% off)
-                                  </div>
-                                </div>
-
-                                {/* Quantity controls */}
-                                <div className="flex items-center gap-2">
-                                  <Button
-                                    variant="outline"
-                                    size="icon"
-                                    className="h-9 w-9 rounded border-gray-300 hover:border-gray-400 hover:bg-gray-50 bg-white"
-                                    onClick={() => updateQuantity(product.id, -1)}
-                                    disabled={itemQuantity === 0}
-                                  >
-                                    <Minus className="h-3.5 w-3.5" />
-                                  </Button>
-                                  <span className="text-lg font-bold w-8 text-center tabular-nums">
-                                    {itemQuantity}
+                          {/* Mobile Layout */}
+                          <div className="md:hidden border-b border-gray-200 py-4">
+                            <div className="flex justify-between items-start mb-3">
+                              <div className="flex-1">
+                                <h4 className="font-semibold text-base">{product.title}</h4>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <span className="font-semibold text-lg" style={{ color: colorUsage.textOnLight }}>
+                                    ${product.selling_price}
                                   </span>
-                                  <Button
-                                    size="icon"
-                                    className="h-9 w-9 rounded bg-[#B9FF16] hover:bg-[#A3E600] text-black border-0"
-                                    onClick={() => updateQuantity(product.id, 1)}
-                                  >
-                                    <Plus className="h-3.5 w-3.5" />
-                                  </Button>
+                                  <span className="text-sm line-through" style={{ color: colorUsage.textDisabled }}>
+                                    ${product.regular_price}
+                                  </span>
                                 </div>
+                                <div className="text-sm text-green-600 mt-1">
+                                  Save ${savings.toFixed(2)} ({savingsPercent}% off)
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2 ml-4">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => updateQuantity(product.id, -1)}
+                                  disabled={itemQuantity === 0}
+                                >
+                                  <Minus className="h-4 w-4" />
+                                </Button>
+                                <span className="w-8 text-center font-semibold">{itemQuantity}</span>
+                                <Button variant="outline" size="sm" onClick={() => updateQuantity(product.id, 1)}>
+                                  <Plus className="h-4 w-4" />
+                                </Button>
                               </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-
-                      {/* Desktop Table Row */}
-                      <div className="hidden md:grid md:grid-cols-[2fr_1fr_1fr_1.5fr] gap-4 md:items-center pb-3 border-b last:border-b-0">
-                        <div className="font-semibold">{product.title}</div>
-                        <div>
-                          <span className="text-lg font-bold">${product.selling_price}</span>
-                          <span className="text-sm text-muted-foreground line-through ml-2">${product.regular_price}</span>
-                        </div>
-                        <div>
-                          <span className="text-gray-400 font-semibold">${savings.toFixed(2)}</span>
-                          <span className="text-sm text-muted-foreground ml-1">({savingsPercent}% off)</span>
-                        </div>
-                        <div className="flex items-center justify-center gap-3">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-9 w-9 rounded-md bg-transparent"
-                            onClick={() => updateQuantity(product.id, -1)}
-                            disabled={itemQuantity === 0}
-                          >
-                            <Minus className="h-4 w-4" />
-                          </Button>
-                          <span className="text-lg font-semibold w-8 text-center">{itemQuantity}</span>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className={`h-9 w-9 rounded-md ${
-                              itemQuantity > 0 ? "bg-[#B9FF16] hover:bg-[#A3E600] border-[#B9FF16]" : ""
-                            }`}
-                            onClick={() => updateQuantity(product.id, 1)}
-                          >
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
-            </div>
+                      )
+                    })}
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
-          {/* Desktop Order Summary Sidebar */}
-          <div className="hidden lg:block lg:sticky lg:top-4 lg:self-start">
-            <Card className="p-0 overflow-hidden">
-              <div className="bg-black text-white px-6 py-4 md:bg-transparent md:text-foreground md:px-6 md:pt-6 md:pb-0">
-                <h2 className="text-xl md:text-2xl font-bold uppercase md:normal-case tracking-wide md:tracking-normal md:mb-6">
-                  Your Custom Set
-                </h2>
-              </div>
+          {/* Order Summary - Right Side */}
+          <div className="lg:col-span-1">
+            <Card className="p-6 sticky top-4 rounded-lg border">
+              <CardContent className="pt-6">
+                <h3 className="text-xl font-bold mb-6">Your Custom Set</h3>
 
-              <div className="p-6 md:pt-0">
-                {selectedProducts.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8 text-sm">Add plates to see your custom set</p>
-                ) : (
-                  <>
-                    <div className="space-y-3 mb-6 pb-6 border-b">
-                      {selectedProducts.map((product) => {
-                        const itemQuantity = quantities[product.id]
-                        const itemSavings = (product.regular_price - product.selling_price) * itemQuantity
-                        return (
-                          <div key={product.id} className="flex justify-between items-start">
-                            <div className="flex-1">
-                              <div className="font-medium">
-                                {itemQuantity}x {product.title}
-                              </div>
-                              <div className="text-sm text-gray-400">
-                                Save ${itemSavings.toFixed(2)}
-                              </div>
+                {/* Selected Items */}
+                <div className="space-y-4 mb-6">
+                  {selectedProducts.length > 0 ? (
+                    selectedProducts.map((product) => {
+                      const itemQuantity = quantities[product.id]
+                      const itemSavings = (product.regular_price - product.selling_price) * itemQuantity
+                      return (
+                        <div key={product.id} className="flex justify-between items-start">
+                          <div>
+                            <span className="font-semibold">
+                              {itemQuantity}x {product.title}
+                            </span>
+                            <div className="text-sm font-medium" style={{ color: colorUsage.textOnLight }}>
+                              Save ${itemSavings.toFixed(2)}
                             </div>
-                            <div className="font-semibold">${(product.selling_price * itemQuantity).toFixed(0)}</div>
                           </div>
-                        )
-                      })}
+                          <span className="font-semibold">${product.selling_price * itemQuantity}</span>
+                        </div>
+                      )
+                    })
+                  ) : (
+                    <div className="text-center py-8" style={{ color: colorUsage.textDisabled }}>
+                      No products selected yet
                     </div>
+                  )}
+                </div>
 
-                    <div className="space-y-3 mb-6">
-                      <div className="flex justify-between text-base">
+                {/* Totals */}
+                {totalWeight > 0 && (
+                  <>
+                    <div className="border-t pt-4 space-y-2">
+                      <div className="flex justify-between">
                         <span>Subtotal</span>
-                        <span className="font-semibold">${totalCost.toFixed(0)}</span>
+                        <span className="font-semibold">${totalCost}</span>
                       </div>
-                      <div className="flex justify-between text-base text-gray-400">
+                      <div className="flex justify-between text-green-600">
                         <span>Total Savings</span>
                         <span className="font-semibold">${totalSavings.toFixed(2)}</span>
                       </div>
-                      <div className="flex justify-between text-xl font-bold pt-3 border-t">
-                        <span>Total</span>
-                        <span>${totalCost.toFixed(0)}</span>
-                      </div>
-                      <div className="text-sm text-muted-foreground">Total Weight: {totalWeight} lbs</div>
                     </div>
 
-                    <Button 
-                      className="w-full bg-[#B9FF16] hover:bg-[#A3E600] text-black font-bold text-base h-12 uppercase tracking-wide"
+                    <div className="border-t pt-4 mt-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-lg font-bold">Total</span>
+                        <div className="text-right">
+                          <span className="text-lg font-bold" style={{ color: colorUsage.textOnLight }}>
+                            ${totalCost}
+                          </span>
+                          <div className="text-sm line-through" style={{ color: colorUsage.textDisabled }}>
+                            ${totalCost + totalSavings}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-sm mb-4" style={{ color: colorUsage.textMuted }}>
+                        Total Weight: {totalWeight} lbs
+                      </div>
+                    </div>
+
+                    <Button
+                      size="lg"
+                      className="w-full font-bold text-lg py-4"
                       onClick={handleCheckout}
+                      style={{
+                        backgroundColor: colorUsage.buttonSecondary,
+                        color: colorUsage.textOnDark,
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colorUsage.buttonSecondaryHover)}
+                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = colorUsage.buttonSecondary)}
                     >
                       Reserve Your Preorder
                     </Button>
                   </>
                 )}
-              </div>
+
+                {totalWeight === 0 && (
+                  <Button
+                    size="lg"
+                    className="w-full font-bold text-lg py-4"
+                    disabled
+                    style={{
+                      backgroundColor: colorUsage.textDisabled,
+                      color: colorUsage.textOnDark,
+                    }}
+                  >
+                    Select Products to Continue
+                  </Button>
+                )}
+              </CardContent>
             </Card>
           </div>
         </div>
-
-        {/* Mobile Fixed Bottom Checkout Button */}
-        {selectedProducts.length > 0 && (
-          <div className="lg:hidden fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background to-transparent">
-            <Button 
-              className="w-full bg-[#B9FF16] hover:bg-[#A3E600] text-black font-bold text-base h-12 uppercase tracking-wide shadow-lg"
-              onClick={handleCheckout}
-            >
-              Reserve Preorder • ${totalCost.toFixed(0)}
-            </Button>
-          </div>
-        )}
       </div>
     </section>
   )
