@@ -29,8 +29,8 @@ export default function HomePage() {
 
         <div className="px-[27px] md:px-[52px] w-full">
           <div className="max-w-[1440px] mx-auto text-center text-white">
-            <h1 className="text-5xl lg:text-7xl font-black mb-6 leading-tight">OFFICIAL HI-TEMP PLATES.</h1>
-            <h2 className="text-2xl lg:text-3xl font-bold mb-12 opacity-90">MINOR BLEMISHES. MAJOR SAVINGS.</h2>
+            <h1 className="text-4xl lg:text-6xl font-black mb-6 leading-tight">OFFICIAL HI-TEMP PLATES.</h1>
+            <h2 className="text-xl lg:text-2xl font-bold mb-12 opacity-90">MINOR BLEMISHES. MAJOR SAVINGS.</h2>
             <Button
               size="lg"
               onClick={() => {
