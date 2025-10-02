@@ -570,38 +570,75 @@ export default function ModifyOrderPage() {
                         const itemSubtotal = platePrice * plateQuantity
 
                         return (
-                          <div key={plate.id} className="grid grid-cols-4 gap-4 items-center py-2">
-                            <div>
-                              <span className="font-semibold">{plate.name}</span>
-                              <div className="text-sm" style={{ color: colorUsage.textMuted }}>
-                                {plate.weight} lbs (pair)
+                          <div key={plate.id}>
+                            {/* Desktop Layout */}
+                            <div className="hidden md:grid md:grid-cols-4 gap-4 items-center py-2">
+                              <div>
+                                <span className="font-semibold">{plate.name}</span>
+                                <div className="text-sm" style={{ color: colorUsage.textMuted }}>
+                                  {plate.weight} lbs (pair)
+                                </div>
+                              </div>
+                              <div>
+                                <span className="font-semibold" style={{ color: colorUsage.textOnLight }}>
+                                  ${platePrice.toFixed(2)}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => updateQuantity(index, -1)}
+                                  disabled={plateQuantity === 0 || !plate.available}
+                                >
+                                  <Minus className="h-4 w-4" />
+                                </Button>
+                                <span className="w-8 text-center font-semibold">{plateQuantity}</span>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => updateQuantity(index, 1)}
+                                  disabled={!plate.available}
+                                >
+                                  <Plus className="h-4 w-4" />
+                                </Button>
+                              </div>
+                              <span className="font-semibold">${itemSubtotal.toFixed(2)}</span>
+                            </div>
+
+                            {/* Mobile Layout */}
+                            <div className="md:hidden border border-gray-200 rounded-lg p-4 mb-3">
+                              <div className="flex justify-between items-start mb-3">
+                                <div>
+                                  <h4 className="font-semibold text-base">{plate.name}</h4>
+                                  <p className="text-sm" style={{ color: colorUsage.textMuted }}>
+                                    {plate.weight} lbs (pair) • ${platePrice.toFixed(2)}
+                                  </p>
+                                  <p className="text-sm font-semibold mt-1" style={{ color: colorUsage.textOnLight }}>
+                                    Subtotal: ${itemSubtotal.toFixed(2)}
+                                  </p>
+                                </div>
+                                <div className="flex items-center gap-2 ml-4">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => updateQuantity(index, -1)}
+                                    disabled={plateQuantity === 0 || !plate.available}
+                                  >
+                                    <Minus className="h-4 w-4" />
+                                  </Button>
+                                  <span className="w-8 text-center font-semibold">{plateQuantity}</span>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => updateQuantity(index, 1)}
+                                    disabled={!plate.available}
+                                  >
+                                    <Plus className="h-4 w-4" />
+                                  </Button>
+                                </div>
                               </div>
                             </div>
-                            <div>
-                              <span className="font-semibold" style={{ color: colorUsage.textOnLight }}>
-                                ${platePrice.toFixed(2)}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => updateQuantity(index, -1)}
-                                disabled={plateQuantity === 0 || !plate.available}
-                              >
-                                <Minus className="h-4 w-4" />
-                              </Button>
-                              <span className="w-8 text-center font-semibold">{plateQuantity}</span>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => updateQuantity(index, 1)}
-                                disabled={!plate.available}
-                              >
-                                <Plus className="h-4 w-4" />
-                              </Button>
-                            </div>
-                            <span className="font-semibold">${itemSubtotal.toFixed(2)}</span>
                           </div>
                         )
                       })}
@@ -619,7 +656,7 @@ export default function ModifyOrderPage() {
                   </p>
 
                   <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       <div>
                         <Label htmlFor="name">Full Name *</Label>
                         <Input
@@ -668,8 +705,8 @@ export default function ModifyOrderPage() {
                       />
                     </div>
 
-                    <div className="grid md:grid-cols-3 gap-4">
-                      <div className="md:col-span-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                      <div className="sm:col-span-2 lg:col-span-2">
                         <Label htmlFor="city">City *</Label>
                         <Input
                           id="city"
