@@ -16,7 +16,7 @@ export default function HomePage() {
 
       {/* Hero Section with Transparent Header */}
       <section
-        className="relative min-h-screen flex items-center justify-center"
+        className="relative h-[80vh] md:min-h-screen flex items-center justify-center"
         style={{
           backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/leonardd623_A_crossfit_gym_with_a_pile_of_rubber_bumper_plates__1f8a2f9c-db53-4057-b738-867222a79209.png-t4MLv5CT4WycwSqGRtxF7JmpvsoHMG.jpeg')`,
           backgroundSize: "cover",
@@ -29,8 +29,8 @@ export default function HomePage() {
 
         <div className="px-[27px] md:px-[52px] w-full">
           <div className="max-w-[1440px] mx-auto text-center text-white">
-            <h1 className="text-6xl lg:text-8xl font-black mb-6 leading-tight">OFFICIAL HI-TEMP PLATES.</h1>
-            <h2 className="text-3xl lg:text-4xl font-bold mb-12 opacity-90">MINOR BLEMISHES. MAJOR SAVINGS.</h2>
+            <h1 className="text-5xl lg:text-7xl font-black mb-6 leading-tight">OFFICIAL HI-TEMP PLATES.</h1>
+            <h2 className="text-2xl lg:text-3xl font-bold mb-12 opacity-90">MINOR BLEMISHES. MAJOR SAVINGS.</h2>
             <Button
               size="lg"
               onClick={() => {
