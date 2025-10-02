@@ -401,8 +401,8 @@ export default function CheckoutPage() {
 
   return (
     <PageLayout>
-      <div className="px-4 py-8" style={{ backgroundColor: colorUsage.backgroundLight }}>
-        <div className="max-w-6xl mx-auto">
+      <div className="px-2 sm:px-4 py-8" style={{ backgroundColor: colorUsage.backgroundLight }}>
+        <div className="max-w-4xl mx-auto">
           <div className="mb-6">
             <Link href="/">
               <Button variant="outline" className="font-semibold bg-transparent">
@@ -412,10 +412,10 @@ export default function CheckoutPage() {
             </Link>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-8">
+          <div className="grid lg:grid-cols-3 gap-4 lg:gap-8">
             {/* Left Side - Form */}
             <div className="lg:col-span-2">
-              <Card className="p-6 rounded-lg border mb-6" style={{ backgroundColor: colorUsage.backgroundPrimary }}>
+              <Card className="p-3 sm:p-6 rounded-lg border mb-6" style={{ backgroundColor: colorUsage.backgroundPrimary }}>
                 <CardContent className="pt-6">
                   <h1 className="text-3xl font-black mb-2" style={{ fontFamily: "Oswald, sans-serif" }}>
                     PREORDER CHECKOUT
@@ -439,7 +439,7 @@ export default function CheckoutPage() {
                         Please provide your contact details and delivery address
                       </p>
 
-                      <div className="grid md:grid-cols-2 gap-4 mb-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
                         <div>
                           <Label htmlFor="firstName">First Name *</Label>
                           <Input
@@ -464,7 +464,7 @@ export default function CheckoutPage() {
                         </div>
                       </div>
 
-                      <div className="grid md:grid-cols-2 gap-4 mb-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
                         <div>
                           <Label htmlFor="email">Email Address *</Label>
                           <Input
@@ -537,8 +537,8 @@ export default function CheckoutPage() {
                         />
                       </div>
 
-                      <div className="grid md:grid-cols-3 gap-4 mb-4">
-                        <div className="md:col-span-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-4">
+                        <div className="sm:col-span-2 lg:col-span-2">
                           <Label htmlFor="city">City *</Label>
                           <Input
                             id="city"
@@ -547,6 +547,7 @@ export default function CheckoutPage() {
                             onChange={(e) => handleInputChange("city", e.target.value)}
                             required
                             className="mt-1"
+                            placeholder="Raleigh"
                           />
                         </div>
                         <div>
@@ -563,7 +564,7 @@ export default function CheckoutPage() {
                         </div>
                       </div>
 
-                      <div className="mb-6">
+                      <div className="mb-4">
                         <Label htmlFor="zipCode">ZIP Code *</Label>
                         <Input
                           id="zipCode"
@@ -571,7 +572,7 @@ export default function CheckoutPage() {
                           value={formData.zipCode}
                           onChange={(e) => handleInputChange("zipCode", e.target.value)}
                           required
-                          className="mt-1 w-32"
+                          className="mt-1 max-w-xs"
                           placeholder="12345"
                         />
                       </div>
