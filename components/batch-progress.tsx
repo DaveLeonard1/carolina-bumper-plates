@@ -34,6 +34,7 @@ export function BatchProgress() {
     } catch (error) {
       console.error("Failed to fetch batch progress:", error)
     } finally {
+      setLoading(false)
     }
   }
 
