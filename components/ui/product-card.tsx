@@ -65,11 +65,6 @@ export function ProductCard({
                       ${regularPrice}
                     </span>
                   )}
-                  {metadata && !regularPrice && (
-                    <span className="text-sm text-muted-foreground ml-2">
-                      {metadata}
-                    </span>
-                  )}
                 </div>
               </div>
 

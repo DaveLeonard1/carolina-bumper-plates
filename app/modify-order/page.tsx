@@ -573,7 +573,7 @@ export default function ModifyOrderPage() {
                         return (
                           <div key={plate.id}>
                             {/* Desktop Layout */}
-                            <div className="hidden md:grid md:grid-cols-4 gap-4 items-center py-2">
+                            <div className="hidden md:grid md:grid-cols-4 gap-4 items-center py-2 border-b border-gray-200">
                               <div>
                                 <span className="font-semibold">{plate.name}</span>
                                 <div className="text-sm" style={{ color: colorUsage.textMuted }}>
@@ -611,14 +611,14 @@ export default function ModifyOrderPage() {
                             <ProductCard
                               title={plate.name}
                               price={platePrice}
-                              regularPrice={platePrice * 1.5} // Show fake regular price for visual consistency
                               quantity={plateQuantity}
                               onDecrease={() => updateQuantity(index, -1)}
                               onIncrease={() => updateQuantity(index, 1)}
                               decreaseDisabled={plateQuantity === 0 || !plate.available}
                               disabled={!plate.available}
                               imageUrl={undefined} // Will show placeholder emoji like homepage
-                              metadata={`${plate.weight} lbs • Subtotal: $${itemSubtotal.toFixed(2)}`}
+                              metadata={`${plate.weight} lbs (pair)`}
+                              subtotalText={`Subtotal: $${itemSubtotal.toFixed(2)}`}
                             />
                           </div>
                         )
