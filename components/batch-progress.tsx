@@ -34,20 +34,19 @@ export function BatchProgress() {
     } catch (error) {
       console.error("Failed to fetch batch progress:", error)
     } finally {
-      setLoading(false)
     }
   }
 
   if (loading) {
     return (
-      <section style={{ backgroundColor: "#1a1a1a" }}>
-        <div className="px-[27px] md:px-[52px] py-[60px] md:py-[80px]">
-          <div className="max-w-[1440px] mx-auto text-center">
-            <h2 className="text-4xl lg:text-5xl font-black mb-12 text-white" style={{ fontFamily: "Oswald, sans-serif" }}>
+      <section className="bg-white">
+        <div className="px-4 py-8 md:py-12">
+          <div className="max-w-7xl mx-auto text-center">
+            <h2 className="text-4xl lg:text-5xl font-black mb-6 md:mb-8 text-gray-900" style={{ fontFamily: "Oswald, sans-serif" }}>
               BATCH PROGRESS
             </h2>
-            <div className="bg-gray-800 rounded-2xl p-8 flex items-center justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-white" />
+            <div className="bg-white border-2 border-black rounded-lg p-8 flex items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-gray-900" />
             </div>
           </div>
         </div>
@@ -60,57 +59,63 @@ export function BatchProgress() {
   }
 
   return (
-    <section style={{ backgroundColor: "#1a1a1a" }}>
-      <div className="px-[27px] md:px-[52px] py-[60px] md:py-[80px]">
-        <div className="max-w-[1440px] mx-auto text-center">
-          <h2 className="text-4xl lg:text-5xl font-black mb-12 text-white" style={{ fontFamily: "Oswald, sans-serif" }}>
+    <section className="bg-white">
+      <div className="px-4 py-8 md:py-12">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-black mb-6 md:mb-8 text-gray-900 text-center" style={{ fontFamily: "Oswald, sans-serif" }}>
             BATCH PROGRESS
           </h2>
-          <div className="bg-gray-800 rounded-2xl p-8">
-            {/* Top Display: Current Weight vs Goal Weight */}
-            <div className="flex justify-between items-center mb-6 text-white">
-              <div>
-                <div className="text-sm text-gray-400 mb-1">CURRENT WEIGHT</div>
-                <div className="text-3xl md:text-4xl font-black" style={{ fontFamily: "Oswald, sans-serif" }}>
-                  {data.currentWeight.toLocaleString()} LBS
+          
+          <div className="bg-white rounded-lg border-2 border-black overflow-hidden">
+            {/* Card Header */}
+            <div className="bg-black text-white p-4 md:p-6">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex-1">
+                  <div className="text-xs md:text-sm text-gray-400 mb-1" style={{ fontFamily: "Oswald, sans-serif" }}>CURRENT WEIGHT</div>
+                  <div className="text-2xl md:text-5xl font-black" style={{ fontFamily: "Oswald, sans-serif", color: "#B9FF16" }}>
+                    {data.currentWeight.toLocaleString()} LBS
+                  </div>
                 </div>
-              </div>
-              <div className="text-right">
-                <div className="text-sm text-gray-400 mb-1">GOAL WEIGHT</div>
-                <div className="text-3xl md:text-4xl font-black" style={{ fontFamily: "Oswald, sans-serif" }}>
-                  {data.goalWeight.toLocaleString()} LBS
+                <div className="flex-1 text-right">
+                  <div className="text-xs md:text-sm text-gray-400 mb-1" style={{ fontFamily: "Oswald, sans-serif" }}>GOAL WEIGHT</div>
+                  <div className="text-2xl md:text-5xl font-black" style={{ fontFamily: "Oswald, sans-serif" }}>
+                    {data.goalWeight.toLocaleString()} LBS
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Progress Bar */}
-            <div className="w-full bg-gray-700 rounded-full h-4 mb-6">
-              <div
-                className="h-4 rounded-full transition-all duration-300"
-                style={{
-                  backgroundColor: "#B9FF16",
-                  width: `${data.percentage}%`,
-                }}
-              />
-            </div>
+            {/* Card Body */}
+            <div className="p-4 md:p-6">
+              {/* Progress Bar */}
+              <div className="w-full bg-gray-200 rounded-full h-6 md:h-8 mb-4 overflow-hidden">
+                <div
+                  className="h-full transition-all duration-500 ease-out"
+                  style={{
+                    backgroundColor: "#B9FF16",
+                    width: `${data.percentage}%`,
+                  }}
+                />
+              </div>
 
-            {/* Bottom: Remaining Weight */}
-            <div className="flex items-center justify-center gap-2 text-white">
-              {data.isGoalMet ? (
-                <>
-                  <span className="text-2xl">🎉</span>
-                  <p className="text-xl md:text-2xl font-black" style={{ color: "#B9FF16", fontFamily: "Oswald, sans-serif" }}>
-                    GOAL REACHED! {data.currentWeight.toLocaleString()} LBS READY FOR BATCH!
-                  </p>
-                </>
-              ) : (
-                <>
-                  <span className="text-2xl">⚠️</span>
-                  <p className="text-xl md:text-2xl font-black" style={{ color: "#B9FF16", fontFamily: "Oswald, sans-serif" }}>
-                    {data.remaining.toLocaleString()} LBS TO GO!
-                  </p>
-                </>
-              )}
+              {/* Status Message */}
+              <div className="text-center">
+                {data.isGoalMet ? (
+                  <div className="flex items-center justify-center gap-2 md:gap-3">
+                    <span className="text-3xl md:text-4xl">🎉</span>
+                    <p className="text-xl md:text-2xl font-black text-gray-900" style={{ fontFamily: "Oswald, sans-serif" }}>
+                      GOAL REACHED! READY FOR BATCH!
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center gap-2 md:gap-3">
+                    <span className="text-3xl md:text-4xl">⚠️</span>
+                    <p className="text-xl md:text-2xl font-black text-gray-900" style={{ fontFamily: "Oswald, sans-serif" }}>
+                      ONLY <span style={{ color: "#B9FF16" }}>{data.remaining.toLocaleString()} LBS</span> TO GO!
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

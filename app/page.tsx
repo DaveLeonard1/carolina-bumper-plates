@@ -355,21 +355,6 @@ export default function HomePage() {
 
       {/* Batch Progress */}
       <BatchProgress />
-
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white">
-        <div className="px-[27px] md:px-[52px] py-[40px] md:py-12">
-          <div className="max-w-[1440px] mx-auto text-center">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <div>
-                <div className="text-2xl font-bold">THE PLATE YARD</div>
-                <div className="text-sm opacity-80 -mt-1">FACTORY SECONDS. FIRST CLASS GAINS.</div>
-              </div>
-            </div>
-            <p className="text-gray-400">Official Hi-Temp factory seconds. USA-made quality at wholesale prices.</p>
-          </div>
-        </div>
-      </footer>
     </div>
   )
 }

@@ -1,17 +1,24 @@
 import Link from "next/link"
+import Image from "next/image"
 
 export function Footer() {
   return (
-    <footer className="bg-gray-900 text-white border-t-2 border-black">
+    <footer style={{ backgroundColor: "#1a1a1a" }} className="text-white border-t-2 border-black">
       <div className="px-4 md:px-8 py-8 md:py-12">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Brand */}
             <div>
-              <h3 className="text-2xl font-black mb-2" style={{ fontFamily: "Oswald, sans-serif" }}>
-                THE PLATE YARD
-              </h3>
-              <p className="text-sm opacity-80 mb-4">FACTORY SECONDS. FIRST CLASS GAINS.</p>
+              <div className="mb-4">
+                <Image 
+                  src="/plate-yard-logo-white.svg" 
+                  alt="The Plate Yard" 
+                  width={200} 
+                  height={60}
+                  className="h-12 w-auto"
+                />
+              </div>
+              <p className="text-sm opacity-80 mb-4 font-bold">FACTORY SECONDS. FIRST CLASS GAINS.</p>
               <p className="text-sm text-gray-400">
                 Official Hi-Temp bumper plates with minor blemishes at major savings.
               </p>

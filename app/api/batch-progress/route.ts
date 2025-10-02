@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server"
 import { createSupabaseAdmin } from "@/lib/supabase"
 
-// In-memory cache
+// In-memory cache (short duration since DB cache is instant)
 let cachedData: any = null
 let cacheTimestamp: number = 0
-const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes in milliseconds
+const CACHE_DURATION = 30 * 1000 // 30 seconds - DB cache is already fast!
 
 // Function to clear cache (exported for use in other routes)
 export function clearCache() {
@@ -26,15 +26,22 @@ export async function GET() {
 
     const supabase = createSupabaseAdmin()
 
-    // Get settings from options table
-    const { data: optionData, error: optionError } = await supabase
-      .from("options")
-      .select("option_name, option_value")
-      .in("option_name", ["minimum_order_weight", "batch_progress_offset"])
+    // Fetch data in parallel for speed
+    const [settingsResult, cacheResult] = await Promise.all([
+      supabase
+        .from("options")
+        .select("option_name, option_value")
+        .in("option_name", ["minimum_order_weight", "batch_progress_offset"]),
+      supabase
+        .from("batch_progress_cache")
+        .select("total_weight, order_count")
+        .eq("id", 1)
+        .single()
+    ])
 
-    if (optionError) {
-      console.error("Failed to fetch settings:", optionError)
-      // Return cached data if available, even if expired
+    if (settingsResult.error) {
+      console.error("Failed to fetch settings:", settingsResult.error)
+      // Return cached data if available
       if (cachedData) {
         return NextResponse.json({
           success: true,
@@ -49,21 +56,8 @@ export async function GET() {
       )
     }
 
-    // Parse settings
-    const settingsMap = new Map(optionData?.map(item => [item.option_name, item.option_value]))
-    const minimumOrderWeight = parseInt(settingsMap.get("minimum_order_weight") || "7000")
-    const batchProgressOffset = parseInt(settingsMap.get("batch_progress_offset") || "0")
-
-    // Get total weight of all pending orders (not yet paid)
-    // Only select the fields we need for better performance
-    const { data: orders, error: ordersError } = await supabase
-      .from("orders")
-      .select("total_weight")
-      .in("status", ["pending", "quote_sent", "payment_link_sent"])
-      .eq("payment_status", "unpaid")
-
-    if (ordersError) {
-      console.error("Failed to fetch pending orders:", ordersError)
+    if (cacheResult.error) {
+      console.error("Failed to fetch batch cache:", cacheResult.error)
       // Return cached data if available
       if (cachedData) {
         return NextResponse.json({
@@ -74,17 +68,22 @@ export async function GET() {
         })
       }
       return NextResponse.json(
-        { success: false, error: "Failed to fetch pending orders" },
+        { success: false, error: "Failed to fetch batch progress cache" },
         { status: 500 }
       )
     }
 
-    // Calculate total weight of pending orders
-    const actualWeight = orders?.reduce((sum, order) => sum + (order.total_weight || 0), 0) || 0
+    // Parse settings
+    const settingsMap = new Map(settingsResult.data?.map(item => [item.option_name, item.option_value]))
+    const minimumOrderWeight = parseInt(settingsMap.get("minimum_order_weight") || "7000")
+    const batchProgressOffset = parseInt(settingsMap.get("batch_progress_offset") || "0")
+
+    // Get cached totals (instant, no aggregation!)
+    const actualWeight = cacheResult.data?.total_weight || 0
+    const orderCount = cacheResult.data?.order_count || 0
     const currentWeight = actualWeight + batchProgressOffset
     const percentage = Math.min((currentWeight / minimumOrderWeight) * 100, 100)
     const remaining = Math.max(minimumOrderWeight - currentWeight, 0)
-    const orderCount = orders?.length || 0
 
     const result = {
       currentWeight,
