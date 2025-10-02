@@ -321,9 +321,7 @@ export default function ProductConfigurator() {
                           <Button
                             variant="outline"
                             size="icon"
-                            className={`h-9 w-9 rounded-md ${
-                              itemQuantity > 0 ? "bg-[#B9FF16] hover:bg-[#A3E600] border-[#B9FF16]" : ""
-                            }`}
+                            className="h-9 w-9 rounded-md bg-white hover:bg-[#B9FF16] border-gray-300 hover:border-[#B9FF16]"
                             onClick={() => updateQuantity(product.id, 1)}
                           >
                             <Plus className="h-4 w-4" />
