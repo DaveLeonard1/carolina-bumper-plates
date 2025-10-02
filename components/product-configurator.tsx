@@ -144,7 +144,7 @@ export default function ProductConfigurator() {
         {/* Mobile Cart - Sticky at top when items selected */}
         {selectedProducts.length > 0 && (
           <div className="lg:hidden fixed top-0 left-0 right-0 z-50 mb-4">
-            <Card className="p-0 overflow-hidden shadow-lg">
+            <Card className="p-0 overflow-hidden shadow-lg rounded-none border-0">
               <button
                 onClick={() => setIsCartExpanded(!isCartExpanded)}
                 className="w-full bg-black text-white px-4 py-3 flex items-center justify-between"
