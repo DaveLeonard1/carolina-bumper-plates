@@ -261,9 +261,6 @@ export default function ProductConfigurator() {
                                       ${product.regular_price}
                                     </span>
                                   </div>
-                                  <div className="text-sm text-gray-400 mt-1">
-                                    Save ${savings.toFixed(2)} ({savingsPercent}% off)
-                                  </div>
                                 </div>
 
                                 {/* Quantity controls */}
@@ -290,6 +287,11 @@ export default function ProductConfigurator() {
                                 </div>
                               </div>
                             </div>
+                          </div>
+                          
+                          {/* Savings info below */}
+                          <div className="px-4 py-2 bg-gray-50 text-sm text-gray-600">
+                            Save ${savings.toFixed(2)} ({savingsPercent}% off)
                           </div>
                         </div>
                       </div>
