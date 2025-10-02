@@ -401,7 +401,7 @@ export default function CheckoutPage() {
 
   return (
     <PageLayout>
-      <div className="px-2 sm:px-4 py-8" style={{ backgroundColor: colorUsage.backgroundLight }}>
+      <div className="px-2 sm:px-4 py-8 overflow-x-hidden" style={{ backgroundColor: colorUsage.backgroundLight }}>
         <div className="max-w-4xl mx-auto">
           <div className="mb-6">
             <Link href="/">
@@ -412,12 +412,12 @@ export default function CheckoutPage() {
             </Link>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-4 lg:gap-8">
+          <div className="grid lg:grid-cols-3 gap-4 lg:gap-8 overflow-hidden">
             {/* Left Side - Form */}
-            <div className="lg:col-span-2">
-              <Card className="p-3 sm:p-6 rounded-lg border mb-6" style={{ backgroundColor: colorUsage.backgroundPrimary }}>
-                <CardContent className="pt-6">
-                  <h1 className="text-3xl font-black mb-2" style={{ fontFamily: "Oswald, sans-serif" }}>
+            <div className="lg:col-span-2 min-w-0">
+              <Card className="p-3 sm:p-6 rounded-lg border mb-6 overflow-hidden" style={{ backgroundColor: colorUsage.backgroundPrimary }}>
+                <CardContent className="pt-6 min-w-0">
+                  <h1 className="text-3xl font-black mb-2 break-words" style={{ fontFamily: "Oswald, sans-serif" }}>
                     PREORDER CHECKOUT
                   </h1>
                   <p className="mb-8" style={{ color: colorUsage.textMuted }}>
@@ -643,10 +643,10 @@ export default function CheckoutPage() {
                                 className="flex items-center gap-3 p-4 rounded-lg"
                                 style={{ backgroundColor: "#f0f9ff" }}
                               >
-                                <CheckCircle className="h-6 w-6 text-green-500" />
-                                <div>
-                                  <p className="font-semibold text-green-800">Successfully signed in!</p>
-                                  <p className="text-sm text-green-700">This order will be linked to your account.</p>
+                                <CheckCircle className="h-6 w-6 text-green-500 flex-shrink-0" />
+                                <div className="min-w-0 flex-1">
+                                  <p className="font-semibold text-green-800 break-words">Successfully signed in!</p>
+                                  <p className="text-sm text-green-700 break-words">This order will be linked to your account.</p>
                                 </div>
                               </div>
                             </div>
