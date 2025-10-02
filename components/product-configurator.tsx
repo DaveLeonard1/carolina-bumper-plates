@@ -160,8 +160,9 @@ export default function ProductConfigurator() {
                 </div>
 
                 <div className="space-y-4">
+                  {/* Desktop Header */}
                   <div
-                    className="grid grid-cols-4 gap-4 font-semibold text-sm border-b pb-2"
+                    className="hidden md:grid grid-cols-4 gap-4 font-semibold text-sm border-b pb-2"
                     style={{ color: colorUsage.textMuted }}
                   >
                     <span>PRODUCT</span>
@@ -169,6 +170,7 @@ export default function ProductConfigurator() {
                     <span>SAVINGS</span>
                     <span>QUANTITY</span>
                   </div>
+                  
                   {products
                     .filter((product) => product.available)
                     .map((product) => {
@@ -176,35 +178,72 @@ export default function ProductConfigurator() {
                       const savingsPercent = Math.round((savings / product.regular_price) * 100)
                       const itemQuantity = quantities[product.id] || 0
                       return (
-                        <div key={product.id} className="grid grid-cols-4 gap-4 items-center py-2">
-                          <div>
-                            <span className="font-semibold">{product.title}</span>
-                          </div>
-                          <div>
-                            <span className="font-semibold" style={{ color: colorUsage.textOnLight }}>
-                              ${product.selling_price}
-                            </span>
-                            <div className="text-sm line-through" style={{ color: colorUsage.textDisabled }}>
-                              ${product.regular_price}
+                        <div key={product.id}>
+                          {/* Desktop Layout */}
+                          <div className="hidden md:grid grid-cols-4 gap-4 items-center py-2">
+                            <div>
+                              <span className="font-semibold">{product.title}</span>
+                            </div>
+                            <div>
+                              <span className="font-semibold" style={{ color: colorUsage.textOnLight }}>
+                                ${product.selling_price}
+                              </span>
+                              <div className="text-sm line-through" style={{ color: colorUsage.textDisabled }}>
+                                ${product.regular_price}
+                              </div>
+                            </div>
+                            <div>
+                              <span className="font-semibold text-green-600">${savings.toFixed(2)}</span>
+                              <div className="text-sm text-green-600">({savingsPercent}% off)</div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => updateQuantity(product.id, -1)}
+                                disabled={itemQuantity === 0}
+                              >
+                                <Minus className="h-4 w-4" />
+                              </Button>
+                              <span className="w-8 text-center font-semibold">{itemQuantity}</span>
+                              <Button variant="outline" size="sm" onClick={() => updateQuantity(product.id, 1)}>
+                                <Plus className="h-4 w-4" />
+                              </Button>
                             </div>
                           </div>
-                          <div>
-                            <span className="font-semibold text-green-600">${savings.toFixed(2)}</span>
-                            <div className="text-sm text-green-600">({savingsPercent}% off)</div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => updateQuantity(product.id, -1)}
-                              disabled={itemQuantity === 0}
-                            >
-                              <Minus className="h-4 w-4" />
-                            </Button>
-                            <span className="w-8 text-center font-semibold">{itemQuantity}</span>
-                            <Button variant="outline" size="sm" onClick={() => updateQuantity(product.id, 1)}>
-                              <Plus className="h-4 w-4" />
-                            </Button>
+
+                          {/* Mobile Layout */}
+                          <div className="md:hidden border-b border-gray-200 py-4">
+                            <div className="flex justify-between items-start mb-3">
+                              <div className="flex-1">
+                                <h4 className="font-semibold text-base">{product.title}</h4>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <span className="font-semibold text-lg" style={{ color: colorUsage.textOnLight }}>
+                                    ${product.selling_price}
+                                  </span>
+                                  <span className="text-sm line-through" style={{ color: colorUsage.textDisabled }}>
+                                    ${product.regular_price}
+                                  </span>
+                                </div>
+                                <div className="text-sm text-green-600 mt-1">
+                                  Save ${savings.toFixed(2)} ({savingsPercent}% off)
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2 ml-4">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => updateQuantity(product.id, -1)}
+                                  disabled={itemQuantity === 0}
+                                >
+                                  <Minus className="h-4 w-4" />
+                                </Button>
+                                <span className="w-8 text-center font-semibold">{itemQuantity}</span>
+                                <Button variant="outline" size="sm" onClick={() => updateQuantity(product.id, 1)}>
+                                  <Plus className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       )
