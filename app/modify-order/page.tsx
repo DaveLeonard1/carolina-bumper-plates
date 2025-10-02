@@ -611,13 +611,14 @@ export default function ModifyOrderPage() {
                             <ProductCard
                               title={plate.name}
                               price={platePrice}
+                              regularPrice={platePrice * 1.5} // Show fake regular price for visual consistency
                               quantity={plateQuantity}
                               onDecrease={() => updateQuantity(index, -1)}
                               onIncrease={() => updateQuantity(index, 1)}
                               decreaseDisabled={plateQuantity === 0 || !plate.available}
                               disabled={!plate.available}
-                              metadata={`${plate.weight} lbs (pair)`}
-                              subtotalText={`Subtotal: $${itemSubtotal.toFixed(2)}`}
+                              imageUrl={undefined} // Will show placeholder emoji like homepage
+                              metadata={`${plate.weight} lbs • Subtotal: $${itemSubtotal.toFixed(2)}`}
                             />
                           </div>
                         )
