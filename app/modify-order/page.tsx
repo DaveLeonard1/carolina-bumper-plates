@@ -522,11 +522,11 @@ export default function ModifyOrderPage() {
 
   return (
     <PageLayout>
-      <div className="px-4 py-8" style={{ backgroundColor: colorUsage.backgroundLight }}>
-        <div className="max-w-6xl mx-auto">
+      <div className="px-2 sm:px-4 py-8" style={{ backgroundColor: colorUsage.backgroundLight }}>
+        <div className="max-w-4xl mx-auto">
           <div className="mb-6"></div>
           
-          <div className="grid lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8">
             {/* Left Side - Modification Form */}
             <div className="lg:col-span-2">
               {/* Plate Selection */}
@@ -555,7 +555,7 @@ export default function ModifyOrderPage() {
                   ) : (
                     <div className="space-y-4">
                       <div
-                        className="grid grid-cols-4 gap-4 font-semibold text-sm border-b pb-2"
+                        className="hidden md:grid md:grid-cols-4 gap-4 font-semibold text-sm border-b pb-2"
                         style={{ color: colorUsage.textMuted }}
                       >
                         <span>PRODUCT</span>

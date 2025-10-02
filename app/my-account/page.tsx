@@ -567,8 +567,8 @@ export default function MyAccountPage() {
     <PageLayout>
       <div className="bg-gray-50 overflow-x-hidden">
         {/* Page Header */}
-        <div className="px-4 py-16 bg-white">
-          <div className="max-w-6xl mx-auto">
+        <div className="px-2 sm:px-4 py-8 sm:py-16 bg-white">
+          <div className="max-w-4xl mx-auto">
             <div>
               <h1
                 className="text-4xl md:text-5xl font-black mb-4"
@@ -584,8 +584,8 @@ export default function MyAccountPage() {
         </div>
 
         {/* Main Content */}
-        <div className="px-4 py-8 bg-gray-50">
-          <div className="max-w-6xl mx-auto">
+        <div className="px-2 sm:px-4 py-8 bg-gray-50">
+          <div className="max-w-4xl mx-auto">
             {/* Success Message */}
             {successMessage && (
               <div className="mb-6">
@@ -629,7 +629,7 @@ export default function MyAccountPage() {
               </div>
             )}
 
-            <div className="grid lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
               {/* Left Column - Profile & Quick Actions */}
               <div className="lg:col-span-1 space-y-6">
                 {/* Profile Card */}
@@ -681,7 +681,7 @@ export default function MyAccountPage() {
                             placeholder="Street Address"
                           />
                         </div>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           <Input
                             value={profileData.city}
                             onChange={(e) => setProfileData((prev) => ({ ...prev, city: e.target.value }))}
@@ -882,7 +882,7 @@ export default function MyAccountPage() {
                         </div>
 
                         <div className="p-4 md:p-6">
-                          <div className="grid md:grid-cols-2 gap-6 mb-6">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6">
                             {/* Order Details */}
                             <div>
                               <h4
