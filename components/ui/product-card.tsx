@@ -59,10 +59,10 @@ export function ProductCard({
             <div className="flex items-center justify-between mb-2">
               <div>
                 <div>
-                  <span className="text-2xl font-bold">${price}</span>
+                  <span className="text-2xl font-bold">${price.toFixed(2)}</span>
                   {regularPrice && (
                     <span className="text-sm text-muted-foreground line-through ml-2">
-                      ${regularPrice}
+                      ${regularPrice.toFixed(2)}
                     </span>
                   )}
                 </div>

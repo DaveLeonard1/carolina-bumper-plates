@@ -21,9 +21,10 @@ interface Product {
   name: string
   weight: number
   price: number
-  regularPrice?: number
+  regular_price?: number
   description?: string
   available: boolean
+  image_url?: string
   created_at: string
   updated_at: string
 }
@@ -33,8 +34,10 @@ interface PlateOption {
   name: string
   weight: number
   price: number
+  regular_price?: number
   quantity: number
   available: boolean
+  image_url?: string
 }
 
 interface OrderData {
@@ -66,6 +69,8 @@ interface OrderData {
 export default function ModifyOrderPage() {
   const searchParams = useSearchParams()
   const orderNumber = searchParams.get("order")
+  
+  console.log("🔍 ModifyOrderPage - orderNumber from URL:", orderNumber)
 
   const [orderData, setOrderData] = useState<OrderData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -89,8 +94,13 @@ export default function ModifyOrderPage() {
   })
 
   useEffect(() => {
+    console.log("🔍 useEffect triggered - orderNumber:", orderNumber)
     if (orderNumber) {
       fetchOrderData()
+    } else {
+      console.log("❌ No orderNumber found in URL")
+      setError("No order number provided in URL")
+      setLoading(false)
     }
   }, [orderNumber])
 
@@ -269,8 +279,10 @@ export default function ModifyOrderPage() {
             name: product.name,
             weight: product.weight,
             price: product.price, // This should now be the correct database price
+            regular_price: product.regular_price,
             quantity: orderItem ? orderItem.quantity : 0,
             available: product.available,
+            image_url: product.image_url,
           }
         })
 
@@ -312,8 +324,10 @@ export default function ModifyOrderPage() {
           name: product.name,
           weight: product.weight,
           price: product.price, // Fresh price from database
+          regular_price: product.regular_price,
           quantity: existingPlate?.quantity || 0,
           available: product.available,
+          image_url: product.image_url,
         }
       })
 
@@ -421,6 +435,12 @@ export default function ModifyOrderPage() {
     return sum + plateQuantity
   }, 0)
 
+  // Check if order has been modified (has any items with quantity > 0)
+  const hasModifications = totalItems > 0
+
+  // State for mobile cart expansion
+  const [isCartExpanded, setIsCartExpanded] = useState(false)
+
   // Calculate original order totals for comparison
   const originalSubtotal =
     typeof orderData?.subtotal === "number" && !isNaN(orderData.subtotal) ? orderData.subtotal : 0
@@ -485,45 +505,47 @@ export default function ModifyOrderPage() {
     }
 
     return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{ backgroundColor: colorUsage.backgroundLight }}
-      >
-        <Card className="p-8 max-w-md">
-          <CardContent className="text-center">
-            <div className="flex items-center justify-center mb-4">
-              <Lock className="h-12 w-12 text-orange-500" />
-            </div>
-            <h1 className="text-2xl font-bold mb-4">Order Cannot Be Modified</h1>
-            <div className="mb-6 space-y-2">
-              <p className="text-gray-700">{getReasonMessage()}</p>
-              {orderData.payment_link_url && (
-                <p className="text-sm text-gray-600">
-                  Please complete your payment or contact us if you need to make changes.
-                </p>
-              )}
-            </div>
-            <div className="space-y-3">
-              <Link href={`/order-confirmation?order=${orderNumber}`}>
-                <Button className="w-full">View Order Details</Button>
-              </Link>
-              {orderData.payment_link_url && (
-                <a href={orderData.payment_link_url} target="_blank" rel="noopener noreferrer">
-                  <Button variant="outline" className="w-full">
-                    Complete Payment
-                  </Button>
-                </a>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <PageLayout>
+        <div
+          className="min-h-screen flex items-center justify-center"
+          style={{ backgroundColor: colorUsage.backgroundLight }}
+        >
+          <Card className="p-8 max-w-md">
+            <CardContent className="text-center">
+              <div className="flex items-center justify-center mb-4">
+                <Lock className="h-12 w-12 text-orange-500" />
+              </div>
+              <h1 className="text-2xl font-bold mb-4">Order Cannot Be Modified</h1>
+              <div className="mb-6 space-y-2">
+                <p className="text-gray-700">{getReasonMessage()}</p>
+                {orderData.payment_link_url && (
+                  <p className="text-sm text-gray-600">
+                    Please complete your payment or contact us if you need to make changes.
+                  </p>
+                )}
+              </div>
+              <div className="space-y-3">
+                <Link href={`/order-confirmation?order=${orderNumber}`}>
+                  <Button className="w-full">View Order Details</Button>
+                </Link>
+                {orderData.payment_link_url && (
+                  <a href={orderData.payment_link_url} target="_blank" rel="noopener noreferrer">
+                    <Button variant="outline" className="w-full">
+                      Complete Payment
+                    </Button>
+                  </a>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </PageLayout>
     )
   }
 
   return (
     <PageLayout>
-      <div className="px-2 sm:px-4 py-8" style={{ backgroundColor: colorUsage.backgroundLight }}>
+      <div className="px-2 sm:px-4 py-8 md:pt-8 pt-20 pb-24" style={{ backgroundColor: colorUsage.backgroundLight }}>
         <div className="max-w-4xl mx-auto">
           <div className="mb-6"></div>
           
@@ -611,14 +633,14 @@ export default function ModifyOrderPage() {
                             <ProductCard
                               title={plate.name}
                               price={platePrice}
+                              regularPrice={plate.regular_price} // Use actual regular price from database
                               quantity={plateQuantity}
                               onDecrease={() => updateQuantity(index, -1)}
                               onIncrease={() => updateQuantity(index, 1)}
                               decreaseDisabled={plateQuantity === 0 || !plate.available}
                               disabled={!plate.available}
-                              imageUrl={undefined} // Will show placeholder emoji like homepage
-                              metadata={`${plate.weight} lbs (pair)`}
-                              subtotalText={`Subtotal: $${itemSubtotal.toFixed(2)}`}
+                              imageUrl={plate.image_url} // Use actual product image like homepage
+                              metadata={`${plate.weight} lbs • Subtotal: $${itemSubtotal.toFixed(2)}`}
                             />
                           </div>
                         )
@@ -960,6 +982,138 @@ export default function ModifyOrderPage() {
             </div>
           </div>
         </div>
+
+        {/* Mobile Sticky Header - Only show when modifications exist */}
+        {hasModifications && (
+          <div className="md:hidden fixed top-0 left-0 right-0 z-50">
+            <Card className="p-0 overflow-hidden shadow-lg rounded-none border-0">
+              <button
+                onClick={() => setIsCartExpanded(!isCartExpanded)}
+                className="w-full bg-[#B9FF16] text-black px-4 py-3 flex items-center justify-between"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="font-bold">
+                    {totalItems} Item{totalItems !== 1 ? "s" : ""} • {totalWeight} lbs
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold">${subtotal.toFixed(2)}</span>
+                  <span className={`transform transition-transform ${isCartExpanded ? "rotate-180" : ""}`}>
+                    ▼
+                  </span>
+                </div>
+              </button>
+              
+              {/* Expandable Cart Summary */}
+              {isCartExpanded && (
+                <div className="bg-white border-t border-gray-200">
+                  {/* Order Items */}
+                  <div className="p-4 border-b border-gray-200">
+                    <h4 className="font-bold text-sm mb-3">Order Summary</h4>
+                    <div className="space-y-2 max-h-40 overflow-y-auto">
+                      {plates
+                        .filter((plate) => plate.quantity > 0)
+                        .map((plate) => (
+                          <div key={plate.id} className="flex items-center justify-between py-1">
+                            <div className="flex-1">
+                              <span className="font-medium text-sm">{plate.name}</span>
+                              <span className="text-gray-500 text-xs ml-2">×{plate.quantity}</span>
+                            </div>
+                            <span className="text-sm font-medium">
+                              ${(plate.price * plate.quantity).toFixed(2)}
+                            </span>
+                          </div>
+                        ))}
+                    </div>
+                    <div className="border-t pt-2 mt-2">
+                      <div className="flex justify-between items-center">
+                        <span className="font-bold text-sm">Total</span>
+                        <span className="font-bold text-sm">${subtotal.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Order Comparison */}
+                  <div className="bg-[#1a1a1a] text-white border-2 border-[#B9FF16] rounded-lg mx-4 mb-4 overflow-hidden">
+                    <div className="p-3 bg-[#1a1a1a]">
+                      <h4 className="text-xs font-bold" style={{ color: "#B9FF16", fontFamily: "Oswald, sans-serif" }}>
+                        ORDER COMPARISON
+                      </h4>
+                      <p className="text-xs text-gray-400">Original vs. Modified</p>
+                    </div>
+                    
+                    <div className="p-3 bg-[#2d2d2d] space-y-3">
+                      {/* Original Order */}
+                      <div className="flex justify-between items-center pb-2 border-b border-[#404040]">
+                        <span className="text-xs font-bold" style={{ color: "#B9FF16" }}>
+                          ORIGINAL ORDER
+                        </span>
+                        <span className="font-bold text-white text-sm">
+                          ${originalSubtotal.toFixed(2)}
+                        </span>
+                      </div>
+
+                      {/* Modified Order */}
+                      <div className="flex justify-between items-center pb-2 border-b border-[#404040]">
+                        <span className="text-xs font-bold" style={{ color: "#B9FF16" }}>
+                          MODIFIED ORDER
+                        </span>
+                        <span className="font-bold text-white text-sm">
+                          ${subtotal.toFixed(2)}
+                        </span>
+                      </div>
+
+                      {/* Difference */}
+                      <div className="pt-1">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-bold text-white" style={{ fontFamily: "Oswald, sans-serif" }}>
+                            DIFFERENCE
+                          </span>
+                          <div className="text-right">
+                            <div
+                              className="text-lg font-black leading-none"
+                              style={{
+                                color:
+                                  subtotal > originalSubtotal
+                                    ? "#ef4444"
+                                    : subtotal < originalSubtotal
+                                      ? "#10b981"
+                                      : "#B9FF16",
+                                fontFamily: "Oswald, sans-serif",
+                              }}
+                            >
+                              {subtotal > originalSubtotal && `+$${(subtotal - originalSubtotal).toFixed(2)}`}
+                              {subtotal < originalSubtotal && `-$${(originalSubtotal - subtotal).toFixed(2)}`}
+                              {subtotal === originalSubtotal && "$0.00"}
+                            </div>
+                            <div className="text-xs text-gray-400">
+                              {totalWeight > originalWeight && `+${totalWeight - originalWeight} lbs`}
+                              {totalWeight < originalWeight && `-${originalWeight - totalWeight} lbs`}
+                              {totalWeight === originalWeight && "No weight change"}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </Card>
+          </div>
+        )}
+
+        {/* Mobile Fixed Bottom Update Button */}
+        {hasModifications && (
+          <div className="md:hidden fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background to-transparent">
+            <Button 
+              className="w-full bg-[#B9FF16] hover:bg-[#A3E600] text-black font-bold text-base h-12 uppercase tracking-wide shadow-lg"
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Updating Order..." : `Update Order • $${subtotal.toFixed(2)}`}
+            </Button>
+          </div>
+        )}
       </div>
     </PageLayout>
   )
