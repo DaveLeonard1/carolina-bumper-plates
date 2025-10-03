@@ -294,7 +294,7 @@ export default function CheckoutPage() {
           title: item.name,
           quantity: item.quantity,
           price: item.pricePerUnit,
-          regularPrice: item.pricePerUnit * 1.5,
+          regularPrice: item.regularPrice || item.pricePerUnit * 1.5, // Use actual regular price from cart or fallback
         })),
         subtotal: cartTotals.subtotal,
         totalWeight: cartTotals.totalWeight,
@@ -783,7 +783,7 @@ export default function CheckoutPage() {
                     <div className="space-y-4 mb-6">
                       {cartItems.map((item) => {
                         const itemTotal = item.quantity * item.pricePerUnit
-                        const regularTotal = itemTotal * 1.5
+                        const regularTotal = item.quantity * item.regularPrice
                         const savings = regularTotal - itemTotal
 
                         return (

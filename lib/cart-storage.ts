@@ -8,6 +8,7 @@ export interface CartItem {
   weight: number
   quantity: number
   pricePerUnit: number
+  regularPrice: number
   totalPrice: number
   totalWeight: number
   yourContribution: number
@@ -57,6 +58,7 @@ export function saveCartToStorage(products: Product[], quantities: Record<number
           weight: productWeight,
           quantity,
           pricePerUnit,
+          regularPrice: product.regular_price,
           totalPrice,
           totalWeight,
           yourContribution,
@@ -72,7 +74,7 @@ export function saveCartToStorage(products: Product[], quantities: Record<number
     }, 0)
 
     const totalWeight = items.reduce((sum, item) => {
-      console.log(`⚖️ Item ${item.productId}: ${item.quantity} × ${item.weight} × 2 = ${item.totalWeight} lbs`)
+      console.log(`⚖️ Item ${item.productId}: ${item.quantity} × ${item.weight} = ${item.totalWeight} lbs`)
       return sum + item.totalWeight
     }, 0)
 

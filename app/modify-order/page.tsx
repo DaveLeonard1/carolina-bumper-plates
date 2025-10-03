@@ -393,7 +393,7 @@ function ModifyOrderPage() {
         return sum + itemTotal
       }, 0)
 
-      const totalWeight = orderItems.reduce((sum, item) => sum + item.quantity * item.weight * 2, 0)
+      const totalWeight = orderItems.reduce((sum, item) => sum + item.quantity * item.weight, 0)
 
       console.log("💾 Submitting order update with current database prices:")
       console.log("  - Order items:", orderItems)
@@ -450,7 +450,7 @@ function ModifyOrderPage() {
   const totalWeight = plates.reduce((sum, plate) => {
     const plateWeight = typeof plate.weight === "number" && !isNaN(plate.weight) ? plate.weight : 0
     const plateQuantity = typeof plate.quantity === "number" && !isNaN(plate.quantity) ? plate.quantity : 0
-    return sum + plateWeight * plateQuantity * 2
+    return sum + plateWeight * plateQuantity
   }, 0)
 
   const totalItems = plates.reduce((sum, plate) => {
