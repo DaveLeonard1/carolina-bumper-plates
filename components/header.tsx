@@ -54,7 +54,10 @@ export function Header({ transparent = false }: HeaderProps) {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-4">
             <Link href="/my-account">
-              <Button variant="ghost" className="text-white hover:bg-white/10 font-semibold">
+              <Button
+                variant="outline"
+                className="border-white text-white hover:bg-white hover:text-black font-semibold bg-transparent"
+              >
                 My Account
               </Button>
             </Link>

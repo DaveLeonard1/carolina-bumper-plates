@@ -231,54 +231,119 @@ export default function AdminCustomersPage() {
               )}
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>Joined</TableHead>
-                    <TableHead>Last Login</TableHead>
-                    <TableHead>Orders</TableHead>
-                    <TableHead>Total Spent</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredCustomers.map((customer) => (
-                    <TableRow key={customer.id}>
-                      <TableCell>
+            <>
+              {/* Mobile Card Layout */}
+              <div className="md:hidden space-y-4">
+                {filteredCustomers.map((customer) => (
+                  <div key={customer.id} className="bg-white border-2 border-black rounded-lg overflow-hidden">
+                    <div className="bg-black text-white p-3">
+                      <div className="flex items-center justify-between">
+                        <span className="font-black text-sm" style={{ fontFamily: "Oswald, sans-serif" }}>
+                          {getCustomerName(customer)}
+                        </span>
+                        <span className="text-xs opacity-75">
+                          ID: {customer.id.toString().slice(0, 8)}...
+                        </span>
+                      </div>
+                    </div>
+                    <div className="p-4">
+                      <div className="space-y-3">
                         <div>
-                          <p className="font-medium">{getCustomerName(customer)}</p>
-                          <p className="text-sm" style={{ color: colorUsage.textMuted }}>
-                            ID: {customer.id.toString().slice(0, 8)}...
+                          <p className="font-bold text-sm" style={{ fontFamily: "Oswald, sans-serif" }}>EMAIL</p>
+                          <p className="text-sm break-all">{customer.email}</p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <p className="font-bold text-sm" style={{ fontFamily: "Oswald, sans-serif" }}>PHONE</p>
+                            <p className="text-sm">{customer.phone || customer.customer_phone || "N/A"}</p>
+                          </div>
+                          <div>
+                            <p className="font-bold text-sm" style={{ fontFamily: "Oswald, sans-serif" }}>JOINED</p>
+                            <p className="text-sm">{new Date(customer.created_at).toLocaleDateString()}</p>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <p className="font-bold text-sm" style={{ fontFamily: "Oswald, sans-serif" }}>ORDERS</p>
+                            <p className="text-sm font-medium">{customer.order_count}</p>
+                          </div>
+                          <div>
+                            <p className="font-bold text-sm" style={{ fontFamily: "Oswald, sans-serif" }}>TOTAL SPENT</p>
+                            <p className="text-sm font-bold">${customer.total_spent.toFixed(2)}</p>
+                          </div>
+                        </div>
+                        <div>
+                          <p className="font-bold text-sm" style={{ fontFamily: "Oswald, sans-serif" }}>LAST LOGIN</p>
+                          <p className="text-sm">
+                            {customer.last_sign_in_at ? new Date(customer.last_sign_in_at).toLocaleDateString() : "Never"}
                           </p>
                         </div>
-                      </TableCell>
-                      <TableCell>{customer.email}</TableCell>
-                      <TableCell>{customer.phone || customer.customer_phone || "N/A"}</TableCell>
-                      <TableCell>{new Date(customer.created_at).toLocaleDateString()}</TableCell>
-                      <TableCell>
-                        {customer.last_sign_in_at ? new Date(customer.last_sign_in_at).toLocaleDateString() : "Never"}
-                      </TableCell>
-                      <TableCell className="text-center">{customer.order_count}</TableCell>
-                      <TableCell className="font-medium">${customer.total_spent.toFixed(2)}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm">
-                            <Eye className="h-4 w-4" />
+                        <div className="flex gap-2 pt-2">
+                          <Button variant="outline" size="sm" className="flex-1">
+                            <Eye className="h-4 w-4 mr-1" />
+                            View
                           </Button>
-                          <Button variant="outline" size="sm">
-                            <Mail className="h-4 w-4" />
+                          <Button variant="outline" size="sm" className="flex-1">
+                            <Mail className="h-4 w-4 mr-1" />
+                            Email
                           </Button>
                         </div>
-                      </TableCell>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop Table Layout */}
+              <div className="hidden md:block overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Customer</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Phone</TableHead>
+                      <TableHead>Joined</TableHead>
+                      <TableHead>Last Login</TableHead>
+                      <TableHead>Orders</TableHead>
+                      <TableHead>Total Spent</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredCustomers.map((customer) => (
+                      <TableRow key={customer.id}>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{getCustomerName(customer)}</p>
+                            <p className="text-sm" style={{ color: colorUsage.textMuted }}>
+                              ID: {customer.id.toString().slice(0, 8)}...
+                            </p>
+                          </div>
+                        </TableCell>
+                        <TableCell>{customer.email}</TableCell>
+                        <TableCell>{customer.phone || customer.customer_phone || "N/A"}</TableCell>
+                        <TableCell>{new Date(customer.created_at).toLocaleDateString()}</TableCell>
+                        <TableCell>
+                          {customer.last_sign_in_at ? new Date(customer.last_sign_in_at).toLocaleDateString() : "Never"}
+                        </TableCell>
+                        <TableCell className="text-center">{customer.order_count}</TableCell>
+                        <TableCell className="font-medium">${customer.total_spent.toFixed(2)}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button variant="outline" size="sm">
+                              <Mail className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

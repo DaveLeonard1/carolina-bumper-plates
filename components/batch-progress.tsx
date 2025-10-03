@@ -1,7 +1,11 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState, useEffect } from "react"
 import { Loader2 } from "lucide-react"
+
+interface BatchProgressProps {
+  fullWidth?: boolean // For homepage use max-w-7xl, for other pages use max-w-4xl lg:max-w-6xl
+}
 
 interface BatchProgressData {
   currentWeight: number
@@ -12,7 +16,7 @@ interface BatchProgressData {
   isGoalMet: boolean
 }
 
-export function BatchProgress() {
+export function BatchProgress({ fullWidth = false }: BatchProgressProps) {
   const [data, setData] = useState<BatchProgressData | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -40,7 +44,7 @@ export function BatchProgress() {
 
   if (loading) {
     return (
-      <section className="bg-white">
+      <section className="bg-gray-50">
         <div className="px-4 py-8 md:py-12">
           <div className="max-w-7xl mx-auto text-center">
             <h2 className="text-4xl lg:text-5xl font-black mb-6 md:mb-8 text-gray-900" style={{ fontFamily: "Oswald, sans-serif" }}>
@@ -60,9 +64,9 @@ export function BatchProgress() {
   }
 
   return (
-    <section className="bg-white">
-      <div className="px-4 py-8 md:py-12">
-        <div className="max-w-7xl mx-auto">
+    <section className="bg-gray-50">
+      <div className="px-4 pt-8 pb-12 md:py-12">
+        <div className={`${fullWidth ? 'max-w-7xl' : 'max-w-4xl'} mx-auto`}>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-black mb-6 md:mb-8 text-gray-900 text-center" style={{ fontFamily: "Oswald, sans-serif" }}>
             BATCH PROGRESS
           </h2>

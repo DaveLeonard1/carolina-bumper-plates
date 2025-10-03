@@ -372,34 +372,16 @@ export default function AdminOrdersPage() {
               )}
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Order #</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Weight</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredOrders.map((order) => (
-                    <TableRow key={order.id}>
-                      <TableCell className="font-medium">{order.order_number}</TableCell>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium">{order.customer_name || order.name || "Unknown"}</p>
-                          <p className="text-sm" style={{ color: colorUsage.textMuted }}>
-                            {order.email || order.customer_email || "No email"}
-                          </p>
-                        </div>
-                      </TableCell>
-                      <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
-                      <TableCell>
-                        {/* Update the status badge in the table to show payment status priority */}
+            <>
+              {/* Mobile Card Layout */}
+              <div className="md:hidden space-y-4">
+                {filteredOrders.map((order) => (
+                  <div key={order.id} className="bg-white border-2 border-black rounded-lg overflow-hidden">
+                    <div className="bg-black text-white p-3">
+                      <div className="flex items-center justify-between">
+                        <span className="font-black text-sm" style={{ fontFamily: "Oswald, sans-serif" }}>
+                          {order.order_number}
+                        </span>
                         <Badge className={getStatusColor(order.status, order.payment_status)}>
                           {order.payment_status === "paid" && order.status === "paid"
                             ? "PAID"
@@ -409,15 +391,34 @@ export default function AdminOrdersPage() {
                                 .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
                                 .join(" ")}
                         </Badge>
-                      </TableCell>
-                      <TableCell>{order.total_weight || 0} lbs</TableCell>
-                      <TableCell className="font-medium">
-                        ${(order.subtotal || order.total_amount || 0).toFixed(2)}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Link href={`/admin/orders/${order.id}`}>
-                            <Button variant="outline" size="sm">
+                      </div>
+                    </div>
+                    <div className="p-4">
+                      <div className="space-y-3">
+                        <div>
+                          <p className="font-bold text-sm" style={{ fontFamily: "Oswald, sans-serif" }}>CUSTOMER</p>
+                          <p className="font-medium">{order.customer_name || order.name || "Unknown"}</p>
+                          <p className="text-sm" style={{ color: colorUsage.textMuted }}>
+                            {order.email || order.customer_email || "No email"}
+                          </p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <p className="font-bold text-sm" style={{ fontFamily: "Oswald, sans-serif" }}>DATE</p>
+                            <p className="text-sm">{new Date(order.created_at).toLocaleDateString()}</p>
+                          </div>
+                          <div>
+                            <p className="font-bold text-sm" style={{ fontFamily: "Oswald, sans-serif" }}>WEIGHT</p>
+                            <p className="text-sm">{order.total_weight || 0} lbs</p>
+                          </div>
+                        </div>
+                        <div>
+                          <p className="font-bold text-sm" style={{ fontFamily: "Oswald, sans-serif" }}>TOTAL</p>
+                          <p className="font-bold text-lg">${(order.subtotal || order.total_amount || 0).toFixed(2)}</p>
+                        </div>
+                        <div className="flex gap-2 pt-2">
+                          <Link href={`/admin/orders/${order.id}`} className="flex-1">
+                            <Button variant="outline" size="sm" className="w-full">
                               <Eye className="h-4 w-4 mr-1" />
                               Details
                             </Button>
@@ -428,12 +429,75 @@ export default function AdminOrdersPage() {
                             </Button>
                           </Link>
                         </div>
-                      </TableCell>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop Table Layout */}
+              <div className="hidden md:block overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Order #</TableHead>
+                      <TableHead>Customer</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Weight</TableHead>
+                      <TableHead>Total</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredOrders.map((order) => (
+                      <TableRow key={order.id}>
+                        <TableCell className="font-medium">{order.order_number}</TableCell>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{order.customer_name || order.name || "Unknown"}</p>
+                            <p className="text-sm" style={{ color: colorUsage.textMuted }}>
+                              {order.email || order.customer_email || "No email"}
+                            </p>
+                          </div>
+                        </TableCell>
+                        <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
+                        <TableCell>
+                          <Badge className={getStatusColor(order.status, order.payment_status)}>
+                            {order.payment_status === "paid" && order.status === "paid"
+                              ? "PAID"
+                              : order.status
+                                  .replace(/_/g, " ")
+                                  .split(" ")
+                                  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                                  .join(" ")}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{order.total_weight || 0} lbs</TableCell>
+                        <TableCell className="font-medium">
+                          ${(order.subtotal || order.total_amount || 0).toFixed(2)}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Link href={`/admin/orders/${order.id}`}>
+                              <Button variant="outline" size="sm">
+                                <Eye className="h-4 w-4 mr-1" />
+                                Details
+                              </Button>
+                            </Link>
+                            <Link href={`/modify-order?order=${order.order_number}`}>
+                              <Button variant="outline" size="sm">
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            </Link>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

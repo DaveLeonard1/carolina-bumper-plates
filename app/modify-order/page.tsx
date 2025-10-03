@@ -549,7 +549,7 @@ function ModifyOrderPage() {
     <PageLayout>
       <div className="bg-gray-50 overflow-x-hidden">
         {/* Page Header */}
-        <div className="px-4 sm:px-6 py-8 sm:py-16 bg-white">
+        <div className="px-4 sm:px-6 py-8 sm:py-16 bg-gray-50">
           <div className="max-w-4xl lg:max-w-6xl mx-auto">
             <div className="flex items-center gap-3 mb-4">
               <Edit className="h-8 w-8" style={{ color: "#1a1a1a" }} />
@@ -572,7 +572,7 @@ function ModifyOrderPage() {
         {/* Main Content */}
         <div className="px-4 sm:px-6 md:px-8 py-8">
           <div className="max-w-4xl lg:max-w-6xl mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-12">
               {/* Left Side - Modification Form */}
               <div className="lg:col-span-2">
                 {/* Section Header */}
@@ -664,7 +664,7 @@ function ModifyOrderPage() {
                   )}
 
               {/* Contact & Delivery Information */}
-              <Card className="p-6 rounded-lg border mb-6" style={{ backgroundColor: colorUsage.backgroundPrimary }}>
+              <Card className="p-6 rounded-lg border mt-8 mb-6" style={{ backgroundColor: colorUsage.backgroundPrimary }}>
                 <CardContent className="pt-6">
                   <h2 className="text-xl font-bold mb-4">Update Contact & Delivery Information</h2>
                   <p className="mb-6" style={{ color: colorUsage.textMuted }}>

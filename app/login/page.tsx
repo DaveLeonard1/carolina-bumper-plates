@@ -54,12 +54,12 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50">
       <TopBar />
       <Header />
       <main>
         <div className="bg-gray-50">
-            <div className="px-4 py-8 md:py-16 bg-white">
+            <div className="px-4 py-8 md:py-16">
               <div className="max-w-4xl mx-auto">
                 <div className="text-center">
                   <h1

@@ -402,7 +402,7 @@ export default function CheckoutPage() {
   return (
     <PageLayout>
       <div className="px-2 sm:px-4 py-8 overflow-x-hidden" style={{ backgroundColor: colorUsage.backgroundLight }}>
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl lg:max-w-6xl mx-auto">
           <div className="mb-6">
             <Link href="/">
               <Button variant="outline" className="font-semibold bg-transparent">

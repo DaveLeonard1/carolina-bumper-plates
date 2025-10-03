@@ -518,29 +518,31 @@ export default function AdminProductsPage() {
               <p className="text-sm">Add your first bumper plate product to get started</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left p-2">Image</th>
-                    <th className="text-left p-2">Product</th>
-                    <th className="text-left p-2">Weight</th>
-                    <th className="text-left p-2">Your Price</th>
-                    <th className="text-left p-2">Regular Price</th>
-                    <th className="text-left p-2">Savings</th>
-                    <th className="text-left p-2">Profit</th>
-                    <th className="text-left p-2">Status</th>
-                    <th className="text-left p-2">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {products.map((product) => {
-                    const savings = calculateSavings(product.selling_price, product.regular_price)
-                    const profitInfo = calculateProfit(product.selling_price, product.cost)
-                    return (
-                      <tr key={product.id} className="border-b hover:bg-gray-50">
-                        <td className="p-2">
-                          <div className="w-12 h-12 rounded-md overflow-hidden bg-gray-100 flex items-center justify-center">
+            <>
+              {/* Mobile Card Layout */}
+              <div className="md:hidden space-y-4">
+                {products.map((product) => {
+                  const savings = calculateSavings(product.selling_price, product.regular_price)
+                  const profitInfo = calculateProfit(product.selling_price, product.cost)
+                  return (
+                    <div key={product.id} className="bg-white border-2 border-black rounded-lg overflow-hidden">
+                      <div className="bg-black text-white p-3">
+                        <div className="flex items-center justify-between">
+                          <span className="font-black text-sm" style={{ fontFamily: "Oswald, sans-serif" }}>
+                            {product.title}
+                          </span>
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs ${
+                              product.available ? "bg-green-500 text-white" : "bg-red-500 text-white"
+                            }`}
+                          >
+                            {product.available ? "Available" : "Unavailable"}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="p-4">
+                        <div className="flex gap-3 mb-4">
+                          <div className="w-16 h-16 rounded-md overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0">
                             {product.image_url ? (
                               <img
                                 src={product.image_url || "/placeholder.svg"}
@@ -548,87 +550,197 @@ export default function AdminProductsPage() {
                                 className="w-full h-full object-cover"
                               />
                             ) : (
-                              <ImageIcon className="h-6 w-6 text-gray-400" />
+                              <ImageIcon className="h-8 w-8 text-gray-400" />
                             )}
                           </div>
-                        </td>
-                        <td className="p-2">
-                          <div>
-                            <div className="font-medium">{product.title}</div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-bold text-sm" style={{ fontFamily: "Oswald, sans-serif" }}>WEIGHT</p>
+                            <p className="text-lg font-bold">{product.weight}lbs</p>
                             {product.description && (
-                              <div className="text-sm text-muted-foreground truncate max-w-xs">
-                                {product.description}
-                              </div>
+                              <p className="text-sm text-gray-600 mt-1 line-clamp-2">{product.description}</p>
                             )}
                           </div>
-                        </td>
-                        <td className="p-2">{product.weight}lbs</td>
-                        <td className="p-2 font-medium">${product.selling_price.toFixed(2)}</td>
-                        <td className="p-2">
-                          <span className="line-through text-muted-foreground">
-                            ${product.regular_price.toFixed(2)}
-                          </span>
-                        </td>
-                        <td className="p-2">
-                          <div className="text-green-600 font-medium">${savings.amount.toFixed(2)}</div>
-                          <div className="text-xs text-green-600">{savings.percentage}% off</div>
-                        </td>
-                        <td className="p-2">
-                          {profitInfo ? (
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4 mb-4">
+                          <div>
+                            <p className="font-bold text-sm" style={{ fontFamily: "Oswald, sans-serif" }}>YOUR PRICE</p>
+                            <p className="text-lg font-bold text-blue-600">${product.selling_price.toFixed(2)}</p>
+                          </div>
+                          <div>
+                            <p className="font-bold text-sm" style={{ fontFamily: "Oswald, sans-serif" }}>REGULAR PRICE</p>
+                            <p className="text-sm line-through text-gray-500">${product.regular_price.toFixed(2)}</p>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4 mb-4">
+                          <div>
+                            <p className="font-bold text-sm" style={{ fontFamily: "Oswald, sans-serif" }}>SAVINGS</p>
+                            <p className="text-sm font-medium text-green-600">${savings.amount.toFixed(2)}</p>
+                            <p className="text-xs text-green-600">{savings.percentage}% off</p>
+                          </div>
+                          <div>
+                            <p className="font-bold text-sm" style={{ fontFamily: "Oswald, sans-serif" }}>PROFIT</p>
+                            {profitInfo ? (
+                              <>
+                                <p className="text-sm font-medium text-blue-600">${profitInfo.profit.toFixed(2)}</p>
+                                <p className="text-xs text-blue-600">{profitInfo.profitMargin.toFixed(1)}% margin</p>
+                              </>
+                            ) : (
+                              <p className="text-xs text-gray-400">No cost data</p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2 pt-2">
+                          <Button size="sm" variant="outline" onClick={() => handleEdit(product)} className="flex-1">
+                            <Edit className="h-3 w-3 mr-1" />
+                            Edit
+                          </Button>
+                          {deleteConfirm === product.id ? (
                             <>
-                              <div className="text-blue-600 font-medium">${profitInfo.profit.toFixed(2)}</div>
-                              <div className="text-xs text-blue-600">{profitInfo.profitMargin.toFixed(1)}% margin</div>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleDelete(product.id)}
+                                className="text-xs px-3"
+                              >
+                                Confirm
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setDeleteConfirm(null)}
+                                className="text-xs px-3"
+                              >
+                                Cancel
+                              </Button>
                             </>
                           ) : (
-                            <span className="text-gray-400 text-sm">No cost data</span>
-                          )}
-                        </td>
-                        <td className="p-2">
-                          <span
-                            className={`px-2 py-1 rounded-full text-xs ${
-                              product.available ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                            }`}
-                          >
-                            {product.available ? "Available" : "Unavailable"}
-                          </span>
-                        </td>
-                        <td className="p-2">
-                          <div className="flex gap-1">
-                            <Button size="sm" variant="outline" onClick={() => handleEdit(product)}>
-                              <Edit className="h-3 w-3" />
+                            <Button size="sm" variant="outline" onClick={() => setDeleteConfirm(product.id)}>
+                              <Trash2 className="h-3 w-3" />
                             </Button>
-                            {deleteConfirm === product.id ? (
-                              <div className="flex gap-1">
-                                <Button
-                                  size="sm"
-                                  variant="destructive"
-                                  onClick={() => handleDelete(product.id)}
-                                  className="text-xs px-2"
-                                >
-                                  Confirm
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => setDeleteConfirm(null)}
-                                  className="text-xs px-2"
-                                >
-                                  Cancel
-                                </Button>
-                              </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              {/* Desktop Table Layout */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left p-2">Image</th>
+                      <th className="text-left p-2">Product</th>
+                      <th className="text-left p-2">Weight</th>
+                      <th className="text-left p-2">Your Price</th>
+                      <th className="text-left p-2">Regular Price</th>
+                      <th className="text-left p-2">Savings</th>
+                      <th className="text-left p-2">Profit</th>
+                      <th className="text-left p-2">Status</th>
+                      <th className="text-left p-2">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {products.map((product) => {
+                      const savings = calculateSavings(product.selling_price, product.regular_price)
+                      const profitInfo = calculateProfit(product.selling_price, product.cost)
+                      return (
+                        <tr key={product.id} className="border-b hover:bg-gray-50">
+                          <td className="p-2">
+                            <div className="w-12 h-12 rounded-md overflow-hidden bg-gray-100 flex items-center justify-center">
+                              {product.image_url ? (
+                                <img
+                                  src={product.image_url || "/placeholder.svg"}
+                                  alt={product.title}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <ImageIcon className="h-6 w-6 text-gray-400" />
+                              )}
+                            </div>
+                          </td>
+                          <td className="p-2">
+                            <div>
+                              <div className="font-medium">{product.title}</div>
+                              {product.description && (
+                                <div className="text-sm text-muted-foreground truncate max-w-xs">
+                                  {product.description}
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                          <td className="p-2">{product.weight}lbs</td>
+                          <td className="p-2 font-medium">${product.selling_price.toFixed(2)}</td>
+                          <td className="p-2">
+                            <span className="line-through text-muted-foreground">
+                              ${product.regular_price.toFixed(2)}
+                            </span>
+                          </td>
+                          <td className="p-2">
+                            <div className="text-green-600 font-medium">${savings.amount.toFixed(2)}</div>
+                            <div className="text-xs text-green-600">{savings.percentage}% off</div>
+                          </td>
+                          <td className="p-2">
+                            {profitInfo ? (
+                              <>
+                                <div className="text-blue-600 font-medium">${profitInfo.profit.toFixed(2)}</div>
+                                <div className="text-xs text-blue-600">{profitInfo.profitMargin.toFixed(1)}% margin</div>
+                              </>
                             ) : (
-                              <Button size="sm" variant="outline" onClick={() => setDeleteConfirm(product.id)}>
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
+                              <span className="text-gray-400 text-sm">No cost data</span>
                             )}
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
+                          </td>
+                          <td className="p-2">
+                            <span
+                              className={`px-2 py-1 rounded-full text-xs ${
+                                product.available ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                              }`}
+                            >
+                              {product.available ? "Available" : "Unavailable"}
+                            </span>
+                          </td>
+                          <td className="p-2">
+                            <div className="flex gap-1">
+                              <Button size="sm" variant="outline" onClick={() => handleEdit(product)}>
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                              {deleteConfirm === product.id ? (
+                                <div className="flex gap-1">
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    onClick={() => handleDelete(product.id)}
+                                    className="text-xs px-2"
+                                  >
+                                    Confirm
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => setDeleteConfirm(null)}
+                                    className="text-xs px-2"
+                                  >
+                                    Cancel
+                                  </Button>
+                                </div>
+                              ) : (
+                                <Button size="sm" variant="outline" onClick={() => setDeleteConfirm(product.id)}>
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

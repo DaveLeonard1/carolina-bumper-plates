@@ -96,7 +96,7 @@ export default function HomePage() {
       <ProductConfigurator />
 
       {/* Batch Progress */}
-      <BatchProgress />
+      <BatchProgress fullWidth />
     </div>
   )
 }

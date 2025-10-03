@@ -26,6 +26,7 @@ import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase/client"
 import { CancelOrderModal } from "@/components/cancel-order-modal"
 import { PageLayout } from "@/components/page-layout"
+import { BatchProgress } from "@/components/batch-progress"
 
 interface Order {
   id: string
@@ -567,7 +568,7 @@ export default function MyAccountPage() {
     <PageLayout>
       <div className="bg-gray-50 overflow-x-hidden">
         {/* Page Header */}
-        <div className="px-2 sm:px-4 py-8 sm:py-16 bg-white">
+        <div className="px-2 sm:px-4 py-8 sm:py-16 bg-gray-50">
           <div className="max-w-4xl mx-auto">
             <div>
               <h1
@@ -629,9 +630,9 @@ export default function MyAccountPage() {
               </div>
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+            <div className="flex flex-col lg:grid lg:grid-cols-3 gap-4 lg:gap-6">
               {/* Left Column - Profile & Quick Actions */}
-              <div className="lg:col-span-1 space-y-6">
+              <div className="lg:col-span-1 space-y-6 order-2 lg:order-1">
                 {/* Profile Card */}
                 <div className="bg-white rounded-lg border-2 border-black overflow-hidden">
                   <div className="bg-black text-white p-4">
@@ -799,7 +800,7 @@ export default function MyAccountPage() {
               </div>
 
               {/* Right Column - Orders */}
-              <div className="lg:col-span-2 space-y-6">
+              <div className="lg:col-span-2 space-y-6 order-1 lg:order-2">
                 {loadingData ? (
                   <div className="text-center py-12 bg-white rounded-lg border-2 border-black">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
@@ -1144,9 +1145,12 @@ export default function MyAccountPage() {
             </div>
           </div>
         </div>
+
+        {/* Batch Progress Section */}
+        <BatchProgress />
+
       </div>
 
-      {/* Cancel Order Modal */}
       <CancelOrderModal
         isOpen={cancelModalOpen}
         onClose={() => {
