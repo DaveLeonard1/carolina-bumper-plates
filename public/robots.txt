@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+# Important pages
+Allow: /checkout
+Allow: /contact
+Allow: /api/batch-progress
+
+# Block admin areas
+Disallow: /admin/
+Disallow: /api/admin/
+
+# Sitemap
+Sitemap: https://theplateyrd.com/sitemap.xml
