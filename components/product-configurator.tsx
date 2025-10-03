@@ -38,7 +38,8 @@ export default function ProductConfigurator() {
   }
 
   const selectedProducts = products.filter((product) => quantities[product.id] && quantities[product.id] > 0)
-  const totalWeight = selectedProducts.reduce((sum, product) => sum + product.weight * quantities[product.id] * 2, 0)
+  const totalQuantity = selectedProducts.reduce((sum, product) => sum + quantities[product.id], 0)
+  const totalWeight = selectedProducts.reduce((sum, product) => sum + product.weight * quantities[product.id], 0)
   const totalCost = selectedProducts.reduce((sum, product) => sum + product.selling_price * quantities[product.id], 0)
   const totalSavings = selectedProducts.reduce(
     (sum, product) => sum + (product.regular_price - product.selling_price) * quantities[product.id],
@@ -154,7 +155,7 @@ export default function ProductConfigurator() {
                   <ShoppingCart className="h-4 w-4" />
                   <div className="text-left">
                     <div className="font-bold text-sm">
-                      {selectedProducts.length} {selectedProducts.length === 1 ? "Item" : "Items"} • {totalWeight} lbs
+                      {totalQuantity} {totalQuantity === 1 ? "Item" : "Items"} • {totalWeight} lbs
                     </div>
                   </div>
                 </div>
