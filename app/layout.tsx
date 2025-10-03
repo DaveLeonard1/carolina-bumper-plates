@@ -58,7 +58,7 @@ export const metadata: Metadata = {
     siteName: "The Plate Yard",
     images: [
       {
-        url: '/social-preview.jpg', // 1200x630 recommended
+        url: 'https://theplateyrd.com/social-preview.jpg',
         width: 1200,
         height: 630,
         alt: 'The Plate Yard - Hi-Temp Bumper Plates'
@@ -71,7 +71,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: "The Plate Yard - Official Hi-Temp Factory Seconds", 
     description: "USA-made Hi-Temp bumper plates with minor cosmetic blemishes at wholesale prices. Pre-order now, pay when ready.",
-    images: ['/social-preview.jpg'],
+    images: ['https://theplateyrd.com/social-preview.jpg'],
   },
 }
 
