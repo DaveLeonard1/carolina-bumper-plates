@@ -1,8 +1,6 @@
 "use client"
 
-import type React from "react"
-
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -13,8 +11,8 @@ import { Minus, Plus, Dumbbell, AlertCircle, Edit, RefreshCw, Lock, ArrowLeft } 
 import { colorUsage } from "@/lib/colors"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { PageLayout } from "@/components/page-layout"
 import { ProductCard } from "@/components/ui/product-card"
+import { PageLayout } from "@/components/page-layout"
 
 interface Product {
   id: string
@@ -66,7 +64,32 @@ interface OrderData {
   canModify: boolean
 }
 
-export default function ModifyOrderPage() {
+// Helper functions moved outside component to avoid JSX parsing conflicts
+const fetchProductsFromAPI = async (): Promise<Product[]> => {
+  const timestamp = new Date().getTime()
+  const response = await fetch(`/api/products?t=${timestamp}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      "Cache-Control": "no-cache, no-store, must-revalidate",
+      Pragma: "no-cache",
+      Expires: "0",
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error(`API failed with status ${response.status}`)
+  }
+
+  const result = await response.json()
+  if (result.success && result.products && Array.isArray(result.products)) {
+    return result.products
+  } else {
+    throw new Error("Invalid API response structure")
+  }
+}
+
+function ModifyOrderPage() {
   const searchParams = useSearchParams()
   const orderNumber = searchParams.get("order")
   
@@ -447,29 +470,22 @@ export default function ModifyOrderPage() {
   const originalWeight =
     typeof orderData?.total_weight === "number" && !isNaN(orderData.total_weight) ? orderData.total_weight : 0
 
+  // Loading state
   if (loading) {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{ backgroundColor: colorUsage.backgroundLight }}
-      >
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div
-            className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4"
-            style={{ borderColor: colorUsage.textOnLight }}
-          ></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
           <p>Loading your order and current products...</p>
         </div>
       </div>
     )
   }
 
+  // Error state
   if (error || !orderData) {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{ backgroundColor: colorUsage.backgroundLight }}
-      >
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <Card className="p-8 max-w-md">
           <CardContent className="text-center">
             <AlertCircle className="h-12 w-12 mx-auto mb-4 text-red-500" />
@@ -484,103 +500,102 @@ export default function ModifyOrderPage() {
     )
   }
 
+  // Cannot modify state
   if (!orderData.canModify) {
     const getReasonMessage = () => {
-      if (orderData.payment_link_url) {
-        return "A payment link has been generated for this order."
-      }
-      if (orderData.order_locked) {
-        return orderData.order_locked_reason || "This order has been locked."
-      }
-      if (orderData.invoiced_at) {
-        return "An invoice has been sent for this order."
-      }
-      if (orderData.payment_status === "paid") {
-        return "This order has been paid."
-      }
-      if (orderData.status !== "pending") {
-        return `Order status is ${orderData.status}.`
-      }
+      if (orderData.payment_link_url) return "A payment link has been generated for this order."
+      if (orderData.order_locked) return orderData.order_locked_reason || "This order has been locked."
+      if (orderData.invoiced_at) return "An invoice has been sent for this order."
+      if (orderData.payment_status === "paid") return "This order has been paid."
+      if (orderData.status !== "pending") return `Order status is ${orderData.status}.`
       return "This order can no longer be modified."
     }
 
     return (
-      <PageLayout>
-        <div
-          className="min-h-screen flex items-center justify-center"
-          style={{ backgroundColor: colorUsage.backgroundLight }}
-        >
-          <Card className="p-8 max-w-md">
-            <CardContent className="text-center">
-              <div className="flex items-center justify-center mb-4">
-                <Lock className="h-12 w-12 text-orange-500" />
-              </div>
-              <h1 className="text-2xl font-bold mb-4">Order Cannot Be Modified</h1>
-              <div className="mb-6 space-y-2">
-                <p className="text-gray-700">{getReasonMessage()}</p>
-                {orderData.payment_link_url && (
-                  <p className="text-sm text-gray-600">
-                    Please complete your payment or contact us if you need to make changes.
-                  </p>
-                )}
-              </div>
-              <div className="space-y-3">
-                <Link href={`/order-confirmation?order=${orderNumber}`}>
-                  <Button className="w-full">View Order Details</Button>
-                </Link>
-                {orderData.payment_link_url && (
-                  <a href={orderData.payment_link_url} target="_blank" rel="noopener noreferrer">
-                    <Button variant="outline" className="w-full">
-                      Complete Payment
-                    </Button>
-                  </a>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </PageLayout>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Card className="p-8 max-w-md">
+          <CardContent className="text-center">
+            <div className="flex items-center justify-center mb-4">
+              <Lock className="h-12 w-12 text-orange-500" />
+            </div>
+            <h1 className="text-2xl font-bold mb-4">Order Cannot Be Modified</h1>
+            <div className="mb-6 space-y-2">
+              <p className="text-gray-700">{getReasonMessage()}</p>
+              {orderData.payment_link_url && (
+                <p className="text-sm text-gray-600">
+                  Please complete your payment or contact us if you need to make changes.
+                </p>
+              )}
+            </div>
+            <div className="space-y-3">
+              <Link href={`/order-confirmation?order=${orderNumber}`}>
+                <Button className="w-full">View Order Details</Button>
+              </Link>
+              {orderData.payment_link_url && (
+                <a href={orderData.payment_link_url} target="_blank" rel="noopener noreferrer">
+                  <Button variant="outline" className="w-full">
+                    Complete Payment
+                  </Button>
+                </a>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     )
   }
 
   return (
     <PageLayout>
-      <div className="px-2 sm:px-4 py-8 md:pt-8 pt-20 pb-24" style={{ backgroundColor: colorUsage.backgroundLight }}>
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-6"></div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8">
-            {/* Left Side - Modification Form */}
-            <div className="lg:col-span-2">
-              {/* Plate Selection */}
-              <Card className="p-6 rounded-lg border mb-6" style={{ backgroundColor: colorUsage.backgroundPrimary }}>
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-3 mb-2">
-                    <Edit className="h-6 w-6" style={{ color: colorUsage.textOnLight }} />
-                    <h1 className="text-3xl font-black" style={{ fontFamily: "Oswald, sans-serif" }}>
-                      MODIFY YOUR ORDER
-                    </h1>
-                  </div>
-                  <p className="mb-8" style={{ color: colorUsage.textMuted }}>
-                    Order #{orderData.order_number} • Status: {orderData.status}
-                  </p>
-                  <div className="mb-6">
-                    <h2 className="text-xl font-bold">Update Your Plate Selection</h2>
-                    <p className="text-sm mt-1" style={{ color: colorUsage.textMuted }}>
-                      Adjust quantities below to update your order
-                    </p>
-                  </div>
+      <div className="bg-gray-50 overflow-x-hidden">
+        {/* Page Header */}
+        <div className="px-4 sm:px-6 py-8 sm:py-16 bg-white">
+          <div className="max-w-4xl lg:max-w-6xl mx-auto">
+            <div className="flex items-center gap-3 mb-4">
+              <Edit className="h-8 w-8" style={{ color: "#1a1a1a" }} />
+              <h1
+                className="text-4xl md:text-5xl font-black"
+                style={{ fontFamily: "Oswald, sans-serif", color: "#1a1a1a" }}
+              >
+                MODIFY YOUR ORDER
+              </h1>
+            </div>
+            <p className="text-xl mb-2" style={{ color: "#1a1a1a" }}>
+              Order #{orderData.order_number} • Status: {orderData.status}
+            </p>
+            <p className="text-lg" style={{ color: "#6b7280" }}>
+              Update your plate selection and delivery information
+            </p>
+          </div>
+        </div>
 
-                  {plates.length === 0 ? (
-                    <div className="text-center py-8" style={{ color: colorUsage.textMuted }}>
-                      <p>Loading current products...</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <div
-                        className="hidden md:grid md:grid-cols-4 gap-4 font-semibold text-sm border-b pb-2"
-                        style={{ color: colorUsage.textMuted }}
-                      >
+        {/* Main Content */}
+        <div className="px-4 sm:px-6 md:px-8 py-8">
+          <div className="max-w-4xl lg:max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8">
+              {/* Left Side - Modification Form */}
+              <div className="lg:col-span-2">
+                {/* Section Header */}
+                <div className="mb-6">
+                  <h2 className="text-2xl font-black mb-2" style={{ fontFamily: "Oswald, sans-serif", color: "#1a1a1a" }}>
+                    UPDATE YOUR PLATE SELECTION
+                  </h2>
+                  <p className="text-base" style={{ color: "#6b7280" }}>
+                    Adjust quantities below to update your order
+                  </p>
+                </div>
+
+              {/* Product Cards - Direct like homepage */}
+              {plates.length === 0 ? (
+                <div className="text-center py-8" style={{ color: colorUsage.textMuted }}>
+                  <p>Loading current products...</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div
+                    className="hidden md:grid md:grid-cols-4 gap-4 font-semibold text-sm border-b pb-2"
+                    style={{ color: colorUsage.textMuted }}
+                  >
                         <span>PRODUCT</span>
                         <span>PRICE</span>
                         <span>QUANTITY</span>
@@ -647,8 +662,6 @@ export default function ModifyOrderPage() {
                       })}
                     </div>
                   )}
-                </CardContent>
-              </Card>
 
               {/* Contact & Delivery Information */}
               <Card className="p-6 rounded-lg border mb-6" style={{ backgroundColor: colorUsage.backgroundPrimary }}>
@@ -1114,7 +1127,10 @@ export default function ModifyOrderPage() {
             </Button>
           </div>
         )}
+        </div>
       </div>
     </PageLayout>
   )
 }
+
+export default ModifyOrderPage
