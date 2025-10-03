@@ -9,9 +9,11 @@ import { StructuredData } from "@/components/structured-data"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NODE_ENV === 'production' 
-    ? 'https://theplateyrd.com' 
-    : 'http://localhost:3000'),
+  metadataBase: new URL(process.env.VERCEL_URL 
+    ? `https://${process.env.VERCEL_URL}` 
+    : process.env.NODE_ENV === 'production' 
+      ? 'https://theplateyard.com' 
+      : 'http://localhost:3000'),
   title: {
     default: "The Plate Yard - Official Hi-Temp Factory Seconds",
     template: "%s | The Plate Yard"
@@ -45,7 +47,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: 'https://theplateyrd.com',
+    canonical: 'https://theplateyard.com',
   },
   generator: "Next.js",
   icons: {
@@ -56,7 +58,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "The Plate Yard - Official Hi-Temp Factory Seconds",
     description: "USA-made Hi-Temp bumper plates with minor cosmetic blemishes at wholesale prices. Pre-order now, pay when ready.",
-    url: "https://theplateyrd.com",
+    url: "https://theplateyard.com",
     siteName: "The Plate Yard",
     images: [
       {
