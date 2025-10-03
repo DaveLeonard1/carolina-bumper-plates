@@ -105,7 +105,10 @@ export function Header({ transparent = false }: HeaderProps) {
         <div className="md:hidden bg-[#1a1a1a] border-t border-gray-800">
           <div className="px-[27px] py-4 flex flex-col gap-3">
             <Link href="/my-account" onClick={() => setMobileMenuOpen(false)}>
-              <Button variant="ghost" className="w-full text-white hover:bg-white/10 font-semibold justify-start">
+              <Button
+                variant="outline"
+                className="w-full border-white text-white hover:bg-white hover:text-black font-semibold bg-transparent justify-start"
+              >
                 My Account
               </Button>
             </Link>
