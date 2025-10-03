@@ -9,11 +9,9 @@ import { StructuredData } from "@/components/structured-data"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.VERCEL_URL 
-    ? `https://${process.env.VERCEL_URL}` 
-    : process.env.NODE_ENV === 'production' 
-      ? 'https://theplateyard.com' 
-      : 'http://localhost:3000'),
+  metadataBase: new URL(process.env.NODE_ENV === 'production' 
+    ? 'https://theplateyard.com' 
+    : 'http://localhost:3000'),
   title: {
     default: "The Plate Yard - Official Hi-Temp Factory Seconds",
     template: "%s | The Plate Yard"
@@ -75,7 +73,11 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: "The Plate Yard - Official Hi-Temp Factory Seconds", 
     description: "USA-made Hi-Temp bumper plates with minor cosmetic blemishes at wholesale prices. Pre-order now, pay when ready.",
-    images: ['/social-preview.jpg'],
+    images: {
+      url: '/social-preview.jpg',
+      alt: 'The Plate Yard - Hi-Temp Bumper Plates',
+    },
+    creator: '@theplateyard', // Add your Twitter handle if you have one
   },
 }
 
@@ -91,6 +93,12 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Oswald:wght@200;300;400;500;600;700&display=swap"
           rel="stylesheet"
         />
+        {/* Explicit social meta tags for better compatibility */}
+        <meta property="og:image" content="https://theplateyard.com/social-preview.jpg" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta name="twitter:image" content="https://theplateyard.com/social-preview.jpg" />
+        <meta name="twitter:card" content="summary_large_image" />
         <StructuredData />
       </head>
       <body className={inter.className}>
